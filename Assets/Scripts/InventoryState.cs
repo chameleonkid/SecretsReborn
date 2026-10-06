@@ -46,6 +46,18 @@ namespace SecretsReborn
             ? new InventoryStack { itemId = bag[index].itemId, count = bag[index].count } : null;
         public string GetEquipment(EquipmentSlot slot) => (int)slot >= 0 && (int)slot < equipment.Length ? equipment[(int)slot] : null;
         public string EquippedArmorId => GetEquipment(EquipmentSlot.Armor);
+        public CharacterSaveData Capture(string characterId) => new CharacterSaveData
+        { characterId = characterId, bag = Clone(bag), equipment = (string[])equipment.Clone() };
+        public static InventoryState Restore(CharacterSaveData data)
+        {
+            if (data == null || data.bag == null || data.bag.Length != Capacity || data.equipment == null || data.equipment.Length != 14)
+                throw new ArgumentException("Invalid inventory dimensions.");
+            foreach (var stack in data.bag)
+                if (stack != null && (string.IsNullOrWhiteSpace(stack.itemId) || stack.count <= 0)) throw new ArgumentException("Invalid item stack.");
+            foreach (var id in data.equipment)
+                if (id != null && string.IsNullOrWhiteSpace(id)) throw new ArgumentException("Invalid equipment ID.");
+            return new InventoryState { bag = Clone(data.bag), equipment = (string[])data.equipment.Clone() };
+        }
         public bool TryAdd(string id, int count, int maxStack, int capacity = Capacity)
         {
             var next = Clone(bag);

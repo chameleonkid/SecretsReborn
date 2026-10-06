@@ -13,11 +13,14 @@ namespace SecretsReborn
         // and validate sender ownership before forwarding requests here.
         [SerializeField] private bool hasStateAuthority = true;
         public string CharacterId => characterId;
-        public InventoryState State { get; } = new InventoryState();
+        public InventoryState State { get; private set; }
         public bool HasStateAuthority => hasStateAuthority;
         public event Action Changed;
         public void Configure(ItemDefinition[] definitions, ClothingAppearance fallback)
         { catalog = definitions; baseClothing = fallback; }
+        private void Awake() => State = GameSession.Instance.World.CharacterInventory(characterId);
+        public void RefreshSession()
+        { State = GameSession.Instance.World.CharacterInventory(characterId); ApplyAppearance(); Changed?.Invoke(); }
         private void Start() => ApplyAppearance();
         public ItemDefinition Find(string id) => catalog == null ? null : Array.Find(catalog, item => item != null && item.ItemId == id);
         public bool TryReceive(ItemDefinition item, int count)

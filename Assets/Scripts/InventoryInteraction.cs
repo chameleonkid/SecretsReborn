@@ -14,6 +14,7 @@ namespace SecretsReborn
         private PlayerMovement movement;
         private CharacterAppearance appearance;
         private bool open, movementWasEnabled;
+        public bool IsOpen => open;
         private string message;
         private int selected, dragSource = -1;
         private Vector2 dragStart;
@@ -44,7 +45,7 @@ namespace SecretsReborn
         }
         private void Update()
         {
-            if (!localInput || !Application.isFocused) return;
+            if (!localInput || !Application.isFocused || SaveBook.IsOpen) return;
             var key = Keyboard.current; var pad = Gamepad.current;
             if ((key != null && (key.iKey.wasPressedThisFrame || (open && key.escapeKey.wasPressedThisFrame)))
                 || (pad != null && pad.startButton.wasPressedThisFrame)) SetOpen(!open);

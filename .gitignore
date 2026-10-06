@@ -11,3 +11,7 @@
 *.slnx
 *.user
 *.pidb
+
+# Purchased dependency: import via your Unity Asset Store account.
+/Assets/Plugins/Easy Save 3/
+/Assets/Plugins/Easy Save 3.meta

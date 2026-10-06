@@ -66,3 +66,4 @@ Charakterzustände. Runtime- und Editor-Code kompilieren.
 Noch keine Persistenz oder Netzwerkverbindung. Neuer Play-Durchlauf startet
 leer. Nächster Schritt: versioniertes Savegame für Welt-Item-IDs, Charaktere,
 40 Taschenplätze und 14 Ausrüstungsplätze.
+

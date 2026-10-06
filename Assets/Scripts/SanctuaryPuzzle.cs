@@ -9,7 +9,8 @@ namespace SecretsReborn
         [SerializeField] private RuneCircle[] circles;
         [SerializeField] private SpringSource spring;
         [SerializeField] private GameObject gate;
-        private readonly RuneSequence sequence = new RuneSequence();
+        [SerializeField] private string puzzleId = "forest-sanctuary-source";
+        private RuneSequence sequence;
         private string message = "Finde die vier Runenkreise in der richtigen Reihenfolge.";
 
         public void Configure(PlayerLantern source, RuneCircle[] orderedCircles,
@@ -30,11 +31,21 @@ namespace SecretsReborn
                 enabled = false;
                 return;
             }
+            RefreshSession();
+        }
+        public void RefreshSession()
+        {
+            sequence = GameSession.Instance.World.Puzzle(puzzleId);
             for (int i = 0; i < circles.Length; i++)
             {
                 circles[i].Initialize(lantern.transform, i, EnterCircle);
-                circles[i].SetActivated(false);
+                circles[i].SetActivated(i < sequence.Progress);
             }
+            spring.SetRestored(sequence.IsComplete);
+            gate.SetActive(!sequence.IsComplete);
+            if (sequence.IsComplete) ApplyCompletion();
+            else if (sequence.Progress > 0) message = "Runenkreis aktiviert: " + sequence.Progress + "/4";
+            else message = "Finde die vier Runenkreise in der richtigen Reihenfolge.";
         }
 
         private void EnterCircle(int index)
@@ -45,6 +56,10 @@ namespace SecretsReborn
             message = correct ? "Runenkreis aktiviert: " + sequence.Progress + "/4"
                 : "Falsche Reihenfolge. Zurueck zum ersten Kreis!";
             if (!sequence.IsComplete) return;
+            ApplyCompletion();
+        }
+        private void ApplyCompletion()
+        {
             spring.Restore();
             gate.SetActive(false);
             message = "Die Quelle fliesst wieder. Der Weg im Norden ist offen!";
