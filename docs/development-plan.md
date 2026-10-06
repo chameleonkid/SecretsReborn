@@ -2,6 +2,10 @@
 
 ## Aktueller Umfang
 
+Das Waldheiligtum wurde zusätzlich als dauerhaft editierbare Szene mit Grid,
+drei Tilemaps, drei Tile-Assets und sechs Prefabs gespeichert und erneut geladen.
+Siehe [Kartengestaltung](world-authoring.md). Der Spieltest der neuen Szene steht noch aus.
+
 Code und Mechaniken sind seit dem 6. Oktober 2026 freigegeben. Der erste Solo-Bewegungsprototyp mit Kamera, Kollision und Platzhaltergrafik ist angelegt; siehe [Spieltest](prototype.md). Nichts committen oder pushen.
 
 ## Technische Bestandsaufnahme – 6. Oktober 2026

@@ -31,5 +31,6 @@ Vor einem CLI-Import laufende Editorprozesse und deren Projektpfade prüfen. Bei
 
 Code und Mechaniken sind freigegeben. Der erste Bewegungsprototyp liegt in
 `Assets/Scenes/Waldheiligtum.unity`; siehe [Start und Spieltest](docs/prototype.md).
+Für die Kartengestaltung steht die [editierbare Welt mit Tilemaps und Prefabs](docs/world-authoring.md) bereit.
 Der optionale [Asset-Fundus Secrets](docs/assets.md) ist erreichbar und wurde erstmals gesichtet.
 Keine Commits oder Pushes ausführen.

@@ -1,0 +1,519 @@
+fileFormatVersion: 2
+guid: d580efc54bf22fe4da39c81c4c45245c
+TextureImporter:
+  internalIDToNameTable:
+  - first:
+      213: 6090750845996353798
+    second: GrassVariants_0
+  - first:
+      213: 2646297402988825323
+    second: GrassVariants_1
+  - first:
+      213: -8259247207336280094
+    second: GrassVariants_2
+  - first:
+      213: 580005126354122180
+    second: GrassVariants_3
+  - first:
+      213: 3633432501237594734
+    second: GrassVariants_4
+  - first:
+      213: -7150789230566211804
+    second: GrassVariants_5
+  - first:
+      213: 6368543553398236897
+    second: GrassVariants_6
+  - first:
+      213: 6598320859724138778
+    second: GrassVariants_7
+  - first:
+      213: -5291061517091903423
+    second: GrassVariants_8
+  - first:
+      213: -4863606479538315131
+    second: GrassVariants_9
+  - first:
+      213: -4293575575840811865
+    second: GrassVariants_10
+  - first:
+      213: -4523429518657174026
+    second: GrassVariants_11
+  - first:
+      213: -6606045027359918882
+    second: GrassVariants_12
+  - first:
+      213: 4743005593196735490
+    second: GrassVariants_13
+  - first:
+      213: -3397873019626892268
+    second: GrassVariants_14
+  - first:
+      213: -989507698218795596
+    second: GrassVariants_15
+  - first:
+      213: 6443699057920007539
+    second: GrassVariants_16
+  - first:
+      213: -66643748624974245
+    second: GrassVariants_17
+  - first:
+      213: -4547021774303839829
+    second: GrassVariants_18
+  - first:
+      213: -7122929301353742646
+    second: GrassVariants_19
+  - first:
+      213: -3598877481383055997
+    second: GrassVariants_20
+  - first:
+      213: -4244237512656292035
+    second: GrassVariants_21
+  - first:
+      213: -5526664143675792798
+    second: GrassVariants_22
+  - first:
+      213: 9058639675254464467
+    second: GrassVariants_23
+  - first:
+      213: 5887923531126168759
+    second: GrassVariants_24
+  - first:
+      213: -3798529579093383484
+    second: GrassVariants_25
+  - first:
+      213: 1450688904791683991
+    second: GrassVariants_26
+  - first:
+      213: -4318775029196403341
+    second: GrassVariants_27
+  - first:
+      213: -651949491405538272
+    second: GrassVariants_28
+  - first:
+      213: -7283260133394598595
+    second: GrassVariants_29
+  - first:
+      213: -7559741413017876235
+    second: GrassVariants_30
+  - first:
+      213: 8411096640693362652
+    second: GrassVariants_31
+  - first:
+      213: -4067956163171983398
+    second: GrassVariants_32
+  - first:
+      213: -1483177296692878898
+    second: GrassVariants_33
+  - first:
+      213: 8486167658103323571
+    second: GrassVariants_34
+  - first:
+      213: 3068359527951914315
+    second: GrassVariants_35
+  - first:
+      213: 443804112424579022
+    second: GrassVariants_36
+  - first:
+      213: 1489977542090349123
+    second: GrassVariants_37
+  - first:
+      213: 8553196048777688102
+    second: GrassVariants_38
+  - first:
+      213: 3363762378724954166
+    second: GrassVariants_39
+  - first:
+      213: -3960167049517829432
+    second: GrassVariants_40
+  - first:
+      213: 3072947337278768720
+    second: GrassVariants_41
+  externalObjects: {}
+  serializedVersion: 13
+  mipmaps:
+    mipMapMode: 0
+    enableMipMap: 0
+    sRGBTexture: 1
+    linearTexture: 0
+    fadeOut: 0
+    borderMipMap: 0
+    mipMapsPreserveCoverage: 0
+    alphaTestReferenceValue: 0.5
+    mipMapFadeDistanceStart: 1
+    mipMapFadeDistanceEnd: 3
+  bumpmap:
+    convertToNormalMap: 0
+    externalNormalMap: 0
+    heightScale: 0.25
+    normalMapFilter: 0
+    flipGreenChannel: 0
+  isReadable: 0
+  streamingMipmaps: 0
+  streamingMipmapsPriority: 0
+  vTOnly: 0
+  ignoreMipmapLimit: 0
+  grayScaleToAlpha: 0
+  generateCubemap: 6
+  cubemapConvolution: 0
+  seamlessCubemap: 0
+  textureFormat: 1
+  maxTextureSize: 2048
+  textureSettings:
+    serializedVersion: 2
+    filterMode: 0
+    aniso: 1
+    mipBias: 0
+    wrapU: 1
+    wrapV: 1
+    wrapW: 1
+  nPOTScale: 0
+  lightmap: 0
+  compressionQuality: 50
+  spriteMode: 2
+  spriteExtrude: 1
+  spriteMeshType: 0
+  alignment: 0
+  spritePivot: {x: 0.5, y: 0.5}
+  spritePixelsToUnits: 32
+  spriteBorder: {x: 0, y: 0, z: 0, w: 0}
+  spriteGenerateFallbackPhysicsShape: 1
+  alphaUsage: 1
+  alphaIsTransparency: 1
+  spriteTessellationDetail: -1
+  textureType: 8
+  textureShape: 1
+  singleChannelComponent: 0
+  flipbookRows: 1
+  flipbookColumns: 1
+  maxTextureSizeSet: 0
+  compressionQualitySet: 0
+  textureFormatSet: 0
+  ignorePngGamma: 0
+  applyGammaDecoding: 0
+  swizzle: 50462976
+  cookieLightType: 0
+  platformSettings:
+  - serializedVersion: 4
+    buildTarget: DefaultTexturePlatform
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 0
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  - serializedVersion: 4
+    buildTarget: Standalone
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  spriteSheet:
+    serializedVersion: 2
+    sprites:
+    - serializedVersion: 2
+      name: GrassPatch_00
+      rect:
+        serializedVersion: 2
+        x: 128
+        y: 448
+        width: 32
+        height: 32
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: e350aa93f41903d4c905323890613449
+      internalID: 699292988
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: GrassPatch_01
+      rect:
+        serializedVersion: 2
+        x: 160
+        y: 448
+        width: 32
+        height: 32
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: f182e7da17da95d48a6793b7dc7fb29b
+      internalID: 1020670695
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: GrassPatch_02
+      rect:
+        serializedVersion: 2
+        x: 128
+        y: 480
+        width: 32
+        height: 32
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: e2a72c4c68ae1fc4db241eb531d11d10
+      internalID: 1322785242
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: GrassPatch_03
+      rect:
+        serializedVersion: 2
+        x: 160
+        y: 480
+        width: 32
+        height: 32
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: b9c072bc03d2290469f0ea7d5e39a548
+      internalID: 1995760980
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: GrassPatch_04
+      rect:
+        serializedVersion: 2
+        x: 160
+        y: 480
+        width: 32
+        height: 32
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 3e45f14bc7f0b5443a57aa5f5d22688b
+      internalID: 1894105529
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: GrassPatch_05
+      rect:
+        serializedVersion: 2
+        x: 192
+        y: 480
+        width: 32
+        height: 32
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: c82dfed014c261842abedd865b5f39f9
+      internalID: -185934358
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: GrassPatch_06
+      rect:
+        serializedVersion: 2
+        x: 160
+        y: 512
+        width: 32
+        height: 32
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 1d7368517a37d1346a7181dcc2fc064c
+      internalID: 92948712
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: GrassPatch_07
+      rect:
+        serializedVersion: 2
+        x: 192
+        y: 512
+        width: 32
+        height: 32
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 3402986cb91bbb84ca45eb39abb64fbc
+      internalID: 1528075994
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: GrassPatch_08
+      rect:
+        serializedVersion: 2
+        x: 192
+        y: 448
+        width: 32
+        height: 32
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 4be17deef6ec38141b3600560738ec4e
+      internalID: -1003375978
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: GrassPatch_09
+      rect:
+        serializedVersion: 2
+        x: 224
+        y: 448
+        width: 32
+        height: 32
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: aa60a86ae094d214ea79a0476cc1df2c
+      internalID: -1058466772
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: GrassPatch_10
+      rect:
+        serializedVersion: 2
+        x: 192
+        y: 480
+        width: 32
+        height: 32
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: bdc0069491b7447418df00386e9c27a7
+      internalID: 1257871717
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: GrassPatch_11
+      rect:
+        serializedVersion: 2
+        x: 224
+        y: 480
+        width: 32
+        height: 32
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 65d81d413b5b1dd49b99c11b3a958232
+      internalID: -59675437
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    outline: []
+    customData: 
+    physicsShape: []
+    bones: []
+    spriteID: eef2653ee7e93de4f9db798acc1dbead
+    internalID: 0
+    vertices: []
+    indices: 
+    edges: []
+    weights: []
+    secondaryTextures: []
+    spriteCustomMetadata:
+      entries: []
+    nameFileIdTable:
+      GrassPatch_00: 699292988
+      GrassPatch_01: 1020670695
+      GrassPatch_02: 1322785242
+      GrassPatch_03: 1995760980
+      GrassPatch_04: 1894105529
+      GrassPatch_05: -185934358
+      GrassPatch_06: 92948712
+      GrassPatch_07: 1528075994
+      GrassPatch_08: -1003375978
+      GrassPatch_09: -1058466772
+      GrassPatch_10: 1257871717
+      GrassPatch_11: -59675437
+  mipmapLimitGroupName: 
+  pSDRemoveMatte: 0
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 

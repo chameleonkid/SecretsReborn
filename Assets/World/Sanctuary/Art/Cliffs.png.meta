@@ -1,0 +1,565 @@
+fileFormatVersion: 2
+guid: a46144cb37bf0f547a5b6456ea91b7b5
+TextureImporter:
+  internalIDToNameTable:
+  - first:
+      213: -4927492527167725857
+    second: Cliffs_0
+  - first:
+      213: 1490476674232240291
+    second: Cliffs_1
+  - first:
+      213: -5454440441721774897
+    second: Cliffs_2
+  - first:
+      213: -5618340272861491082
+    second: Cliffs_3
+  - first:
+      213: 8666285982008356812
+    second: Cliffs_4
+  - first:
+      213: 3220624499051633493
+    second: Cliffs_5
+  - first:
+      213: 7067741086529831747
+    second: Cliffs_6
+  - first:
+      213: -3667595394930050527
+    second: Cliffs_7
+  - first:
+      213: 8433041911480018630
+    second: Cliffs_8
+  - first:
+      213: 4889871748207947582
+    second: Cliffs_9
+  - first:
+      213: 3310966131694323284
+    second: Cliffs_10
+  - first:
+      213: -7685971446997644426
+    second: Cliffs_11
+  - first:
+      213: -7935812300149011221
+    second: Cliffs_12
+  - first:
+      213: -9118356356124916618
+    second: Cliffs_13
+  - first:
+      213: -3243780365357892957
+    second: Cliffs_14
+  - first:
+      213: -6450094567106171515
+    second: Cliffs_15
+  - first:
+      213: -5758869001165114031
+    second: Cliffs_16
+  - first:
+      213: -2174691851234392813
+    second: Cliffs_17
+  - first:
+      213: 7615295405970501163
+    second: Cliffs_18
+  - first:
+      213: -8079263972966181279
+    second: Cliffs_19
+  - first:
+      213: -5677320756221822355
+    second: Cliffs_20
+  - first:
+      213: 6857537825189540374
+    second: Cliffs_21
+  - first:
+      213: 287114812833744023
+    second: Cliffs_22
+  - first:
+      213: 8095300529430476538
+    second: Cliffs_23
+  - first:
+      213: 1957113573553901566
+    second: Cliffs_24
+  - first:
+      213: 5287828745118527229
+    second: Cliffs_25
+  - first:
+      213: 1113083385692814699
+    second: Cliffs_26
+  - first:
+      213: 1220441171114705356
+    second: Cliffs_27
+  - first:
+      213: 3292421407938849754
+    second: Cliffs_28
+  - first:
+      213: -2606873108943940963
+    second: Cliffs_29
+  - first:
+      213: 5873295681037236122
+    second: Cliffs_30
+  - first:
+      213: 8786408520464704061
+    second: Cliffs_31
+  - first:
+      213: 8789404141190153507
+    second: Cliffs_32
+  - first:
+      213: 1232179842235082677
+    second: Cliffs_33
+  - first:
+      213: -7357770626258868532
+    second: Cliffs_34
+  - first:
+      213: 3495853402170632791
+    second: Cliffs_35
+  - first:
+      213: -4457462722487086571
+    second: Cliffs_36
+  - first:
+      213: 4127631457439988225
+    second: Cliffs_37
+  - first:
+      213: -7163692105168460238
+    second: Cliffs_38
+  - first:
+      213: -7409624201964673066
+    second: Cliffs_39
+  - first:
+      213: 688659139454830245
+    second: Cliffs_40
+  - first:
+      213: -4353251308794175271
+    second: Cliffs_41
+  externalObjects: {}
+  serializedVersion: 13
+  mipmaps:
+    mipMapMode: 0
+    enableMipMap: 0
+    sRGBTexture: 1
+    linearTexture: 0
+    fadeOut: 0
+    borderMipMap: 0
+    mipMapsPreserveCoverage: 0
+    alphaTestReferenceValue: 0.5
+    mipMapFadeDistanceStart: 1
+    mipMapFadeDistanceEnd: 3
+  bumpmap:
+    convertToNormalMap: 0
+    externalNormalMap: 0
+    heightScale: 0.25
+    normalMapFilter: 0
+    flipGreenChannel: 0
+  isReadable: 0
+  streamingMipmaps: 0
+  streamingMipmapsPriority: 0
+  vTOnly: 0
+  ignoreMipmapLimit: 0
+  grayScaleToAlpha: 0
+  generateCubemap: 6
+  cubemapConvolution: 0
+  seamlessCubemap: 0
+  textureFormat: 1
+  maxTextureSize: 2048
+  textureSettings:
+    serializedVersion: 2
+    filterMode: 0
+    aniso: 1
+    mipBias: 0
+    wrapU: 1
+    wrapV: 1
+    wrapW: 1
+  nPOTScale: 0
+  lightmap: 0
+  compressionQuality: 50
+  spriteMode: 2
+  spriteExtrude: 1
+  spriteMeshType: 0
+  alignment: 0
+  spritePivot: {x: 0.5, y: 0.5}
+  spritePixelsToUnits: 32
+  spriteBorder: {x: 0, y: 0, z: 0, w: 0}
+  spriteGenerateFallbackPhysicsShape: 1
+  alphaUsage: 1
+  alphaIsTransparency: 1
+  spriteTessellationDetail: -1
+  textureType: 8
+  textureShape: 1
+  singleChannelComponent: 0
+  flipbookRows: 1
+  flipbookColumns: 1
+  maxTextureSizeSet: 0
+  compressionQualitySet: 0
+  textureFormatSet: 0
+  ignorePngGamma: 0
+  applyGammaDecoding: 0
+  swizzle: 50462976
+  cookieLightType: 0
+  platformSettings:
+  - serializedVersion: 4
+    buildTarget: DefaultTexturePlatform
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 0
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  - serializedVersion: 4
+    buildTarget: Standalone
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  spriteSheet:
+    serializedVersion: 2
+    sprites:
+    - serializedVersion: 2
+      name: Cliff_00
+      rect:
+        serializedVersion: 2
+        x: 128
+        y: 1696
+        width: 32
+        height: 32
+      alignment: 9
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 69067203a69a188489b7c2f2a59b4f77
+      internalID: 631229334
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Cliff_01
+      rect:
+        serializedVersion: 2
+        x: 160
+        y: 1696
+        width: 32
+        height: 32
+      alignment: 9
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 0947d09898917824a86dc33bfe9a4b6c
+      internalID: -550989140
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Cliff_02
+      rect:
+        serializedVersion: 2
+        x: 192
+        y: 1696
+        width: 32
+        height: 32
+      alignment: 9
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: fbed1dee3b6034549971b958b00be98b
+      internalID: 273701838
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Cliff_03
+      rect:
+        serializedVersion: 2
+        x: 128
+        y: 1728
+        width: 32
+        height: 32
+      alignment: 9
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 2540a2278b4f3f24cb068fb88cda6683
+      internalID: -1367119594
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Cliff_04
+      rect:
+        serializedVersion: 2
+        x: 160
+        y: 1728
+        width: 32
+        height: 32
+      alignment: 9
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 7a6d4dc0757f93a41ab776b203ea544e
+      internalID: 230689993
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Cliff_05
+      rect:
+        serializedVersion: 2
+        x: 192
+        y: 1728
+        width: 32
+        height: 32
+      alignment: 9
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 354e6eab1b5082046a3d3dfcae65dc91
+      internalID: -1735766494
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Cliff_06
+      rect:
+        serializedVersion: 2
+        x: 128
+        y: 1760
+        width: 32
+        height: 32
+      alignment: 9
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 1174adf3cb29e7f4e9e17ed8b063d9fe
+      internalID: -1912090276
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Cliff_07
+      rect:
+        serializedVersion: 2
+        x: 160
+        y: 1760
+        width: 32
+        height: 32
+      alignment: 9
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 5ad5b4158b26ad44588604e3c8e1bcfe
+      internalID: 504476684
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Cliff_08
+      rect:
+        serializedVersion: 2
+        x: 192
+        y: 1760
+        width: 32
+        height: 32
+      alignment: 9
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 7cfe9d08e073afc48af99819d5bc3150
+      internalID: -1915691592
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Cliff_09
+      rect:
+        serializedVersion: 2
+        x: 0
+        y: 1824
+        width: 32
+        height: 32
+      alignment: 9
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: a48c97ef306d0704f876f8e23beb2de5
+      internalID: -671501719
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Cliff_10
+      rect:
+        serializedVersion: 2
+        x: 32
+        y: 1824
+        width: 32
+        height: 32
+      alignment: 9
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: c3524d1ffde0d1848a6a2bf485ef14e3
+      internalID: 316681675
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Cliff_11
+      rect:
+        serializedVersion: 2
+        x: 320
+        y: 1824
+        width: 32
+        height: 32
+      alignment: 9
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: b3b433c311b300f40a8d5b24b8ac9994
+      internalID: 1905093685
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Cliff_12
+      rect:
+        serializedVersion: 2
+        x: 352
+        y: 1824
+        width: 32
+        height: 32
+      alignment: 9
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: ed31c12a859438747860919a15beb17b
+      internalID: 1915181276
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ExitStairs
+      rect:
+        serializedVersion: 2
+        x: 96
+        y: 928
+        width: 128
+        height: 160
+      alignment: 9
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: caff6132fb76b574987d10e864c3b79b
+      internalID: -349738992
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    outline: []
+    customData: 
+    physicsShape: []
+    bones: []
+    spriteID: 2ab79cfd09ac397408e7f273df066611
+    internalID: 0
+    vertices: []
+    indices: 
+    edges: []
+    weights: []
+    secondaryTextures: []
+    spriteCustomMetadata:
+      entries: []
+    nameFileIdTable:
+      Cliff_00: 631229334
+      Cliff_01: -550989140
+      Cliff_02: 273701838
+      Cliff_03: -1367119594
+      Cliff_04: 230689993
+      Cliff_05: -1735766494
+      Cliff_06: -1912090276
+      Cliff_07: 504476684
+      Cliff_08: -1915691592
+      Cliff_09: -671501719
+      Cliff_10: 316681675
+      Cliff_11: 1905093685
+      Cliff_12: 1915181276
+      ExitStairs: -349738992
+  mipmapLimitGroupName: 
+  pSDRemoveMatte: 0
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 

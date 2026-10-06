@@ -4,7 +4,8 @@ namespace SecretsReborn
 {
     public sealed class CameraFollow : MonoBehaviour
     {
-        public Transform Target { get; set; }
+        [SerializeField] private Transform target;
+        public Transform Target { get => target; set => target = value; }
         [SerializeField, Min(0.01f)] private float smoothTime = 0.15f;
         private Vector3 velocity;
 

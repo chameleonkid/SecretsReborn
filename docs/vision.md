@@ -8,6 +8,10 @@ Das gesamte Spiel muss allein vollständig spielbar sein. Koop ist optional und 
 
 ## Welt und Charaktere
 
+Angelegte Rüstung verändert das Aussehen der jeweiligen Spielerfigur. Diese
+Darstellung muss auch für Mitspieler sichtbar sein; Details und geprüfte
+Asset-Grundlagen stehen in [character-appearance.md](character-appearance.md).
+
 Der Host speichert die Welt und alle zugehörigen Charaktere. Jeder Spieler hat ein eigenes Inventar, eigene XP und eigenen Fortschritt. Charaktere gehören ausschließlich zur jeweiligen Host-Welt.
 
 Innerhalb eines Gebiets ist freie Bewegung möglich. Größere Gebietswechsel erfolgen gemeinsam. Die konkrete Abstimmung eines gemeinsamen Wechsels ist noch offen.
