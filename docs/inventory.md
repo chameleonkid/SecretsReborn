@@ -1,9 +1,9 @@
 ﻿# Inventar und Ausrüstung
 
 Die Tasche hat feste **40 Plätze (10×4)**. Leere Plätze bleiben erhalten.
-Angelegte Items verlassen die Tasche und liegen in einem der 14 Ausrüstungsplätze:
+Angelegte Items verlassen die Tasche und liegen in einem der 15 Ausrüstungsplätze:
 Helm/Hut, Schultern, Armor, Gürtel, Hände, Beine, Stiefel, zwei Ringe,
-Amulett, Seal, Cloak, Haupthand und Nebenhand.
+Amulett, Seal, Cloak, Haupthand, Nebenhand und Lampe.
 
 ## Bedienung
 
@@ -65,5 +65,8 @@ Charakterzustände. Runtime- und Editor-Code kompilieren.
 
 Noch keine Persistenz oder Netzwerkverbindung. Neuer Play-Durchlauf startet
 leer. Nächster Schritt: versioniertes Savegame für Welt-Item-IDs, Charaktere,
-40 Taschenplätze und 14 Ausrüstungsplätze.
+40 Taschenplätze und 15 Ausrüstungsplätze.
 
+
+
+Der Lampenplatz unter der Vorschau ist von Stiefeln/Nebenhand nach unten oder seitlich erreichbar. Itembeschreibungen zeigen Lampenradius und Helligkeit 1–10, Schaden und Waffen-Cooldown sowie den Rüstungswert. Eine optionale Description ergänzt den Erklärungstext. Armor Value ist derzeit ein vorbereiteter Itemwert (Standard 0); die Schadensminderungsformel ist noch nicht implementiert.

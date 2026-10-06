@@ -79,7 +79,7 @@ namespace SecretsReborn
         }
         public static WorldSessionState Restore(SaveGameData data)
         {
-            if (data == null || data.version < 1 || data.version > 6 || data.characters == null || data.puzzles == null || data.collectedItems == null || data.version >= 6 && data.defeatedEnemies == null)
+            if (data == null || data.version < 1 || data.version > 7 || data.characters == null || data.puzzles == null || data.collectedItems == null || data.version >= 6 && data.defeatedEnemies == null)
                 throw new ArgumentException("Unsupported or incomplete savegame.");
             var world = new WorldSessionState(data.worldId);
             if (data.version >= 3) world.AdvancePlayTime(data.playTimeSeconds);
@@ -87,7 +87,7 @@ namespace SecretsReborn
             foreach (var character in data.characters)
             {
                 if (character == null || string.IsNullOrWhiteSpace(character.characterId)) throw new ArgumentException("Invalid character ID.");
-                world.characters.Add(character.characterId, InventoryState.Restore(character));
+                world.characters.Add(character.characterId, InventoryState.Restore(character, data.version < 7));
                 world.vitals.Add(character.characterId, data.version >= 5 ? CharacterVitalsState.Restore(character.vitals)
                     : data.version == 4 ? CharacterVitalsState.RestoreLegacy(character.vitals) : new CharacterVitalsState());
                 if (data.version >= 2 && character.hasPosition) world.SetPosition(character.characterId, character.scenePath, character.x, character.y, character.z);

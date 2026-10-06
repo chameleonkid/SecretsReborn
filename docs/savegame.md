@@ -72,3 +72,5 @@ Repository verteilt. Vor dem Kompilieren im Unity Package Manager unter
 `My Assets` mit dem berechtigten Asset-Store-Konto herunterladen und in das
 Projekt importieren. Erwarteter Ordner: `Assets/Plugins/Easy Save 3`.
 Die eigenen Savegame-Scripts und die TMP-Ressourcen sind versioniert.
+
+Schema 7 ergänzt einen unabhängigen Lampen-Slot. Spielstände mit 14 Equipment-Plätzen aus Version 1–6 werden mit leerem Lampenplatz migriert; Ausrüstung und Slot-Indizes bleiben erhalten. Siehe [Lampen](lamps.md).

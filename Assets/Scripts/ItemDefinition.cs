@@ -12,9 +12,29 @@ namespace SecretsReborn
         [SerializeField] private ClothingAppearance armorAppearance;
         [SerializeField] private ItemKind kind;
         [SerializeField] private bool twoHanded;
+        [SerializeField, TextArea] private string description = "";
+        [SerializeField, Min(0)] private int armorValue = 0;
+        public int ArmorValue => Mathf.Max(0, armorValue);
+        public string Description
+        {
+            get
+            {
+                string stats = weapon != null ? "Schaden: " + weapon.Damage + " · Cooldown: " + weapon.Cooldown.ToString("0.##") + " s"
+                    : lamp != null ? "Lichtradius: " + lamp.LightRadius.ToString("0.#") + " · Helligkeit: " + lamp.Brightness + "/10\n"
+                        + (lamp.RevealsRunes ? "Enthüllt nahe Runen · L / Y: Licht" : "Warmes Licht · L / Y: Licht")
+                    : Rules.kind == ItemKind.Armor || Rules.kind == ItemKind.Head || Rules.kind == ItemKind.Shoulders
+                        || Rules.kind == ItemKind.Waist || Rules.kind == ItemKind.Hands || Rules.kind == ItemKind.Legs
+                        || Rules.kind == ItemKind.Feet || Rules.kind == ItemKind.Shield ? "Rüstungswert: " + ArmorValue
+                    : "Ausrüstungsgegenstand";
+                return string.IsNullOrWhiteSpace(description) ? stats : description + "\n" + stats;
+            }
+        }
         [SerializeField] private WeaponDefinition weapon;
         public WeaponDefinition Weapon => weapon;
-        public Color IconTint => weapon != null ? weapon.Tint : armorAppearance != null ? armorAppearance.Tint : Color.white;
+        [SerializeField] private LampDefinition lamp;
+        public LampDefinition Lamp => lamp;
+        public void SetLamp(LampDefinition profile) => lamp = profile;
+        public Color IconTint => weapon != null ? weapon.Tint : lamp != null && lamp.RevealsRunes ? lamp.LightColor : armorAppearance != null ? armorAppearance.Tint : Color.white;
         public void SetWeapon(WeaponDefinition profile) => weapon = profile;
         [SerializeField] private Sprite icon;
         [SerializeField] private ItemQuality quality = ItemQuality.Normal;

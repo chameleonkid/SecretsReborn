@@ -6,6 +6,7 @@ namespace SecretsReborn
     public sealed class RuneCircle : MonoBehaviour
     {
         private Transform player;
+        private PlayerLantern lantern;
         private Action<int> entered;
         private int index;
         private bool inside;
@@ -15,6 +16,8 @@ namespace SecretsReborn
         public void Initialize(Transform target, int order, Action<int> onEntered)
         {
             player = target;
+            lantern = target != null ? target.GetComponent<PlayerLantern>() : null;
+            inside = false;
             index = order;
             entered = onEntered;
             runes = GetComponentsInChildren<SpriteRenderer>(true);
@@ -23,7 +26,9 @@ namespace SecretsReborn
         private void FixedUpdate()
         {
             if (player == null) return;
-            bool nowInside = ((Vector2)(player.position - transform.position)).sqrMagnitude <= activationRadius * activationRadius;
+            float distance = ((Vector2)(player.position - transform.position)).sqrMagnitude;
+            bool nowInside = lantern != null && lantern.CanRevealRunes
+                && distance <= lantern.RevealRadius * lantern.RevealRadius && distance <= activationRadius * activationRadius;
             if (nowInside && !inside) entered?.Invoke(index);
             inside = nowInside;
         }

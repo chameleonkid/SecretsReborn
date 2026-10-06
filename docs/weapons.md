@@ -51,3 +51,7 @@ Secondary-Texture. Diese Zuordnung kann sp√§ter mit dem gew√§hlten Shader erg√§n
 werden. Materialien werden pro Figur nicht global umgef√§rbt. F√ºr Netzwerk-Koop
 m√ºssen Item-ID und Aktionszustand repliziert werden; die Assets bleiben lokale
 Darstellungsdaten und die Trefferentscheidung beim Host.
+
+Der Schadenswert wird im Inventar angezeigt (Einheit: Halbherzen). Der Host liest Damage vom Profil des tats‰chlich angelegten Waffen-Items; die beiden ‹bungsschwerter verursachen derzeit jeweils 2 Halbherzen Schaden.
+
+Cooldown ist pro Waffenprofil unabh‰ngig vom Schaden konfigurierbar (mindestens die Attack Duration). Der Host erzwingt diesen Abstand bereits zwischen Angriffen. Ein st‰rkeres Axtprofil kann beispielsweise einen l‰ngeren Cooldown erhalten; die Anzeige liest stets den tats‰chlich wirksamen Wert aus dem Profil.

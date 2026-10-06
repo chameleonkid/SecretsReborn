@@ -27,6 +27,8 @@ namespace SecretsReborn.Editor
                 character.TryAdd("test-armor", 1, 1);
                 character.TryEquip(0, EquipmentSlot.Armor, id => new ItemRules { kind = ItemKind.Armor, maxStack = 1 });
                 character.TryAdd("test-ring", 2, 1);
+                character.TryAdd("test-lamp", 1, 1);
+                character.TryEquip(2, EquipmentSlot.Lamp, id => new ItemRules { kind = ItemKind.Lamp, maxStack = 1 });
                 world.TryCollect("test-pickup", () => true);
                 world.DefeatEnemy("test-oak");
                 world.Puzzle("test-puzzle").Enter(0);
@@ -38,6 +40,7 @@ namespace SecretsReborn.Editor
                 SaveGameStore.Save(world, path);
                 var loaded = SaveGameStore.Load(path);
                 if (loaded.WorldId != "test-world" || loaded.CharacterInventory("test-player").EquippedArmorId != "test-armor"
+                    || loaded.CharacterInventory("test-player").GetEquipment(EquipmentSlot.Lamp) != "test-lamp"
                     || loaded.CharacterInventory("test-player").GetSlot(1).itemId != "test-ring"
                     || !loaded.IsCollected("test-pickup") || !loaded.IsEnemyDefeated("test-oak") || loaded.Puzzle("test-puzzle").Progress != 1
                     || loaded.Position("test-player").scenePath != "Assets/Scenes/Waldheiligtum-Editable.unity"
@@ -62,9 +65,15 @@ namespace SecretsReborn.Editor
                 ES3.Save("world-session", legacy, new ES3Settings(path + ".legacy", ES3.Location.File));
                 var oldVitals = SaveGameStore.Load(path + ".legacy").CharacterVitals("test-player");
                 if (oldVitals.Health != 5 || oldVitals.HeartContainers != 3 || oldVitals.Mana != 30) throw new Exception("V4 heart migration mismatch.");
+                legacy = world.Capture(); legacy.version = 6;
+                foreach (var entry in legacy.characters) Array.Resize(ref entry.equipment, 14);
+                ES3.Save("world-session", legacy, new ES3Settings(path + ".legacy", ES3.Location.File));
+                var migratedSlots = SaveGameStore.Load(path + ".legacy").CharacterInventory("test-player");
+                if (migratedSlots.GetEquipment(EquipmentSlot.Lamp) != null || migratedSlots.EquippedArmorId != "test-armor")
+                    throw new Exception("V6 equipment migration mismatch.");
                 world.CharacterVitals("test-player").AddHeartContainer(); SaveGameStore.Save(world, path);
                 if (SaveGameStore.Load(path).CharacterVitals("test-player").HeartContainers != 4) throw new Exception("Heart container roundtrip mismatch.");
-                File.WriteAllText("Temp/SaveGameCheckReport.txt", "PASS: Hearts/mana and heart containers roundtrip; v3/v4 migration, backup, position, inventory and puzzles. Separate test save.");
+                File.WriteAllText("Temp/SaveGameCheckReport.txt", "PASS: v7 lamp slot, hearts/mana and heart containers roundtrip; v3/v4/v6 migration, backup, position, inventory and puzzles. Separate test save.");
                 Debug.Log("PASS: Herzen, Easy-Save-Roundtrip, Migration und Backup geprüft.");
             }
             finally

@@ -34,7 +34,19 @@ internal static class WorldSessionChecks
         Check(!new WorldSessionState("world-a").IsCollected("pickup-1"), "fresh session reset");
         world.SetPosition("player-a", "sanctuary", 2, -3, 0);
         world.AdvancePlayTime(3601.25); world.SetSavedScene("sanctuary");
+        Check(character.TryAdd("rune-lamp", 1, 1) && character.TryEquip(1, EquipmentSlot.Lamp,
+            id => new ItemRules { kind = ItemKind.Lamp, maxStack = 1 }), "lamp equipped for save");
         var snapshot = world.Capture(); var restored = WorldSessionState.Restore(snapshot);
+        Check(restored.CharacterInventory("player-a").GetEquipment(EquipmentSlot.Lamp) == "rune-lamp"
+            && restored.CharacterInventory("player-b").GetEquipment(EquipmentSlot.Lamp) == null, "lamp save roundtrip and per-character isolation");
+        var oldSlots = world.Capture(); oldSlots.version = 6;
+        foreach (var c in oldSlots.characters) Array.Resize(ref c.equipment, 14);
+        var upgraded = WorldSessionState.Restore(oldSlots);
+        Check(upgraded.CharacterInventory("player-a").GetEquipment(EquipmentSlot.Lamp) == null
+            && upgraded.CharacterInventory("player-a").EquippedArmorId == "armor", "v6 upgrade preserves armor and appends empty lamp slot");
+        oldSlots.version = 7; bool shortSlotsRejected = false;
+        try { WorldSessionState.Restore(oldSlots); } catch (ArgumentException) { shortSlotsRejected = true; }
+        Check(shortSlotsRejected, "v7 requires new equipment dimensions");
         Check(world.DefeatEnemy("oak-01") && !world.DefeatEnemy("oak-01"), "enemy defeat unique");
         Check(WorldSessionState.Restore(world.Capture()).IsEnemyDefeated("oak-01"), "defeat survives save and scene rebind");
         Check(!new WorldSessionState("world-b").IsEnemyDefeated("oak-01"), "enemy defeat world isolation");

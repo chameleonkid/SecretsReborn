@@ -2,8 +2,8 @@
 
 namespace SecretsReborn
 {
-    public enum EquipmentSlot { Head, Shoulders, Armor, Waist, Hands, Legs, Feet, Ring1, Ring2, Amulet, Seal, Cloak, MainHand, OffHand }
-    public enum ItemKind { None, Head, Shoulders, Armor, Waist, Hands, Legs, Feet, Ring, Amulet, Seal, Cloak, Weapon, Shield }
+    public enum EquipmentSlot { Head, Shoulders, Armor, Waist, Hands, Legs, Feet, Ring1, Ring2, Amulet, Seal, Cloak, MainHand, OffHand, Lamp }
+    public enum ItemKind { None, Head, Shoulders, Armor, Waist, Hands, Legs, Feet, Ring, Amulet, Seal, Cloak, Weapon, Shield, Lamp }
     public struct ItemRules
     {
         public ItemKind kind;
@@ -26,6 +26,7 @@ namespace SecretsReborn
                 case ItemKind.Cloak: return slot == EquipmentSlot.Cloak;
                 case ItemKind.Weapon: return slot == EquipmentSlot.MainHand;
                 case ItemKind.Shield: return slot == EquipmentSlot.OffHand;
+                case ItemKind.Lamp: return slot == EquipmentSlot.Lamp;
                 default: return false;
             }
         }
@@ -41,22 +42,26 @@ namespace SecretsReborn
     {
         public const int Capacity = 40;
         private InventoryStack[] bag = new InventoryStack[Capacity];
-        private string[] equipment = new string[14];
+        public const int EquipmentCapacity = 15;
+        private string[] equipment = new string[EquipmentCapacity];
         public InventoryStack GetSlot(int index) => index >= 0 && index < Capacity && bag[index] != null
             ? new InventoryStack { itemId = bag[index].itemId, count = bag[index].count } : null;
         public string GetEquipment(EquipmentSlot slot) => (int)slot >= 0 && (int)slot < equipment.Length ? equipment[(int)slot] : null;
         public string EquippedArmorId => GetEquipment(EquipmentSlot.Armor);
         public CharacterSaveData Capture(string characterId) => new CharacterSaveData
         { characterId = characterId, bag = Clone(bag), equipment = (string[])equipment.Clone() };
-        public static InventoryState Restore(CharacterSaveData data)
+        public static InventoryState Restore(CharacterSaveData data, bool allowLegacyEquipment = false)
         {
-            if (data == null || data.bag == null || data.bag.Length != Capacity || data.equipment == null || data.equipment.Length != 14)
+            if (data == null || data.bag == null || data.bag.Length != Capacity || data.equipment == null
+                || data.equipment.Length != EquipmentCapacity && !(allowLegacyEquipment && data.equipment.Length == 14))
                 throw new ArgumentException("Invalid inventory dimensions.");
             foreach (var stack in data.bag)
                 if (stack != null && (string.IsNullOrWhiteSpace(stack.itemId) || stack.count <= 0)) throw new ArgumentException("Invalid item stack.");
             foreach (var id in data.equipment)
                 if (id != null && string.IsNullOrWhiteSpace(id)) throw new ArgumentException("Invalid equipment ID.");
-            return new InventoryState { bag = Clone(data.bag), equipment = (string[])data.equipment.Clone() };
+            var restoredEquipment = new string[EquipmentCapacity];
+            Array.Copy(data.equipment, restoredEquipment, data.equipment.Length);
+            return new InventoryState { bag = Clone(data.bag), equipment = restoredEquipment };
         }
         public bool TryAdd(string id, int count, int maxStack, int capacity = Capacity)
         {

@@ -35,16 +35,25 @@ namespace SecretsReborn.Editor
         [MenuItem("SecretsReborn/Character/Test/Equip red training sword", true)]
         private static bool ValidateRedSword() => Actor() != null;
         private static void EquipTestWeapon(string itemId)
+            => EquipTestItem(itemId, EquipmentSlot.MainHand);
+        [MenuItem("SecretsReborn/Character/Test/Equip warm lamp")]
+        private static void WarmLamp() => EquipTestItem("warm-lamp", EquipmentSlot.Lamp);
+        [MenuItem("SecretsReborn/Character/Test/Equip rune lamp")]
+        private static void RuneLamp() => EquipTestItem("rune-lamp", EquipmentSlot.Lamp);
+        [MenuItem("SecretsReborn/Character/Test/Equip warm lamp", true)]
+        [MenuItem("SecretsReborn/Character/Test/Equip rune lamp", true)]
+        private static bool ValidateLamp() => Actor() != null;
+        private static void EquipTestItem(string itemId, EquipmentSlot target)
         {
             var actor = Actor(); if (actor == null) return;
             var item = actor.Find(itemId);
             if (item == null) { Debug.LogError("Übungsschwert fehlt im Charakterkatalog."); return; }
-            if (actor.State.GetEquipment(EquipmentSlot.MainHand) == item.ItemId) return;
+            if (actor.State.GetEquipment(target) == item.ItemId) return;
             int slot = -1;
             for (int i = 0; i < InventoryState.Capacity; i++) if (actor.State.GetSlot(i)?.itemId == item.ItemId) { slot = i; break; }
             if (slot < 0 && actor.TryReceive(item, 1))
                 for (int i = 0; i < InventoryState.Capacity; i++) if (actor.State.GetSlot(i)?.itemId == item.ItemId) { slot = i; break; }
-            if (slot < 0 || !actor.TryEquip(slot, EquipmentSlot.MainHand)) Debug.LogWarning("Schwert konnte nicht angelegt werden: Inventarplätze prüfen.");
+            if (slot < 0 || !actor.TryEquip(slot, target)) Debug.LogWarning("Item konnte nicht angelegt werden: Inventarplätze prüfen.");
         }
         [MenuItem("SecretsReborn/Character/Test/Equip training sword", true)]
         private static bool ValidateSword() => Actor() != null;

@@ -27,7 +27,7 @@ namespace SecretsReborn
 
         private void LateUpdate()
         {
-            bool visible = lantern != null && lantern.isActiveAndEnabled && lantern.IsLit
+            bool visible = lantern != null && lantern.isActiveAndEnabled && lantern.CanRevealRunes
                 && ((Vector2)(transform.position - lantern.transform.position)).sqrMagnitude
                     <= lantern.RevealRadius * lantern.RevealRadius;
             SetVisible(visible);

@@ -24,7 +24,7 @@ namespace SecretsReborn
         private GUIStyle titleStyle, textStyle, smallStyle;
         private Rect pressedButton;
         private bool buttonPressed;
-        private static readonly string[] Labels = { "Helm / Hut", "Schultern", "Armor", "Gürtel", "Hände", "Beine", "Stiefel", "Ring 1", "Ring 2", "Amulett", "Seal", "Cloak", "Haupthand", "Nebenhand" };
+        private static readonly string[] Labels = { "Helm / Hut", "Schultern", "Armor", "Gürtel", "Hände", "Beine", "Stiefel", "Ring 1", "Ring 2", "Amulett", "Seal", "Cloak", "Haupthand", "Nebenhand", "Lampe" };
         private static readonly EquipmentSlot[] Left = { EquipmentSlot.Head, EquipmentSlot.Shoulders, EquipmentSlot.Armor, EquipmentSlot.Hands, EquipmentSlot.Waist, EquipmentSlot.Legs, EquipmentSlot.Feet };
         private static readonly EquipmentSlot[] Right = { EquipmentSlot.Ring1, EquipmentSlot.Ring2, EquipmentSlot.Amulet, EquipmentSlot.Seal, EquipmentSlot.Cloak, EquipmentSlot.MainHand, EquipmentSlot.OffHand };
         private void Awake() { inventory = GetComponent<CharacterInventory>(); movement = GetComponent<PlayerMovement>(); appearance = GetComponent<CharacterAppearance>(); }
@@ -87,15 +87,7 @@ namespace SecretsReborn
             if (pad != null && pad.buttonWest.wasPressedThisFrame && selected >= 40) Activate(selected);
         }
         private static int Navigate(int index, int dx, int dy)
-        {
-            if (index < 40) return Mathf.Clamp(index / 10 + dy, 0, 3) * 10 + Mathf.Clamp(index % 10 + dx, 0, 9);
-            var slot = (EquipmentSlot)(index - 40);
-            int row = Array.IndexOf(Left, slot); bool left = row >= 0;
-            if (!left) row = Array.IndexOf(Right, slot);
-            row = Mathf.Clamp(row + dy, 0, 6);
-            if (dx < 0) left = true; else if (dx > 0) left = false;
-            return 40 + (int)(left ? Left[row] : Right[row]);
-        }
+            => InventoryNavigation.Navigate(index, dx, dy);
         private void Activate(int slot)
         {
             bool result = false;
@@ -131,7 +123,7 @@ namespace SecretsReborn
             GUI.Label(new Rect(40, 30, 450, 30), "AUSRÜSTUNG", titleStyle);
             GUI.Label(new Rect(520, 30, 480, 30), "INVENTAR", titleStyle);
             GUI.Label(new Rect(520, 68, 480, 30), "REISEGEPÄCK   /   40 Plätze", textStyle);
-            var rects = new Rect[54];
+            var rects = new Rect[40 + InventoryState.EquipmentCapacity];
             for (int i = 0; i < 40; i++) rects[i] = new Rect(520 + i % 10 * 49, 105 + i / 10 * 49, 45, 45);
             for (int row = 0; row < 7; row++)
             {
@@ -139,6 +131,7 @@ namespace SecretsReborn
                 rects[40 + (int)Right[row]] = new Rect(420, 65 + row * 61, 54, 54);
             }
             Preview(new Rect(155, 100, 210, 320));
+            rects[40 + (int)EquipmentSlot.Lamp] = new Rect(233, 429, 54, 54);
             int hover = -1;
             for (int i = 0; i < rects.Length; i++)
             {
@@ -147,7 +140,9 @@ namespace SecretsReborn
                 if (item == null && i >= 40)
                 {
                     var old = GUI.color; GUI.color = new Color(.48f, .48f, .48f, 1);
-                    ForestInventorySkin.Glyph(new Rect(rect.x + 8, rect.y + 8, rect.width - 16, rect.height - 16), i - 40);
+                    if (i == 40 + (int)EquipmentSlot.Lamp && inventory.Find("warm-lamp")?.Icon != null)
+                        DrawSprite(new Rect(rect.x + 8, rect.y + 8, rect.width - 16, rect.height - 16), inventory.Find("warm-lamp").Icon, Color.white);
+                    else ForestInventorySkin.Glyph(new Rect(rect.x + 8, rect.y + 8, rect.width - 16, rect.height - 16), i - 40);
                     GUI.color = old;
                 }
                 if (rect.Contains(Event.current.mousePosition)) Border(rect, new Color(.6f, .7f, .7f), 2);
@@ -167,10 +162,10 @@ namespace SecretsReborn
             if (Event.current.type == EventType.MouseMove || Event.current.type == EventType.MouseDown) controllerSelection = false;
             int inspectedIndex = !controllerSelection && hover >= 0 ? hover : selected;
             var inspected = Item(inspectedIndex);
-            ForestInventorySkin.Leather(new Rect(520, 395, 475, 90));
-            GUI.Label(new Rect(535, 405, 445, 70), inspected != null
+            ForestInventorySkin.Leather(new Rect(520, 390, 475, 110));
+            GUI.Label(new Rect(535, 398, 445, 100), inspected != null
                 ? inspected.DisplayName + "\n" + inspected.QualityLabel + " · " + (inspectedIndex >= 40 ? Labels[inspectedIndex - 40] : "Taschenplatz " + (inspectedIndex + 1)) + (inspected.Rules.twoHanded ? " · Zweihand" : "")
-                    + (inspected.Weapon != null ? "\nSchaden: " + inspected.Weapon.Damage + " Halbherzen" : "")
+                    + "\n" + inspected.Description
                 : inspectedIndex >= 40 ? Labels[inspectedIndex - 40] + "\nNicht belegt" : "Taschenplatz " + (inspectedIndex + 1) + "\nLeer", textStyle);
             GUI.Label(new Rect(35, 510, 950, 30), message ?? "Goldener Rahmen: ausgewählter Slot", smallStyle);
             if (ArtButton(new Rect(520, 545, 225, 30), selected >= 40 ? "Ablegen → Tasche (A / X)" : "Anlegen (A / Enter)", Item(selected) != null)) Activate(selected);

@@ -15,7 +15,7 @@ namespace SecretsReborn
     [Serializable] public sealed class PuzzleSaveData { public string puzzleId; public int progress; }
     [Serializable] public sealed class SaveGameData
     {
-        public int version = 6;
+        public int version = 7;
         public double playTimeSeconds;
         public string savedScenePath;
         public string worldId;
