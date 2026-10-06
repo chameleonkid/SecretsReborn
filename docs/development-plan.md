@@ -1,47 +1,67 @@
-# Entwicklungsplan
+﻿# Entwicklungsplan
 
-## Aktueller Umfang
+Stand: 6. Oktober 2026. Schwerpunkt bleibt die Weiterentwicklung der Mechaniken.
+Code ist freigegeben; Commits und Pushes erfolgen auf ausdrücklichen Auftrag.
 
-Das Waldheiligtum wurde zusätzlich als dauerhaft editierbare Szene mit Grid,
-drei Tilemaps, drei Tile-Assets und sechs Prefabs gespeichert und erneut geladen.
-Siehe [Kartengestaltung](world-authoring.md). Der Spieltest der neuen Szene steht noch aus.
+## Erreichter Stand
 
-Code und Mechaniken sind seit dem 6. Oktober 2026 freigegeben. Der erste Solo-Bewegungsprototyp mit Kamera, Kollision und Platzhaltergrafik ist angelegt; siehe [Spieltest](prototype.md). Nichts committen oder pushen.
+Die editierbaren Gebiete verfügen über Grid, mehrere Ground-/Terrain-Layer und
+Prefabs. Inventar, Ausrüstung, Lampen, Runen, Solo-Gebietswechsel, Savegame,
+Herzen/Mana, Nahkampf, Gegner, Loot und persistente Truhen sind vorhanden.
+Tod, Gruppen-Game-Over und gehaltenes Revive sind umgesetzt.
 
-## Technische Bestandsaufnahme – 6. Oktober 2026
+Der erste lokale Netzwerk-Koop funktioniert mit Host und Client. Der Host
+entscheidet über Bewegung, Kampf und Zustandsänderungen. Spieler und Gegner
+werden auf Clients geglättet dargestellt. Der Zwei-Prozess-Test besteht;
+der manuelle Bewegungstest wurde ebenfalls bestätigt.
 
-- Projektordner und Git-Wurzel: `D:\SecretsReborn\SecretsReborn`.
-- Projektversion und installierter Editor stimmen mit `6000.3.25f1` überein.
-- `Assets`, `Packages` und `ProjectSettings` sind vorhanden; enthalten sind eine SampleScene, URP und ein 2D-Renderer.
-- Die `.gitignore` schließt unter anderem `Library`, `Temp`, `Logs`, `UserSettings` und generierte IDE-Projektdateien aus.
-- Vor der Dokumenterstellung: keine Änderungen an versionierten Dateien; `.vscode/` ist unversioniert.
-- Unity ist bereits mit diesem Projekt geöffnet. Ein weiterer CLI-Editor wird deshalb nicht gestartet.
-- Im vorhandenen Editorlog ist der initiale Asset-Pipeline-Refresh abgeschlossen. Bei der gezielten Suche wurden keine C#-Compilerfehler, Meldungen über fehlgeschlagene Kompilierung oder Exception-Meldungen gefunden. Dies ersetzt keinen neuen isolierten CLI-Import oder einen interaktiven Funktionstest.
-- VS Code ist für das Projekt geöffnet. Unity-Erweiterung, C#, C# Dev Kit und .NET-Runtime-Erweiterung sind installiert. Die vorhandene Attach-Konfiguration verwendet `vstuc`; die Standard-Solution ist `SecretsReborn.slnx`.
-- `com.unity.ide.visualstudio` ist in Version `2.0.26` vorhanden.
-- Die alten ignorierten IDE-Dateien wurden entfernt und in Unity neu generiert. Die veralteten Verweise auf `HubForceResolve.cs` und `D:\UnityTemp` waren anschließend entfernt. Die damals leere Solution passte zum Projekt ohne eigene Skripte; nach Import der neuen Skripte die IDE-Dateien bei Bedarf erneut generieren.
-- VS Code ist als externer Script-Editor ausgewählt. Der Debugger-Attach zu SecretsReborn wurde anhand der laufenden Threads und der VS-Code-Statusanzeige bestätigt. Ein Breakpoint-Test steht noch aus.
-- Der Zugriff auf das optionale Repository Secrets funktioniert. Erste Asset-Kandidaten sind in [assets.md](assets.md) dokumentiert.
+Details: [Übergabe](handoff-2026-10-06.md), [Prüfstand](verification-2026-10-06.md)
+und [Koop-Test](local-coop.md).
 
-## Nächster konkreter Schritt
+## Nächster konkreter Schritt: gemeinsamer Gebietswechsel
 
-Die Szene `Assets/Scenes/Waldheiligtum.unity` im bestehenden Editor öffnen und den manuellen Bewegungstest durchführen. Die drei neuen Skripte wurden separat gegen die lokalen Unity- und Input-System-Assemblies erfolgreich kompiliert. Ein Unity-Play-Test ist noch nicht bestätigt. Anschließend wenige passende Wald- und Figurenassets aus Secrets sichten und den nächsten Interaktionsschritt konkretisieren.
+1. Waldheiligtum und Rätselhöhle gemeinsam über einen Host-gesteuerten Ablauf laden.
+2. Währenddessen Eingaben sperren und laufende Aktionen abbrechen; Verbindung,
+   Charakteridentitäten, Inventar und Weltzustand erhalten.
+3. Auf Ladebestätigungen der Clients warten, Figuren und Kamera in der neuen
+   Szene zuordnen und sichere Spawnpunkte verwenden.
+4. Befehle aus dem vorherigen Gebiet verwerfen und erst danach Eingaben freigeben.
+5. Hin- und Rückweg mit zwei Prozessen prüfen: Ausrüstung, HP/Mana, Runen und
+   Truhenzustand dürfen nicht verloren gehen.
 
-Ein separater CLI-Import kommt erst infrage, wenn kein Editor mehr auf dieses Projekt zugreift. Einen laufenden Editor nicht automatisch schließen, da ungespeicherte Arbeit vorhanden sein kann.
+Die bestehende Sperre für Netzwerk-Gebietswechsel nicht einfach entfernen:
+Szenenobjekte und die Zuordnungen der Netzwerkfiguren müssen erneuert werden.
 
-## Weitere Entwicklung – Vorschlag zur Reihenfolge
+## Danach: Multiplayer-Save/Load und Gruppen-Retry
 
-Die folgende Reihenfolge bleibt ein Vorschlag. Code und Mechaniken sind grundsätzlich freigegeben; die offenen inhaltlichen Entscheidungen bleiben anpassbar.
+Der Host speichert am Buch in drei Slots die Welt und alle Charaktere inklusive
+Position, Szene und Spielzeit. Das gemeinsame Laden verwendet den Ablauf des
+Gebietswechsels. Clients schreiben keine eigenen Host-Spielstände. Historische
+Charakterdaten sind von tatsächlich verbundenen Gruppenmitgliedern zu trennen.
+Nach Gruppen-Game-Over muss der Host den gemeinsamen Checkpoint laden können.
 
-1. Technische Grundlage und IDE-Integration abschließen; die offenen Entscheidungen zu Gebieten und Fortschritt konkretisieren.
-2. Ein kleines Gebiet mit Platzhaltergrafiken für Bewegung und Interaktion erstellen.
-3. Den Solo-Ablauf des Waldheiligtums mit Laterne, Zeichen, Rätselhöhle und Quelle umsetzen.
-4. Weltzustand und Charakterdaten getrennt speichern; Charakterbindung an die Host-Welt und eigenes Inventar, XP und Fortschritt berücksichtigen.
-5. Optionalen Koop für insgesamt maximal vier Spieler ergänzen; freie Bewegung innerhalb eines Gebiets und gemeinsame größere Gebietswechsel prüfen.
-6. Solo- und Koop-Durchläufe, Laden und erneuten Beitritt erproben; anschließend Inhalte und Grafik weiterentwickeln.
+## Weitere Mechaniken – Vorschläge zur Reihenfolge
 
-## Zusätzliche technische Ideen – Vorschläge
+1. Vier Spieler, Rejoin, Verbindungsabbruch und verständliche Rückmeldungen zu
+   vom Host abgelehnten Aktionen prüfen.
+2. Runen durch jeden geeigneten Spieler aktivierbar machen; Truhenpräsentation
+   auf allen Clients anzeigen und gleichzeitige Interaktionen prüfen.
+3. Gold als Währung, Verbrauchsgegenstände und Pfeile als Munition ergänzen;
+   optionale Schnellslots für Controller vorsehen.
+4. Bogen und Projektile mit hostseitiger Trefferprüfung implementieren.
+5. Eigene XP und Fortschritt ausbauen. Level-Effekte vorher festlegen;
+   zusätzliche Herzen bleiben zunächst an Herzcontainer gebunden.
+6. Zauber mit Mana, Cooldown und replizierten Effekten ergänzen.
+7. Weitere Gegner/Bosse und Itemfortschritt ausbauen: normale Gegner geben
+   vorwiegend Verbrauchsmaterial, Bosse und Truhen auch Ausrüstung.
+8. Tag/Nacht über eine gespeicherte, synchronisierte Host-Weltzeit ergänzen.
+9. Pause-/Sitzungsmenüs und Balancing bearbeiten. Vorschlag: Solo pausiert die
+   Welt, im Multiplayer sperrt ein lokales Menü zunächst nur eigene Eingaben.
 
-- Vorschlag: Zuständigkeit des Hosts für gemeinsame Weltänderungen bereits beim Solo-Prototyp berücksichtigen, ohne jetzt ein Netzwerkpaket auszuwählen.
-- Vorschlag: Für den ersten Spielausschnitt nur jene Systeme entwickeln, die den vorgegebenen Abenteuerablauf unterstützen.
-- Vorschlag: Für Speichern und Koop später gezielte Prüfungen mit getrennten Charakterdaten und gemeinsamem Weltzustand vorsehen.
+## Arbeitsregeln
+
+Manuelle Karten- und Assetänderungen erhalten. Szenen und Prefabs mit Unity-APIs
+bearbeiten; bei geöffnetem Projekt keinen parallelen CLI-Editor starten.
+Generierte IDE-Dateien nicht manuell korrigieren. Library behalten.
+Easy Save 3 ist eine lokal installierte Kaufabhängigkeit; Library, Temp, Builds
+und das ausgeschlossene Plugin werden nicht ins Git aufgenommen.

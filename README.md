@@ -17,6 +17,9 @@ SecretsReborn ist ein neues 2D-Action-Adventure mit Schwerpunkt auf Erkundung un
 - [Vision und feste Rahmenbedingungen](docs/vision.md)
 - [Erster Abenteuerentwurf](docs/first-adventure.md)
 - [Entwicklungsplan und technische Prüfung](docs/development-plan.md)
+- [Lokaler Koop: Host, Beitritt und Zwei-Prozess-Test](docs/local-coop.md)
+- [Übergabe zum Tagesabschluss: 6. Oktober 2026](docs/handoff-2026-10-06.md)
+- [Prüfergebnisse: 6. Oktober 2026](docs/verification-2026-10-06.md)
 
 Der Abenteuerentwurf bleibt anpassbar. Zusätzliche Ideen sind ausdrücklich als Vorschläge gekennzeichnet und keine beschlossenen Anforderungen.
 
@@ -33,4 +36,4 @@ Code und Mechaniken sind freigegeben. Der erste Bewegungsprototyp liegt in
 `Assets/Scenes/Waldheiligtum.unity`; siehe [Start und Spieltest](docs/prototype.md).
 Für die Kartengestaltung steht die [editierbare Welt mit Tilemaps und Prefabs](docs/world-authoring.md) bereit.
 Der optionale [Asset-Fundus Secrets](docs/assets.md) ist erreichbar und wurde erstmals gesichtet.
-Keine Commits oder Pushes ausführen.
+Commits und Pushes nur nach ausdrücklichem Auftrag ausführen.
