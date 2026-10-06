@@ -25,6 +25,7 @@ namespace SecretsReborn
 
         private void FixedUpdate()
         {
+            if (NetworkCoop.IsReplica) return;
             if (player == null) return;
             float distance = ((Vector2)(player.position - transform.position)).sqrMagnitude;
             var actor = player.GetComponent<CharacterInventory>();

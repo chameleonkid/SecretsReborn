@@ -15,6 +15,7 @@ namespace SecretsReborn
         private CharacterAppearance appearance;
         private bool open, movementWasEnabled;
         public bool IsOpen => open;
+        public void SetLocalInput(bool value) { localInput = value; if (!value) SetOpen(false); }
         private string message;
         private int selected, dragSource = -1;
         private Vector2 dragStart;
@@ -24,6 +25,18 @@ namespace SecretsReborn
         private GUIStyle titleStyle, textStyle, smallStyle;
         private Rect pressedButton;
         private bool buttonPressed;
+        private bool reviveInterrupted;
+        private CharacterInventory NearestDowned()
+        {
+            CharacterInventory best = null; float distance = float.PositiveInfinity;
+            foreach (var candidate in FindObjectsByType<CharacterInventory>(FindObjectsSortMode.None))
+            {
+                if (!GameSession.Instance.CanRevive(inventory, candidate)) continue;
+                float squared = (candidate.transform.position - transform.position).sqrMagnitude;
+                if (squared < distance) { best = candidate; distance = squared; }
+            }
+            return best;
+        }
         private Material grayscaleIconMaterial;
         private static readonly string[] Labels = { "Helm / Hut", "Schultern", "Armor", "Gürtel", "Hände", "Beine", "Stiefel", "Ring 1", "Ring 2", "Amulett", "Seal", "Cloak", "Haupthand", "Nebenhand", "Lampe" };
         private static readonly EquipmentSlot[] Left = { EquipmentSlot.Head, EquipmentSlot.Shoulders, EquipmentSlot.Armor, EquipmentSlot.Hands, EquipmentSlot.Waist, EquipmentSlot.Legs, EquipmentSlot.Feet };
@@ -36,7 +49,11 @@ namespace SecretsReborn
         private WorldItem Nearest()
         {
             WorldItem best = null; float distance = float.PositiveInfinity;
-            foreach (var item in nearby)
+            // Client mirrors do not simulate colliders; their hint still uses the
+            // authoritative pickup range rather than relying on local triggers.
+            IEnumerable<WorldItem> candidates = NetworkCoop.IsReplica
+                ? FindObjectsByType<WorldItem>(FindObjectsSortMode.None) : nearby;
+            foreach (var item in candidates)
             {
                 if (item == null || !item.CanUse(inventory)) continue;
                 float candidate = ((Vector2)(item.transform.position - transform.position)).sqrMagnitude;
@@ -67,14 +84,27 @@ namespace SecretsReborn
         }
         private void Update()
         {
-            if (!localInput || !Application.isFocused || SaveBook.IsOpen) return;
-            if (GameSession.Instance.RewardPresentationActive) return;
-            if (GameSession.Instance.World.CharacterVitals(inventory.CharacterId).IsDown) { SetOpen(false); return; }
+            if (!localInput) return;
+            if (!Application.isFocused || SaveBook.IsOpen || GameSession.Instance.RewardPresentationActive)
+            { GameSession.Instance.CancelRevive(inventory); return; }
+            if (GameSession.Instance.World.CharacterVitals(inventory.CharacterId).IsDown)
+            { GameSession.Instance.CancelRevive(inventory); SetOpen(false); return; }
             var key = Keyboard.current; var pad = Gamepad.current;
+            bool interactionHeld = key != null && key.eKey.isPressed || pad != null && pad.buttonSouth.isPressed;
+            if (!interactionHeld) { reviveInterrupted = false; GameSession.Instance.CancelRevive(inventory); }
             if ((key != null && (key.iKey.wasPressedThisFrame || (open && key.escapeKey.wasPressedThisFrame)))
                 || (pad != null && pad.startButton.wasPressedThisFrame)) SetOpen(!open);
             if (!open)
             {
+                var downed = NearestDowned();
+                if (interactionHeld && downed != null)
+                {
+                    bool pressed = key != null && key.eKey.wasPressedThisFrame || pad != null && pad.buttonSouth.wasPressedThisFrame;
+                    if (!pressed && !GameSession.Instance.IsReviving(inventory)) reviveInterrupted = true;
+                    if (!reviveInterrupted && !GameSession.Instance.HoldRevive(inventory, downed)) reviveInterrupted = true;
+                    return;
+                }
+                GameSession.Instance.CancelRevive(inventory);
                 if ((key != null && key.eKey.wasPressedThisFrame) || (pad != null && pad.buttonSouth.wasPressedThisFrame))
                 {
                     InteractionTarget(out var item, out var chest);
@@ -86,6 +116,7 @@ namespace SecretsReborn
                 }
                 return;
             }
+            GameSession.Instance.CancelRevive(inventory);
             if ((key != null && key.tabKey.wasPressedThisFrame) || (pad != null && (pad.rightShoulder.wasPressedThisFrame || pad.leftShoulder.wasPressedThisFrame)))
             { selected = selected < 40 ? 40 : 0; controllerSelection = true; }
             int dx = 0, dy = 0;
@@ -131,7 +162,7 @@ namespace SecretsReborn
             if (open) { movementWasEnabled = movement.enabled; movement.enabled = false; }
             else movement.enabled = movementWasEnabled;
         }
-        private void OnDisable() => SetOpen(false);
+        private void OnDisable() { SetOpen(false); if (inventory != null) GameSession.Existing?.CancelRevive(inventory); }
         private ItemDefinition Item(int index) => inventory.Find(index < 40 ? inventory.State.GetSlot(index)?.itemId : inventory.State.GetEquipment((EquipmentSlot)(index - 40)));
         private void OnGUI()
         {
@@ -139,6 +170,14 @@ namespace SecretsReborn
             if (GameSession.Instance.RewardPresentationActive) return;
             if (!open)
             {
+                var downed = NearestDowned();
+                if (downed != null)
+                {
+                    float progress = GameSession.Instance.ReviveProgress(inventory);
+                    GUI.Box(new Rect(12, Screen.height - 85, 420, 70), "E / A halten: Wiederbeleben (3 Sekunden)\n" + (reviveInterrupted ? "Unterbrochen – Taste loslassen und erneut halten." : "Mitspieler: " + downed.CharacterId));
+                    GUI.Box(new Rect(24, Screen.height - 35, 396 * progress, 12), "");
+                    return;
+                }
                 InteractionTarget(out var item, out var chest);
                 GUI.Box(new Rect(12, Screen.height - 65, 570, 55), "I / Start: Inventar     E / A: Aufheben / Truhe\n" + (item != null ? item.Label : chest != null ? chest.Label : message ?? ""));
                 return;

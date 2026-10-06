@@ -15,6 +15,15 @@ namespace SecretsReborn
         public string CharacterId => characterId;
         public InventoryState State { get; private set; }
         public bool HasStateAuthority => hasStateAuthority;
+        public bool LocalInput { get; private set; } = true;
+        public void ConfigureNetwork(string id, bool authority, bool input)
+        {
+            characterId = id; hasStateAuthority = authority; LocalInput = input;
+            GetComponent<InventoryInteraction>()?.SetLocalInput(input);
+            GetComponent<PlayerMelee>()?.SetLocalInput(input);
+            GetComponent<PlayerLantern>()?.SetLocalInput(input);
+            RefreshSession();
+        }
         public event Action Changed;
         public void Configure(ItemDefinition[] definitions, ClothingAppearance fallback)
         { catalog = definitions; baseClothing = fallback; }
@@ -37,6 +46,7 @@ namespace SecretsReborn
         }
         public bool TryUseItem(int index)
         {
+            if (NetworkCoop.Request(this, CoopAction.UseItem, index)) return true;
             if (!hasStateAuthority || GameSession.Instance.Busy || GameSession.Instance.World.CharacterVitals(characterId).IsDown) return false;
             var item = Find(State.GetSlot(index)?.itemId); if (item == null) return false;
             bool applied = item.Purpose == ItemPurpose.HealthPotion ? GameSession.Instance.ApplyHealing(this, item.UseAmount)
@@ -55,16 +65,19 @@ namespace SecretsReborn
         }
         public bool TryMove(int from, int to)
         {
+            if (NetworkCoop.Request(this, CoopAction.MoveItem, from, to)) return true;
             if (!hasStateAuthority || !State.TryMove(from, to, Rules)) return false;
             Changed?.Invoke(); return true;
         }
         public bool TryEquip(int from, EquipmentSlot target)
         {
+            if (NetworkCoop.Request(this, CoopAction.Equip, from, (int)target)) return true;
             if (!hasStateAuthority || !State.TryEquip(from, target, Rules)) return false;
             ApplyAppearance(); Changed?.Invoke(); return true;
         }
         public bool TryUnequip(EquipmentSlot slot, int destination = -1)
         {
+            if (NetworkCoop.Request(this, CoopAction.Unequip, (int)slot, destination)) return true;
             if (!hasStateAuthority || !State.TryUnequip(slot, Rules, destination)) return false;
             ApplyAppearance(); Changed?.Invoke(); return true;
         }

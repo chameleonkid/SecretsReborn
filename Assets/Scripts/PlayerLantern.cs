@@ -18,6 +18,8 @@ namespace SecretsReborn
         private CharacterInventory inventory;
         private InventoryInteraction interaction;
         private InputAction toggle;
+        private bool localInput = true;
+        public void SetLocalInput(bool value) => localInput = value;
         private void Awake()
         {
             inventory = GetComponent<CharacterInventory>();
@@ -37,8 +39,9 @@ namespace SecretsReborn
         private void Update()
         {
             if (GameSession.Instance.World.CharacterVitals(inventory.CharacterId).IsDown) { SetLit(false); return; }
-            if (Application.isFocused && !GameSession.Instance.RewardPresentationActive && !SaveBook.IsOpen && (interaction == null || !interaction.IsOpen)
-                && toggle.WasPressedThisFrame()) SetLit(!IsLit);
+            if (localInput && Application.isFocused && !GameSession.Instance.RewardPresentationActive && !SaveBook.IsOpen && (interaction == null || !interaction.IsOpen)
+                && toggle.WasPressedThisFrame())
+            { if (!NetworkCoop.Request(inventory, CoopAction.Lamp)) SetLit(!IsLit); }
         }
         public void SetLit(bool value)
         { IsLit = value && EquippedLamp != null; RefreshLight(); }

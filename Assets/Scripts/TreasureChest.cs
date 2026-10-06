@@ -14,6 +14,11 @@ namespace SecretsReborn
         private Sprite rewardSprite;
         private Material rewardMaterial;
         private string rewardLabel;
+        public string ChestId => chestId;
+        public void RefreshReplica()
+        {
+            if (openingFrames != null && openingFrames.Length == 4) GetComponent<SpriteRenderer>().sprite = openingFrames[Opened ? 3 : 0];
+        }
         public void ConfigureVisual(Sprite[] frames) { openingFrames = frames; RefreshSession(); }
         public bool Opened => GameSession.Instance.World.IsCollected("chest:" + chestId);
         public string Label => Opened ? "Truhe (geöffnet)" : "Truhe öffnen";
@@ -92,10 +97,11 @@ namespace SecretsReborn
             GUI.Box(new Rect(point.x - 150, Screen.height - point.y - 20, 300, 35), rewardLabel, style);
         }
         public bool CanUse(CharacterInventory actor) => !string.IsNullOrWhiteSpace(chestId) && actor != null
-            && actor.HasStateAuthority && isActiveAndEnabled && actor.gameObject.scene == gameObject.scene
+            && (actor.HasStateAuthority || NetworkCoop.IsReplica && actor.LocalInput) && isActiveAndEnabled && actor.gameObject.scene == gameObject.scene
             && Vector2.Distance(actor.transform.position, transform.position) <= 1.6f;
         public bool TryOpen(CharacterInventory actor)
         {
+            if (CanUse(actor) && NetworkCoop.Request(actor, CoopAction.Chest, target: chestId)) return true;
             if (!CanUse(actor) || Opened || loot == null || loot.Source != LootSourceKind.Chest || !loot.IsValid
                 || !GameSession.Instance.CanFight(actor)) return false;
             bool received = GameSession.Instance.World.TryCollect("chest:" + chestId, () => actor.TryReceiveBatch(loot.Rewards()));

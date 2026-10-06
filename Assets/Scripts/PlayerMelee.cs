@@ -16,6 +16,7 @@ namespace SecretsReborn
         private float duration = .35f;
         private WeaponDefinition attackProfile;
         private bool armedSwing;
+        public void SetLocalInput(bool value) => localInput = value;
         private Material baseMaterial;
         private MaterialPropertyBlock properties;
         private Vector2 attackFacing;
@@ -44,7 +45,8 @@ namespace SecretsReborn
         }
         private void LateUpdate()
         {
-            bool visible = IsSwinging && armedSwing && GameSession.Instance.CanFight(actor);
+            bool visible = IsSwinging && armedSwing && !GameSession.Instance.World.CharacterVitals(actor.CharacterId).IsDown
+                && (NetworkCoop.IsReplica || GameSession.Instance.CanFight(actor));
             sword.enabled = visible;
             if (!visible) return;
             int row = attackFacing.x > .5f ? 1 : attackFacing.x < -.5f ? 2 : attackFacing.y > .5f ? 3 : 0;

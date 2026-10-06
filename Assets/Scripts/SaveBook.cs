@@ -27,7 +27,7 @@ namespace SecretsReborn
         private void OnTriggerEnter2D(Collider2D other)
         {
             var character = other.GetComponentInParent<CharacterInventory>();
-            if (character != null && character.HasStateAuthority) actor = character;
+            if (character != null && character.HasStateAuthority && character.LocalInput) actor = character;
         }
         private void OnTriggerExit2D(Collider2D other)
         {

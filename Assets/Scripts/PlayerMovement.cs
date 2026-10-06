@@ -11,6 +11,10 @@ namespace SecretsReborn
         private PlayerMelee melee;
         private CharacterInventory actor;
         private InputAction move;
+        private bool networkDriven;
+        private Vector2 networkMotion;
+        public void SetNetworkMotion(Vector2 motion) { networkDriven = true; networkMotion = motion; }
+        public Vector2 ReadLocalMotion() => Vector2.ClampMagnitude(move.ReadValue<Vector2>(), 1);
 
         private void Awake()
         {
@@ -30,9 +34,9 @@ namespace SecretsReborn
 
         private void OnEnable() => move.Enable();
         private void FixedUpdate() => body.linearVelocity =
-            Application.isFocused && !GameSession.Instance.Busy
+            !NetworkCoop.IsReplica && (networkDriven || Application.isFocused) && !GameSession.Instance.Busy
                 && (actor == null || !GameSession.Instance.World.CharacterVitals(actor.CharacterId).IsDown) && (melee == null || !melee.IsSwinging)
-                ? Vector2.ClampMagnitude(move.ReadValue<Vector2>(), 1f) * speed : Vector2.zero;
+                ? (networkDriven ? networkMotion : ReadLocalMotion()) * speed : Vector2.zero;
         private void OnDisable()
         {
             move.Disable();

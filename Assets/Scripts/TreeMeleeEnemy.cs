@@ -15,6 +15,22 @@ namespace SecretsReborn
         private int health = 6;
         private float flashUntil, knockbackUntil, walkElapsed;
         private Vector2 knockback;
+        private int replicaFrame;
+        private readonly ReplicaMotion replicaMotion = new ReplicaMotion();
+        public void SetReplica(bool value)
+        {
+            if (value && hasStateAuthority) replicaMotion.Push(transform.position.x, transform.position.y, Time.unscaledTimeAsDouble, true);
+            hasStateAuthority = !value; body.simulated = !value;
+        }
+        public CoopEnemyPose CaptureReplica() => new CoopEnemyPose { id = enemyId, x = transform.position.x, y = transform.position.y,
+            active = gameObject.activeSelf, frame = frames != null ? System.Array.IndexOf(frames, image.sprite) : 0 };
+        public void ApplyReplica(CoopEnemyPose pose)
+        {
+            SetReplica(true); replicaFrame = Mathf.Clamp(pose.frame, 0, 23);
+            replicaMotion.Push(pose.x, pose.y, Time.unscaledTimeAsDouble,
+                !pose.active || !gameObject.activeSelf || GameSession.Instance.RewardPresentationActive);
+            gameObject.SetActive(pose.active);
+        }
         private static readonly int[] WalkFrames = { 1, 2, 3, 2 };
         public bool CanContact => Alive && Time.time >= knockbackUntil;
         public string EnemyId => enemyId;
@@ -36,7 +52,7 @@ namespace SecretsReborn
         private void FixedUpdate()
         {
             body.linearVelocity = Vector2.zero;
-            if (!hasStateAuthority || GameSession.Instance.Busy || GameSession.Instance.IsGameOver || !Application.isFocused || !Alive) return;
+            if (!hasStateAuthority || GameSession.Instance.Busy || GameSession.Instance.IsGameOver || (!Application.isFocused && !NetworkCoop.Running) || !Alive) return;
             if (Time.time < knockbackUntil) { body.linearVelocity = knockback; return; }
             CharacterInventory target = null; float best = 5 * 5;
             foreach (var candidate in FindObjectsByType<CharacterInventory>(FindObjectsSortMode.None))
@@ -59,6 +75,12 @@ namespace SecretsReborn
         private void Face(Vector2 delta) => facing = CombatRules.LogFacingRow(delta.x, delta.y);
         private void LateUpdate()
         {
+            if (!hasStateAuthority)
+            {
+                replicaMotion.Sample(Time.unscaledTimeAsDouble, out float x, out float y);
+                transform.position = new Vector3(x, y, transform.position.z);
+                if (frames != null && replicaFrame < frames.Length) image.sprite = frames[replicaFrame]; return;
+            }
             bool walking = body.linearVelocity.sqrMagnitude > .01f && Time.time >= knockbackUntil;
             walkElapsed = walking ? walkElapsed + Time.deltaTime : 0;
             if (frames != null && frames.Length >= 24) image.sprite = frames[facing * 6 + (walking ? WalkFrames[Mathf.FloorToInt(walkElapsed * 8) % 4] : 0)];
