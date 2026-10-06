@@ -7,6 +7,10 @@ internal static class CombatChecks
     public static void Main()
     {
         var cooldown = new CombatCooldown();
+        Check(CombatRules.MitigatedDamage(4, 100) == 2 && CombatRules.MitigatedDamage(3, 50) == 2, "armor reduces strong hits");
+        Check(CombatRules.MitigatedDamage(1, 1000000) == 1 && CombatRules.MitigatedDamage(0, 10) == 0
+            && CombatRules.MitigatedDamage(-1, 0) == 0, "half-heart minimum and invalid damage");
+        Check(CombatRules.MitigatedDamage(int.MaxValue, 0) == int.MaxValue, "armor arithmetic avoids overflow");
         Check(CombatRules.LogFacingRow(0, -1) == 0 && CombatRules.LogFacingRow(0, 1) == 1
             && CombatRules.LogFacingRow(1, 0) == 2 && CombatRules.LogFacingRow(-1, 0) == 3, "original log direction clips");
         Check(cooldown.TryUse(0, .45), "first attack");

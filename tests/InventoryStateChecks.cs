@@ -47,6 +47,12 @@ internal static class InventoryStateChecks
         Check(!full.TryEquip(0, EquipmentSlot.MainHand, Rules), "reject two returns with one free slot");
         Check(full.GetSlot(0).itemId == "bow" && full.GetEquipment(EquipmentSlot.MainHand) == "sword" && full.GetEquipment(EquipmentSlot.OffHand) == "shield", "rejected transaction atomic");
         Check(!full.TryUnequip(EquipmentSlot.OffHand, Rules), "full bag unequip rejected");
+        Check(!full.TryAddBatch(new[] { new InventoryStack { itemId = "reward", count = 1 }, new InventoryStack { itemId = "second", count = 1 } }, Rules), "full chest reward rejected");
+        var chestBag = new InventoryState(); chestBag.TryAdd("filler", 39, 1);
+        Check(!chestBag.TryAddBatch(new[] { new InventoryStack { itemId = "reward", count = 1 }, new InventoryStack { itemId = "second", count = 1 } }, Rules)
+            && chestBag.GetSlot(39) == null, "partial chest reward rolls back completely");
+        Check(chestBag.TryAddBatch(new[] { new InventoryStack { itemId = "ore", count = 4 } }, Rules), "stackable chest reward");
+        Check(chestBag.TryConsume(39) && chestBag.GetSlot(39).count == 3 && !chestBag.TryConsume(-1), "consume exactly one valid item");
         Check(!full.TryAdd("extra", 1, 1) && !full.TryAdd("", 1, 1) && !full.TryAdd("extra", -1, 1), "invalid add");
         var rings = new InventoryState(); rings.TryAdd("ring", 2, 1);
         Check(rings.TryEquip(0, EquipmentSlot.Ring1, Rules) && rings.TryEquip(1, EquipmentSlot.Ring2, Rules), "two rings");

@@ -14,6 +14,12 @@ namespace SecretsReborn
     }
     public static class CombatRules
     {
+        public static int MitigatedDamage(int amount, int armor)
+        {
+            if (amount <= 0) return 0;
+            long denominator = 100L + Math.Max(0, armor);
+            return (int)Math.Max(1, (amount * 100L + denominator - 1) / denominator);
+        }
         // Frame rows verified against the original LogWalkDown/Up/Right/Left clips.
         public static int LogFacingRow(float x, float y) => Math.Abs(x) > Math.Abs(y) ? (x > 0 ? 2 : 3) : (y > 0 ? 1 : 0);
         public static bool InArc(float dx, float dy, float facingX, float facingY, float range)

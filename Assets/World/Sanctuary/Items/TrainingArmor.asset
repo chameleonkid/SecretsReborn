@@ -18,6 +18,12 @@ MonoBehaviour:
   armorAppearance: {fileID: 11400000, guid: 9fbe1f73e57210a489a36d18e1938da6, type: 2}
   kind: 3
   twoHanded: 0
+  description: 
+  armorValue: 25
+  purpose: 0
+  useAmount: 2
+  weapon: {fileID: 0}
+  lamp: {fileID: 0}
   icon: {fileID: 0}
   quality: 0
   iconContent:

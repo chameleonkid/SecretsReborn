@@ -69,6 +69,20 @@ namespace SecretsReborn
             if (!Add(next, id, count, maxStack, Math.Min(capacity, Capacity))) return false;
             bag = next; return true;
         }
+        public bool TryAddBatch(InventoryStack[] rewards, Func<string, ItemRules> rules)
+        {
+            if (rewards == null || rewards.Length == 0 || rules == null) return false;
+            var next = Clone(bag);
+            foreach (var reward in rewards)
+                if (reward == null || !Add(next, reward.itemId, reward.count, rules(reward.itemId).maxStack, Capacity)) return false;
+            bag = next; return true;
+        }
+        public bool TryConsume(int index)
+        {
+            if (!Valid(index) || bag[index] == null) return false;
+            bag[index].count--; if (bag[index].count == 0) bag[index] = null;
+            return true;
+        }
         public bool TryMove(int from, int to, Func<string, ItemRules> rules)
         {
             if (!Valid(from) || !Valid(to) || from == to || bag[from] == null) return false;

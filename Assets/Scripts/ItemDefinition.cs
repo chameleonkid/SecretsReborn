@@ -3,6 +3,7 @@ using UnityEngine;
 namespace SecretsReborn
 {
     public enum ItemQuality { Normal, Uncommon, Rare, Epic, Legendary }
+    public enum ItemPurpose { Equipment, Gold, HealthPotion, ManaPotion, Arrows }
     [CreateAssetMenu(menuName = "SecretsReborn/Item")]
     public sealed class ItemDefinition : ScriptableObject
     {
@@ -15,6 +16,11 @@ namespace SecretsReborn
         [SerializeField, TextArea] private string description = "";
         [SerializeField, Min(0)] private int armorValue = 0;
         public int ArmorValue => Mathf.Max(0, armorValue);
+        [SerializeField] private ItemPurpose purpose;
+        [SerializeField, Min(1)] private int useAmount = 2;
+        public ItemPurpose Purpose => purpose;
+        public int UseAmount => Mathf.Max(1, useAmount);
+        public void SetPurpose(ItemPurpose value, int amount) { purpose = value; useAmount = Mathf.Max(1, amount); }
         public string Description
         {
             get
@@ -25,7 +31,10 @@ namespace SecretsReborn
                     : Rules.kind == ItemKind.Armor || Rules.kind == ItemKind.Head || Rules.kind == ItemKind.Shoulders
                         || Rules.kind == ItemKind.Waist || Rules.kind == ItemKind.Hands || Rules.kind == ItemKind.Legs
                         || Rules.kind == ItemKind.Feet || Rules.kind == ItemKind.Shield ? "Rüstungswert: " + ArmorValue
-                    : "Ausrüstungsgegenstand";
+                    : purpose == ItemPurpose.HealthPotion ? "Heilt " + (UseAmount / 2f).ToString("0.#") + " Herzen · A / Enter: benutzen"
+                    : purpose == ItemPurpose.ManaPotion ? "Stellt " + UseAmount + " Mana wieder her · A / Enter: benutzen"
+                    : purpose == ItemPurpose.Gold ? "Gold · für spätere Händler aufbewahren"
+                    : purpose == ItemPurpose.Arrows ? "Pfeile · Munition für spätere Fernkampfwaffen" : "Ausrüstungsgegenstand";
                 return string.IsNullOrWhiteSpace(description) ? stats : description + "\n" + stats;
             }
         }
