@@ -22,6 +22,7 @@ namespace SecretsReborn
         private static void Reset() => IsOpen = false;
         public bool CanUse(CharacterInventory character) => open && actor == character && character != null
             && character.HasStateAuthority && isActiveAndEnabled
+            && !GameSession.Instance.World.CharacterVitals(character.CharacterId).IsDown
             && Vector2.Distance(transform.position, character.transform.position) <= interactionDistance;
         private void OnTriggerEnter2D(Collider2D other)
         {
@@ -34,7 +35,8 @@ namespace SecretsReborn
         }
         private void Update()
         {
-            if (!Application.isFocused || GameSession.Instance.Busy) return;
+            if (!Application.isFocused || GameSession.Instance.Busy || GameSession.Instance.RewardPresentationActive) return;
+            if (actor != null && GameSession.Instance.World.CharacterVitals(actor.CharacterId).IsDown) { Close(); return; }
             var key = Keyboard.current; var pad = Gamepad.current;
             if (!open)
             {

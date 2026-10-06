@@ -207,6 +207,7 @@ GameObject:
   - component: {fileID: 6048701557014498418}
   - component: {fileID: 8838798721464285877}
   - component: {fileID: 7632062912389103415}
+  - component: {fileID: 1133977980166937182}
   m_Layer: 0
   m_Name: Player
   m_TagString: Untagged
@@ -832,6 +833,9 @@ MonoBehaviour:
   - {fileID: 11400000, guid: 0bd0977d37d6a974396c41368074582a, type: 2}
   - {fileID: 11400000, guid: bcb42130fbd4103479e83d2ffe8f4ac9, type: 2}
   - {fileID: 11400000, guid: 518427603d1e88a4f8d5dc311a8acc31, type: 2}
+  - {fileID: 11400000, guid: 54392f269ede62b4092067bb6bcd6198, type: 2}
+  - {fileID: 11400000, guid: 9869f25b127c5a74a8bad3927324ec5a, type: 2}
+  - {fileID: 11400000, guid: 0b42fbfeb73b1a543803adce6d45460f, type: 2}
   baseClothing: {fileID: 11400000, guid: e0ce796e838ee6249a814c6c6512cbb6, type: 2}
   hasStateAuthority: 1
 --- !u!114 &8838798721464285877
@@ -990,6 +994,18 @@ MonoBehaviour:
   - {fileID: 116295400, guid: 621748371ac18424db2895a6395d9802, type: 3}
   - {fileID: 912709751, guid: 621748371ac18424db2895a6395d9802, type: 3}
   swordVisualPrefab: {fileID: 1918293845266618540, guid: c0d7f628c1dab4c4a9f8674aa92ef67d, type: 3}
+--- !u!114 &1133977980166937182
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4332531742587553294}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 6b7362ea99e41f94e85ba388b1688e3d, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::SecretsReborn.CharacterDeath
 --- !u!1 &6213187784384063581
 GameObject:
   m_ObjectHideFlags: 0

@@ -24,6 +24,7 @@ namespace SecretsReborn
         private GUIStyle titleStyle, textStyle, smallStyle;
         private Rect pressedButton;
         private bool buttonPressed;
+        private Material grayscaleIconMaterial;
         private static readonly string[] Labels = { "Helm / Hut", "Schultern", "Armor", "Gürtel", "Hände", "Beine", "Stiefel", "Ring 1", "Ring 2", "Amulett", "Seal", "Cloak", "Haupthand", "Nebenhand", "Lampe" };
         private static readonly EquipmentSlot[] Left = { EquipmentSlot.Head, EquipmentSlot.Shoulders, EquipmentSlot.Armor, EquipmentSlot.Hands, EquipmentSlot.Waist, EquipmentSlot.Legs, EquipmentSlot.Feet };
         private static readonly EquipmentSlot[] Right = { EquipmentSlot.Ring1, EquipmentSlot.Ring2, EquipmentSlot.Amulet, EquipmentSlot.Seal, EquipmentSlot.Cloak, EquipmentSlot.MainHand, EquipmentSlot.OffHand };
@@ -37,15 +38,38 @@ namespace SecretsReborn
             WorldItem best = null; float distance = float.PositiveInfinity;
             foreach (var item in nearby)
             {
-                if (item == null || !item.isActiveAndEnabled) continue;
+                if (item == null || !item.CanUse(inventory)) continue;
                 float candidate = ((Vector2)(item.transform.position - transform.position)).sqrMagnitude;
                 if (candidate < distance) { best = item; distance = candidate; }
+            }
+            return best;
+        }
+        private void InteractionTarget(out WorldItem item, out TreasureChest chest)
+        {
+            item = Nearest(); chest = NearestChest();
+            if (item == null || chest == null) return;
+            // Compare usable targets together; an overlapping pickup trigger must not block a chest.
+            float itemDistance = ((Vector2)(item.transform.position - transform.position)).sqrMagnitude;
+            float chestDistance = ((Vector2)(chest.transform.position - transform.position)).sqrMagnitude;
+            if (chestDistance <= itemDistance) item = null;
+            else chest = null;
+        }
+        private TreasureChest NearestChest()
+        {
+            TreasureChest best = null; float distance = float.PositiveInfinity;
+            foreach (var chest in FindObjectsByType<TreasureChest>(FindObjectsSortMode.None))
+            {
+                if (chest.Opened || !chest.CanUse(inventory)) continue;
+                float candidate = (chest.transform.position - transform.position).sqrMagnitude;
+                if (candidate < distance) { best = chest; distance = candidate; }
             }
             return best;
         }
         private void Update()
         {
             if (!localInput || !Application.isFocused || SaveBook.IsOpen) return;
+            if (GameSession.Instance.RewardPresentationActive) return;
+            if (GameSession.Instance.World.CharacterVitals(inventory.CharacterId).IsDown) { SetOpen(false); return; }
             var key = Keyboard.current; var pad = Gamepad.current;
             if ((key != null && (key.iKey.wasPressedThisFrame || (open && key.escapeKey.wasPressedThisFrame)))
                 || (pad != null && pad.startButton.wasPressedThisFrame)) SetOpen(!open);
@@ -53,8 +77,12 @@ namespace SecretsReborn
             {
                 if ((key != null && key.eKey.wasPressedThisFrame) || (pad != null && pad.buttonSouth.wasPressedThisFrame))
                 {
-                    var item = Nearest();
+                    InteractionTarget(out var item, out var chest);
                     if (item != null) message = item.TryCollect(inventory) ? "Aufgehoben: " + item.Label : "Aufheben nicht möglich (kein Platz oder zu weit entfernt).";
+                    else
+                    {
+                        if (chest != null) message = chest.TryOpen(inventory) ? "Truhe geöffnet. Beute erhalten." : "Truhe bleibt geschlossen: Platz im Inventar prüfen.";
+                    }
                 }
                 return;
             }
@@ -92,8 +120,8 @@ namespace SecretsReborn
         {
             bool result = false;
             if (slot >= 40) result = inventory.TryUnequip((EquipmentSlot)(slot - 40));
-            else { var target = inventory.PreferredSlot(slot); if (target.HasValue) result = inventory.TryEquip(slot, target.Value); }
-            message = result ? "Ausrüstung geändert." : "Wechsel nicht möglich: Slot ungeeignet, leer oder Tasche voll.";
+            else { var target = inventory.PreferredSlot(slot); result = target.HasValue ? inventory.TryEquip(slot, target.Value) : inventory.TryUseItem(slot); }
+            message = result ? "Gegenstand angelegt, abgelegt oder benutzt." : "Nicht möglich: Slot ungeeignet, Tasche voll oder Effekt nicht benötigt.";
         }
         private void SetOpen(bool value)
         {
@@ -108,9 +136,11 @@ namespace SecretsReborn
         private void OnGUI()
         {
             if (!localInput) return;
+            if (GameSession.Instance.RewardPresentationActive) return;
             if (!open)
             {
-                GUI.Box(new Rect(12, Screen.height - 65, 570, 55), "I / Start: Inventar     E / A: Aufheben\n" + (Nearest() != null ? Nearest().Label : message ?? ""));
+                InteractionTarget(out var item, out var chest);
+                GUI.Box(new Rect(12, Screen.height - 65, 570, 55), "I / Start: Inventar     E / A: Aufheben / Truhe\n" + (item != null ? item.Label : chest != null ? chest.Label : message ?? ""));
                 return;
             }
             float scale = Mathf.Min(Screen.width / 1040f, Screen.height / 600f);
@@ -141,7 +171,7 @@ namespace SecretsReborn
                 {
                     var old = GUI.color; GUI.color = new Color(.48f, .48f, .48f, 1);
                     if (i == 40 + (int)EquipmentSlot.Lamp && inventory.Find("warm-lamp")?.Icon != null)
-                        DrawSprite(new Rect(rect.x + 8, rect.y + 8, rect.width - 16, rect.height - 16), inventory.Find("warm-lamp").Icon, Color.white);
+                        DrawSprite(new Rect(rect.x + 8, rect.y + 8, rect.width - 16, rect.height - 16), inventory.Find("warm-lamp").Icon, GUI.color, null, GrayscaleIconMaterial());
                     else ForestInventorySkin.Glyph(new Rect(rect.x + 8, rect.y + 8, rect.width - 16, rect.height - 16), i - 40);
                     GUI.color = old;
                 }
@@ -242,7 +272,18 @@ namespace SecretsReborn
                 DrawSprite(rect, sprite, tint);
             }
         }
-        private static void DrawSprite(Rect area, Sprite sprite, Color tint, Rect? content = null)
+        private Material GrayscaleIconMaterial()
+        {
+            if (grayscaleIconMaterial == null)
+            {
+                var shader = Resources.Load<Shader>("InventoryUI/GrayscaleIcon");
+                if (shader != null) grayscaleIconMaterial = new Material(shader) { hideFlags = HideFlags.HideAndDontSave };
+            }
+            return grayscaleIconMaterial;
+        }
+        private void OnDestroy()
+        { if (grayscaleIconMaterial != null) Destroy(grayscaleIconMaterial); }
+        private static void DrawSprite(Rect area, Sprite sprite, Color tint, Rect? content = null, Material material = null)
         {
             if (sprite == null) return;
             var region = content ?? new Rect(0, 0, 1, 1);
@@ -252,7 +293,10 @@ namespace SecretsReborn
             float width = Mathf.Min(area.width, area.height * ratio), height = width / ratio;
             var rect = new Rect(area.center.x - width / 2, area.center.y - height / 2, width, height);
             var old = GUI.color; GUI.color = tint;
-            GUI.DrawTextureWithTexCoords(rect, sprite.texture, new Rect(uv.x / sprite.texture.width, uv.y / sprite.texture.height, uv.width / sprite.texture.width, uv.height / sprite.texture.height));
+            var textureCoordinates = new Rect(uv.x / sprite.texture.width, uv.y / sprite.texture.height, uv.width / sprite.texture.width, uv.height / sprite.texture.height);
+            if (material == null) GUI.DrawTextureWithTexCoords(rect, sprite.texture, textureCoordinates);
+            else if (Event.current.type == EventType.Repaint)
+                Graphics.DrawTexture(rect, sprite.texture, textureCoordinates, 0, 0, 0, 0, tint, material);
             GUI.color = old;
         }
     }

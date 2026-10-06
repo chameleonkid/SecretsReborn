@@ -20,7 +20,7 @@ namespace SecretsReborn
         public int HeartFill(int index) => index < 0 || index >= HeartContainers ? 0 : Math.Max(0, Math.Min(2, Health - index * 2));
         public bool AddHeartContainer()
         {
-            if (MaxHealth >= MaximumHearts * 2) return false;
+            if (IsDown || MaxHealth >= MaximumHearts * 2) return false;
             MaxHealth += 2; Health += 2; return true;
         }
         public int Mana { get; private set; } = 50;
@@ -33,8 +33,14 @@ namespace SecretsReborn
         }
         public bool Heal(int amount)
         {
-            if (amount <= 0 || Health == MaxHealth) return false;
+            if (amount <= 0 || IsDown || Health == MaxHealth) return false;
             Health += Math.Min(amount, MaxHealth - Health); return true;
+        }
+        // Revival is a distinct host operation; ordinary healing cannot revive.
+        public bool Revive(int health)
+        {
+            if (!IsDown || health <= 0) return false;
+            Health = Math.Min(health, MaxHealth); return true;
         }
         public bool SpendMana(int amount)
         {

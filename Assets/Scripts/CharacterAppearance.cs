@@ -40,6 +40,7 @@ namespace SecretsReborn
         }
         [SerializeField, Min(1)] private float framesPerSecond = 8;
         private Rigidbody2D movement;
+        private CharacterDeath death;
         private int facing;
         private float attackStarted = -10, attackUntil;
         private int attackFacing;
@@ -68,6 +69,7 @@ namespace SecretsReborn
         private void Awake()
         {
             movement = GetComponent<Rigidbody2D>();
+            death = GetComponent<CharacterDeath>();
             headLayer = CreateLayer("Equipment head"); feetLayer = CreateLayer("Equipment feet");
         }
         private SpriteRenderer CreateLayer(string name)
@@ -93,6 +95,8 @@ namespace SecretsReborn
             int frame = facing * 16 + (walking ? 1 + (Mathf.FloorToInt(elapsed * framesPerSecond) % 6) : 0);
             if (Time.time < attackUntil && bodyFrames.Length >= 128)
                 frame = (attackFacing + 4) * 16 + 3 + Mathf.Min(3, Mathf.FloorToInt((Time.time - attackStarted) / (attackUntil - attackStarted) * 4));
+            if (death != null && death.IsDown && bodyFrames.Length >= 128)
+            { frame = death.AnimationFrame(facing); attackUntil = 0; }
             body.sprite = bodyFrames[frame];
             clothing.sprite = equippedClothing != null ? equippedClothing.Frame(frame) : null;
             clothing.enabled = clothing.sprite != null;

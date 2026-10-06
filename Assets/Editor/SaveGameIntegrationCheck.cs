@@ -30,6 +30,8 @@ namespace SecretsReborn.Editor
                 character.TryAdd("test-lamp", 1, 1);
                 character.TryEquip(2, EquipmentSlot.Lamp, id => new ItemRules { kind = ItemKind.Lamp, maxStack = 1 });
                 world.TryCollect("test-pickup", () => true);
+                world.TryCollect("chest:test-chest", () => true);
+                world.TryCollect("loot:test-oak:0", () => true);
                 world.DefeatEnemy("test-oak");
                 world.Puzzle("test-puzzle").Enter(0);
                 world.SetPosition("test-player", "Assets/Scenes/Waldheiligtum-Editable.unity", 2.5f, -4, 0);
@@ -42,7 +44,8 @@ namespace SecretsReborn.Editor
                 if (loaded.WorldId != "test-world" || loaded.CharacterInventory("test-player").EquippedArmorId != "test-armor"
                     || loaded.CharacterInventory("test-player").GetEquipment(EquipmentSlot.Lamp) != "test-lamp"
                     || loaded.CharacterInventory("test-player").GetSlot(1).itemId != "test-ring"
-                    || !loaded.IsCollected("test-pickup") || !loaded.IsEnemyDefeated("test-oak") || loaded.Puzzle("test-puzzle").Progress != 1
+                    || !loaded.IsCollected("test-pickup") || !loaded.IsCollected("chest:test-chest") || !loaded.IsCollected("loot:test-oak:0")
+                    || !loaded.IsEnemyDefeated("test-oak") || loaded.Puzzle("test-puzzle").Progress != 1
                     || loaded.Position("test-player").scenePath != "Assets/Scenes/Waldheiligtum-Editable.unity"
                     || loaded.Position("test-player").x != 2.5f || loaded.Position("test-player").y != -4
                     || loaded.PlayTimeSeconds != 3723.5 || loaded.SavedScenePath != "Assets/Scenes/Waldheiligtum-Editable.unity"

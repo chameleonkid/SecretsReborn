@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections;
+using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 
@@ -11,7 +12,49 @@ namespace SecretsReborn
         public WorldSessionState World { get; private set; }
         public string Status { get; private set; }
         public bool Busy { get; private set; }
+        public bool RewardPresentationActive { get; private set; }
+        private TreasureChest rewardOwner;
+        private float rewardPreviousTimeScale;
+        internal bool BeginRewardPresentation(TreasureChest chest)
+        {
+            if (Busy || RewardPresentationActive || chest == null) return false;
+            rewardOwner = chest; rewardPreviousTimeScale = Time.timeScale;
+            RewardPresentationActive = true; Time.timeScale = 0; return true;
+        }
+        internal void EndRewardPresentation(TreasureChest chest)
+        {
+            if (!RewardPresentationActive || !ReferenceEquals(rewardOwner, chest)) return;
+            Time.timeScale = rewardPreviousTimeScale; rewardOwner = null; RewardPresentationActive = false;
+        }
+        private void OnDisable()
+        { if (RewardPresentationActive) EndRewardPresentation(rewardOwner); }
         private float portalCooldown;
+        private SaveGameData checkpoint;
+        private readonly HashSet<string> party = new HashSet<string>();
+        private float partyDownAt = -1;
+        private IEnumerable<CharacterVitalsState> PartyVitals()
+        { foreach (var id in party) yield return World.CharacterVitals(id); }
+        public bool PartyDefeated => PartyRules.AllDown(PartyVitals());
+        public bool IsGameOver => !Busy && PartyDefeated && partyDownAt >= 0
+            && Time.unscaledTime - partyDownAt >= CharacterDeath.AnimationSeconds + .15f;
+        public bool CanRetryCheckpoint => IsGameOver && checkpoint != null && party.Count == 1;
+        // Explicit host roster: scene unloads never remove a party member. The future
+        // network adapter owns join/leave decisions and validates participant identity.
+        public void RemovePartyMember(string characterId) => party.Remove(characterId);
+        public bool ReviveCharacter(CharacterInventory actor, int halfHearts)
+        {
+            if (!CanChangeVitals(actor) || !World.CharacterVitals(actor.CharacterId).Revive(halfHearts)) return false;
+            actor.GetComponent<CharacterDeath>()?.RefreshState(); return true;
+        }
+        public void RegisterSpawn(CharacterInventory actor)
+        {
+            if (actor == null || !actor.HasStateAuthority) return;
+            party.Add(actor.CharacterId);
+            if (checkpoint != null) return;
+            var p = actor.transform.position;
+            World.SetPosition(actor.CharacterId, actor.gameObject.scene.path, p.x, p.y, p.z);
+            checkpoint = World.Capture();
+        }
         public bool CanFight(CharacterInventory actor) => CanChangeVitals(actor)
             && !World.CharacterVitals(actor.CharacterId).IsDown && !SaveBook.IsOpen
             && actor.GetComponent<InventoryInteraction>()?.IsOpen != true;
@@ -68,15 +111,17 @@ namespace SecretsReborn
         }
         // Trusted host gameplay entry points. A future network adapter must validate
         // sender ownership and derive amounts from attacks/items, never client numbers.
-        private bool CanChangeVitals(CharacterInventory actor) => !Busy && actor != null && actor.isActiveAndEnabled && actor.HasStateAuthority;
-        public bool ApplyDamage(CharacterInventory actor, int amount) => CanChangeVitals(actor) && World.CharacterVitals(actor.CharacterId).Damage(amount);
+        private bool CanChangeVitals(CharacterInventory actor) => !Busy && !RewardPresentationActive && actor != null && actor.isActiveAndEnabled && actor.HasStateAuthority;
+        public bool ApplyDamage(CharacterInventory actor, int amount) => CanChangeVitals(actor)
+            && World.CharacterVitals(actor.CharacterId).Damage(CombatRules.MitigatedDamage(amount, actor.TotalArmor));
         public bool ApplyHealing(CharacterInventory actor, int amount) => CanChangeVitals(actor) && World.CharacterVitals(actor.CharacterId).Heal(amount);
         public bool TrySpendMana(CharacterInventory actor, int amount) => CanChangeVitals(actor) && World.CharacterVitals(actor.CharacterId).SpendMana(amount);
         public bool RestoreMana(CharacterInventory actor, int amount) => CanChangeVitals(actor) && World.CharacterVitals(actor.CharacterId).RestoreMana(amount);
         public bool AddHeartContainer(CharacterInventory actor) => CanChangeVitals(actor) && World.CharacterVitals(actor.CharacterId).AddHeartContainer();
         public bool RequestAreaChange(AreaPortal portal, CharacterInventory actor)
         {
-            if (Busy || Time.unscaledTime < portalCooldown || portal == null || !portal.CanUse(actor)
+            if (Busy || RewardPresentationActive || Time.unscaledTime < portalCooldown || portal == null || !portal.CanUse(actor)
+                || actor == null || World.CharacterVitals(actor.CharacterId).IsDown
                 || SaveBook.IsOpen || actor.GetComponent<InventoryInteraction>()?.IsOpen == true) return false;
             // One host entry point. Replicated party readiness/spawning will be supplied by the network layer.
             if (FindObjectsByType<CharacterInventory>(FindObjectsSortMode.None).Length != 1)
@@ -148,6 +193,7 @@ namespace SecretsReborn
                     else instance = new GameObject("Host session").AddComponent<GameSession>();
                     DontDestroyOnLoad(instance.gameObject);
                     if (instance.GetComponent<CharacterVitalsHud>() == null) instance.gameObject.AddComponent<CharacterVitalsHud>();
+                    if (instance.GetComponent<GameOverScreen>() == null) instance.gameObject.AddComponent<GameOverScreen>();
                 }
                 return instance;
             }
@@ -173,6 +219,7 @@ namespace SecretsReborn
                 }
                 World.SetSavedScene(actor.gameObject.scene.path);
                 SaveGameStore.Save(World, SaveGameStore.SlotPath(slot));
+                checkpoint = World.Capture();
                 Status = "Slot " + (slot + 1) + " gespeichert."; return true;
             }
             catch (Exception error) { Status = "Speichern fehlgeschlagen: " + error.Message; Debug.LogError(Status); return false; }
@@ -223,11 +270,44 @@ namespace SecretsReborn
             foreach (var item in FindObjectsByType<WorldItem>(FindObjectsInactive.Include, FindObjectsSortMode.None)) item.RefreshSession();
             foreach (var puzzle in FindObjectsByType<SanctuaryPuzzle>(FindObjectsSortMode.None)) puzzle.RefreshSession();
             foreach (var enemy in FindObjectsByType<TreeMeleeEnemy>(FindObjectsInactive.Include, FindObjectsSortMode.None)) enemy.RefreshSession();
+            foreach (var chest in FindObjectsByType<TreasureChest>(FindObjectsSortMode.None)) chest.RefreshSession();
+            foreach (var loot in FindObjectsByType<EnemyLoot>(FindObjectsSortMode.None)) loot.RefreshSession();
+            checkpoint = World.Capture();
             Status = "Savegame geladen."; Busy = false;
+        }
+        private CharacterInventory DownedActor()
+        {
+            foreach (var actor in FindObjectsByType<CharacterInventory>(FindObjectsSortMode.None))
+                if (actor.HasStateAuthority && World.CharacterVitals(actor.CharacterId).IsDown) return actor;
+            return null;
+        }
+        public bool ReturnToCheckpoint()
+        {
+            var actor = DownedActor();
+            if (!CanRetryCheckpoint || Busy || checkpoint == null || actor == null) return false;
+            // Solo retry restores the host snapshot. Party revival requires a separate network policy.
+            if (FindObjectsByType<CharacterInventory>(FindObjectsSortMode.None).Length != 1) return false;
+            var restored = WorldSessionState.Restore(checkpoint);
+            var pose = restored.Position(actor.CharacterId);
+            if (pose == null) return false;
+            try { ValidateScene(pose.scenePath); }
+            catch (Exception error) { Status = error.Message; return false; }
+            var vitals = restored.CharacterVitals(actor.CharacterId);
+            if (vitals.IsDown) vitals.Revive(vitals.MaxHealth); else vitals.Heal(vitals.MaxHealth);
+            vitals.RestoreMana(vitals.MaxMana);
+            Busy = true; StartCoroutine(ApplyLoaded(restored, pose.scenePath)); return true;
         }
         private void Update()
         {
-            if (Application.isFocused && !Busy && Time.timeScale > 0)
+            if (!Busy && PartyDefeated)
+            { if (partyDownAt < 0) partyDownAt = Time.unscaledTime; }
+            else partyDownAt = -1;
+            if (IsGameOver && Application.isFocused)
+            {
+                var key = UnityEngine.InputSystem.Keyboard.current; var pad = UnityEngine.InputSystem.Gamepad.current;
+                if (key != null && key.enterKey.wasPressedThisFrame || pad != null && pad.buttonSouth.wasPressedThisFrame) ReturnToCheckpoint();
+            }
+            if (Application.isFocused && !Busy && !IsGameOver && Time.timeScale > 0)
                 World.AdvancePlayTime(Time.unscaledDeltaTime);
         }
     }

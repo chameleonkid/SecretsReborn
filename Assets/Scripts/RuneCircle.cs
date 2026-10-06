@@ -27,7 +27,8 @@ namespace SecretsReborn
         {
             if (player == null) return;
             float distance = ((Vector2)(player.position - transform.position)).sqrMagnitude;
-            bool nowInside = lantern != null && lantern.CanRevealRunes
+            var actor = player.GetComponent<CharacterInventory>();
+            bool nowInside = actor != null && !GameSession.Instance.World.CharacterVitals(actor.CharacterId).IsDown && lantern != null && lantern.CanRevealRunes
                 && distance <= lantern.RevealRadius * lantern.RevealRadius && distance <= activationRadius * activationRadius;
             if (nowInside && !inside) entered?.Invoke(index);
             inside = nowInside;

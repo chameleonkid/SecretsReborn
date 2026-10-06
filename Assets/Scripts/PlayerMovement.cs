@@ -9,12 +9,14 @@ namespace SecretsReborn
         [SerializeField, Min(0)] private float speed = 4f;
         private Rigidbody2D body;
         private PlayerMelee melee;
+        private CharacterInventory actor;
         private InputAction move;
 
         private void Awake()
         {
             body = GetComponent<Rigidbody2D>();
             melee = GetComponent<PlayerMelee>();
+            actor = GetComponent<CharacterInventory>();
             move = new InputAction("Move", InputActionType.Value);
             move.AddCompositeBinding("2DVector")
                 .With("Up", "<Keyboard>/w").With("Down", "<Keyboard>/s")
@@ -28,7 +30,8 @@ namespace SecretsReborn
 
         private void OnEnable() => move.Enable();
         private void FixedUpdate() => body.linearVelocity =
-            Application.isFocused && (melee == null || !melee.IsSwinging)
+            Application.isFocused && !GameSession.Instance.Busy
+                && (actor == null || !GameSession.Instance.World.CharacterVitals(actor.CharacterId).IsDown) && (melee == null || !melee.IsSwinging)
                 ? Vector2.ClampMagnitude(move.ReadValue<Vector2>(), 1f) * speed : Vector2.zero;
         private void OnDisable()
         {

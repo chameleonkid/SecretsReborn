@@ -36,7 +36,7 @@ namespace SecretsReborn
         private void FixedUpdate()
         {
             body.linearVelocity = Vector2.zero;
-            if (!hasStateAuthority || GameSession.Instance.Busy || !Application.isFocused || !Alive) return;
+            if (!hasStateAuthority || GameSession.Instance.Busy || GameSession.Instance.IsGameOver || !Application.isFocused || !Alive) return;
             if (Time.time < knockbackUntil) { body.linearVelocity = knockback; return; }
             CharacterInventory target = null; float best = 5 * 5;
             foreach (var candidate in FindObjectsByType<CharacterInventory>(FindObjectsSortMode.None))
@@ -70,7 +70,12 @@ namespace SecretsReborn
             if (!hasStateAuthority || !Alive || amount <= 0) return false;
             health = Mathf.Max(0, health - amount); flashUntil = Time.time + .18f;
             knockback = push; knockbackUntil = Time.time + .18f;
-            if (health == 0) { GameSession.Instance.World.DefeatEnemy(enemyId); gameObject.SetActive(false); }
+            if (health == 0)
+            {
+                GameSession.Instance.World.DefeatEnemy(enemyId);
+                foreach (var loot in FindObjectsByType<EnemyLoot>(FindObjectsSortMode.None)) loot.RefreshSession();
+                gameObject.SetActive(false);
+            }
             return true;
         }
         private void OnCollisionEnter2D(Collision2D collision) => Contact(collision);

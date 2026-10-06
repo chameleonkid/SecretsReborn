@@ -36,7 +36,8 @@ namespace SecretsReborn
         private void OnEnable() { toggle.Enable(); inventory.Changed += RefreshLight; }
         private void Update()
         {
-            if (Application.isFocused && !SaveBook.IsOpen && (interaction == null || !interaction.IsOpen)
+            if (GameSession.Instance.World.CharacterVitals(inventory.CharacterId).IsDown) { SetLit(false); return; }
+            if (Application.isFocused && !GameSession.Instance.RewardPresentationActive && !SaveBook.IsOpen && (interaction == null || !interaction.IsOpen)
                 && toggle.WasPressedThisFrame()) SetLit(!IsLit);
         }
         public void SetLit(bool value)

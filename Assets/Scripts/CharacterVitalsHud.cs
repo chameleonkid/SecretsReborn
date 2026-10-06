@@ -29,7 +29,8 @@ namespace SecretsReborn
                 for (int i = 0; i < state.HeartContainers; i++)
                     Heart(new Vector2(18 + i % 10 * 26, top + i / 10 * 26), state.HeartFill(i));
                 Bar(new Rect(18, top + rows * 26 + 6, 200, 20), state.Mana, state.MaxMana, new Color(.2f, .65f, .35f), "Mana");
-                if (state.IsDown) GUI.Label(new Rect(16, top + rows * 26 + 30, 264, 24), "Kampfunfähig", label);
+                if (state.IsDown && !GameSession.Instance.IsGameOver)
+                    GUI.Label(new Rect(16, top + rows * 26 + 30, 264, 24), "Warte auf Wiederbelebung", label);
             }
             finally { GUI.matrix = oldMatrix; GUI.color = oldColor; GUI.depth = oldDepth; }
         }

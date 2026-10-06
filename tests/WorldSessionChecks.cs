@@ -7,6 +7,15 @@ internal static class WorldSessionChecks
     public static void Main()
     {
         var world = new WorldSessionState("world-a");
+        var party = new[] { new CharacterVitalsState(), new CharacterVitalsState(), new CharacterVitalsState(), new CharacterVitalsState() };
+        Check(!PartyRules.AllDown(Array.Empty<CharacterVitalsState>()) && !PartyRules.AllDown(party), "empty/living party cannot trigger game over");
+        party[0].Damage(6);
+        Check(!PartyRules.AllDown(party) && !party[0].Heal(2) && !party[0].AddHeartContainer(), "individual death waits for revival and ordinary healing cannot revive");
+        for (int member = 1; member < 4; member++) party[member].Damage(6);
+        Check(PartyRules.AllDown(party), "all four down triggers party defeat");
+        Check(!party[0].Revive(0) && party[0].Revive(2) && !party[0].Revive(2) && !PartyRules.AllDown(party), "host revival clears defeat and rejects invalid/already-alive revival");
+        var deadSave = CharacterVitalsState.Restore(party[1].Capture());
+        Check(deadSave.IsDown && deadSave.Revive(999) && deadSave.Health == deadSave.MaxHealth, "saved dead state and bounded revival");
         var character = world.CharacterInventory("player-a");
         var vitals = world.CharacterVitals("player-a");
         Check(vitals.Health == 6 && vitals.Mana == 50, "starting vitals");
@@ -68,7 +77,7 @@ internal static class WorldSessionChecks
         try { WorldSessionState.Restore(corrupt); } catch (ArgumentException) { badVitals = true; }
         Check(badVitals, "missing version 5 vitals rejected");
         Check(vitals.Damage(int.MaxValue) && vitals.IsDown && !vitals.SpendMana(1) && !vitals.Damage(1), "zero HP boundary");
-        Check(vitals.Heal(int.MaxValue) && vitals.Health == 6 && !vitals.Heal(1), "heal clamps without overflow");
+        Check(!vitals.Heal(int.MaxValue) && vitals.Revive(2) && vitals.Heal(int.MaxValue) && vitals.Health == 6 && !vitals.Heal(1), "revival required before healing; heal clamps without overflow");
         Check(vitals.RestoreMana(int.MaxValue) && vitals.Mana == 50 && !vitals.RestoreMana(1), "mana restores without overflow");
         var hearts = new CharacterVitalsState();
         Check(hearts.HeartContainers == 3 && hearts.HeartFill(0) == 2 && hearts.HeartFill(2) == 2, "three full starting hearts");
@@ -108,6 +117,6 @@ internal static class WorldSessionChecks
         var invalid = world.Capture(); invalid.characters[0].bag = new InventoryStack[2]; rejected = false;
         try { WorldSessionState.Restore(invalid); } catch (ArgumentException) { rejected = true; }
         Check(rejected, "invalid dimensions rejected");
-        Console.WriteLine("PASS: HP/mana boundaries, costs, snapshot isolation, v3 migration and invalid v5 rejection; scene rebinding, world/character isolation, inventory/equipment, pickups and puzzle state.");
+        Console.WriteLine("PASS: individual death, four-member party defeat, explicit bounded revival, dead save roundtrip; HP/mana, migration, isolation, equipment and world state.");
     }
 }
