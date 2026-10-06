@@ -10,6 +10,8 @@ namespace SecretsReborn
         [SerializeField] private SpringSource spring;
         [SerializeField] private GameObject gate;
         [SerializeField] private string puzzleId = "forest-sanctuary-source";
+        [SerializeField, Tooltip("Basis-Steuerung nur für eine Tutorial-Szene einblenden.")]
+        private bool showTutorialControls = false;
         private RuneSequence sequence;
         private string message = "Finde die vier Runenkreise in der richtigen Reihenfolge.";
 
@@ -67,7 +69,7 @@ namespace SecretsReborn
 
         private void OnGUI()
         {
-            if (lantern == null) return;
+            if (!showTutorialControls || lantern == null) return;
             GUI.Box(new Rect(12, 12, 460, 110), "Waldheiligtum\nWASD / Pfeiltasten / Gamepad: Bewegen\n"
                 + "L / obere Gamepad-Taste: Laterne " + (lantern.IsLit ? "AN" : "AUS")
                 + "\nMit der Laterne nahe Zeichen entdecken.\n" + message);

@@ -154,7 +154,7 @@ namespace SecretsReborn
                 if (item != null)
                 {
                     Border(new Rect(rect.x + 6, rect.y + 6, rect.width - 12, rect.height - 12), item.QualityColor, 2);
-                    if (item.Icon != null) DrawSprite(new Rect(rect.x + 9, rect.y + 9, rect.width - 18, rect.height - 18), item.Icon, item.ArmorAppearance != null ? item.ArmorAppearance.Tint : Color.white, item.IconContent);
+                    if (item.Icon != null) DrawSprite(new Rect(rect.x + 9, rect.y + 9, rect.width - 18, rect.height - 18), item.Icon, item.IconTint, item.IconContent);
                     else GUI.Label(rect, item.DisplayName.Substring(0, Mathf.Min(6, item.DisplayName.Length)), smallStyle);
                     var stack = i < 40 ? inventory.State.GetSlot(i) : null;
                     if (stack != null && stack.count > 1) GUI.Label(new Rect(rect.x + 3, rect.yMax - 20, rect.width, 20), stack.count.ToString());
@@ -170,6 +170,7 @@ namespace SecretsReborn
             ForestInventorySkin.Leather(new Rect(520, 395, 475, 90));
             GUI.Label(new Rect(535, 405, 445, 70), inspected != null
                 ? inspected.DisplayName + "\n" + inspected.QualityLabel + " · " + (inspectedIndex >= 40 ? Labels[inspectedIndex - 40] : "Taschenplatz " + (inspectedIndex + 1)) + (inspected.Rules.twoHanded ? " · Zweihand" : "")
+                    + (inspected.Weapon != null ? "\nSchaden: " + inspected.Weapon.Damage + " Halbherzen" : "")
                 : inspectedIndex >= 40 ? Labels[inspectedIndex - 40] + "\nNicht belegt" : "Taschenplatz " + (inspectedIndex + 1) + "\nLeer", textStyle);
             GUI.Label(new Rect(35, 510, 950, 30), message ?? "Goldener Rahmen: ausgewählter Slot", smallStyle);
             if (ArtButton(new Rect(520, 545, 225, 30), selected >= 40 ? "Ablegen → Tasche (A / X)" : "Anlegen (A / Enter)", Item(selected) != null)) Activate(selected);
@@ -194,7 +195,7 @@ namespace SecretsReborn
                 dragSource = -1; evt.Use();
             }
             if (dragSource >= 0 && Item(dragSource)?.Icon != null && Vector2.Distance(dragStart, evt.mousePosition) > 5)
-                DrawSprite(new Rect(evt.mousePosition.x - 20, evt.mousePosition.y - 20, 40, 40), Item(dragSource).Icon, Color.white, Item(dragSource).IconContent);
+                DrawSprite(new Rect(evt.mousePosition.x - 20, evt.mousePosition.y - 20, 40, 40), Item(dragSource).Icon, Item(dragSource).IconTint, Item(dragSource).IconContent);
             GUI.matrix = previous;
         }
         private void Styles()

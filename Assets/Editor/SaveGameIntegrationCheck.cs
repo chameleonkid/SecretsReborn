@@ -28,25 +28,26 @@ namespace SecretsReborn.Editor
                 character.TryEquip(0, EquipmentSlot.Armor, id => new ItemRules { kind = ItemKind.Armor, maxStack = 1 });
                 character.TryAdd("test-ring", 2, 1);
                 world.TryCollect("test-pickup", () => true);
+                world.DefeatEnemy("test-oak");
                 world.Puzzle("test-puzzle").Enter(0);
                 world.SetPosition("test-player", "Assets/Scenes/Waldheiligtum-Editable.unity", 2.5f, -4, 0);
                 world.SetSavedScene("Assets/Scenes/Waldheiligtum-Editable.unity");
                 world.AdvancePlayTime(3723.5);
-                world.CharacterVitals("test-player").Damage(25);
+                world.CharacterVitals("test-player").Damage(1);
                 world.CharacterVitals("test-player").SpendMana(20);
                 SaveGameStore.Save(world, path);
                 var loaded = SaveGameStore.Load(path);
                 if (loaded.WorldId != "test-world" || loaded.CharacterInventory("test-player").EquippedArmorId != "test-armor"
                     || loaded.CharacterInventory("test-player").GetSlot(1).itemId != "test-ring"
-                    || !loaded.IsCollected("test-pickup") || loaded.Puzzle("test-puzzle").Progress != 1
+                    || !loaded.IsCollected("test-pickup") || !loaded.IsEnemyDefeated("test-oak") || loaded.Puzzle("test-puzzle").Progress != 1
                     || loaded.Position("test-player").scenePath != "Assets/Scenes/Waldheiligtum-Editable.unity"
                     || loaded.Position("test-player").x != 2.5f || loaded.Position("test-player").y != -4
                     || loaded.PlayTimeSeconds != 3723.5 || loaded.SavedScenePath != "Assets/Scenes/Waldheiligtum-Editable.unity"
-                    || loaded.CharacterVitals("test-player").Health != 75 || loaded.CharacterVitals("test-player").Mana != 30)
+                    || loaded.CharacterVitals("test-player").Health != 5 || loaded.CharacterVitals("test-player").Mana != 30)
                     throw new Exception("Roundtrip state mismatch.");
-                world.Puzzle("test-puzzle").Enter(1); world.CharacterVitals("test-player").Damage(25); SaveGameStore.Save(world, path);
+                world.Puzzle("test-puzzle").Enter(1); world.CharacterVitals("test-player").Damage(1); SaveGameStore.Save(world, path);
                 if (!SaveGameStore.Exists(path + ".bac") || SaveGameStore.Load(path + ".bac").Puzzle("test-puzzle").Progress != 1
-                    || SaveGameStore.Load(path + ".bac").CharacterVitals("test-player").Health != 75)
+                    || SaveGameStore.Load(path + ".bac").CharacterVitals("test-player").Health != 5)
                     throw new Exception("Backup mismatch.");
                 var invalid = world.Capture(); invalid.version = 999;
                 bool rejected = false; try { WorldSessionState.Restore(invalid); } catch (ArgumentException) { rejected = true; }
@@ -54,10 +55,17 @@ namespace SecretsReborn.Editor
                 var legacy = world.Capture(); legacy.version = 3;
                 foreach (var entry in legacy.characters) entry.vitals = null;
                 ES3.Save("world-session", legacy, new ES3Settings(path + ".legacy", ES3.Location.File));
-                if (SaveGameStore.Load(path + ".legacy").CharacterVitals("test-player").Health != 100)
+                if (SaveGameStore.Load(path + ".legacy").CharacterVitals("test-player").Health != 6)
                     throw new Exception("Legacy vitals migration mismatch.");
-                File.WriteAllText("Temp/SaveGameCheckReport.txt", "PASS: Easy-Save-Roundtrip einschließlich HP/Mana, Spielzeit, Szenenübersicht und Position, Inventar und Rätsel; Backup, v3-Migration und Versionsprüfung bestanden. Separater Teststand.");
-                Debug.Log("PASS: Easy Save roundtrip und Backup geprüft.");
+                legacy.version = 4;
+                foreach (var entry in legacy.characters) entry.vitals = new VitalsSaveData { health = 75, maxHealth = 100, mana = 30, maxMana = 50 };
+                ES3.Save("world-session", legacy, new ES3Settings(path + ".legacy", ES3.Location.File));
+                var oldVitals = SaveGameStore.Load(path + ".legacy").CharacterVitals("test-player");
+                if (oldVitals.Health != 5 || oldVitals.HeartContainers != 3 || oldVitals.Mana != 30) throw new Exception("V4 heart migration mismatch.");
+                world.CharacterVitals("test-player").AddHeartContainer(); SaveGameStore.Save(world, path);
+                if (SaveGameStore.Load(path).CharacterVitals("test-player").HeartContainers != 4) throw new Exception("Heart container roundtrip mismatch.");
+                File.WriteAllText("Temp/SaveGameCheckReport.txt", "PASS: Hearts/mana and heart containers roundtrip; v3/v4 migration, backup, position, inventory and puzzles. Separate test save.");
+                Debug.Log("PASS: Herzen, Easy-Save-Roundtrip, Migration und Backup geprüft.");
             }
             finally
             {

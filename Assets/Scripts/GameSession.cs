@@ -12,6 +12,60 @@ namespace SecretsReborn
         public string Status { get; private set; }
         public bool Busy { get; private set; }
         private float portalCooldown;
+        public bool CanFight(CharacterInventory actor) => CanChangeVitals(actor)
+            && !World.CharacterVitals(actor.CharacterId).IsDown && !SaveBook.IsOpen
+            && actor.GetComponent<InventoryInteraction>()?.IsOpen != true;
+        public bool ClearCombatPath(Vector2 from, Vector2 to)
+        {
+            foreach (var hit in Physics2D.LinecastAll(from, to))
+                if (hit.collider != null && !hit.collider.isTrigger && hit.collider.GetComponentInParent<CharacterInventory>() == null
+                    && hit.collider.GetComponentInParent<TreeMeleeEnemy>() == null) return false;
+            return true;
+        }
+        public bool RequestMeleeAttack(CharacterInventory actor)
+        {
+            if (!CanFight(actor)) return false;
+            var melee = actor.GetComponent<PlayerMelee>();
+            if (melee == null || !melee.isActiveAndEnabled) return false;
+            var weapon = actor.Find(actor.State.GetEquipment(EquipmentSlot.MainHand));
+            if (weapon != null && (weapon.Rules.kind != ItemKind.Weapon || weapon.Weapon == null)) return false;
+            var profile = weapon != null ? weapon.Weapon : null;
+            if (!melee.AttackCooldown.TryUse(Time.time, profile != null ? profile.Cooldown : .45)) return false;
+            melee.PresentSwing(profile, weapon != null);
+            StartCoroutine(ResolveMelee(actor, melee, profile != null ? profile.Damage : 1,
+                profile != null ? profile.Range : 1.6f, profile != null ? profile.HitDelay : .14f,
+                profile != null ? profile.Knockback : 0));
+            return true;
+        }
+        private IEnumerator ResolveMelee(CharacterInventory actor, PlayerMelee melee, int damage, float range, float delay, float knockback)
+        {
+            var scene = actor.gameObject.scene;
+            var combatWorld = World;
+            yield return new WaitForSeconds(delay);
+            if (!CanFight(actor) || melee == null || actor.gameObject.scene != scene || World != combatWorld) yield break;
+            foreach (var enemy in FindObjectsByType<TreeMeleeEnemy>(FindObjectsSortMode.None))
+            {
+                if (!enemy.Alive || !enemy.HasStateAuthority || enemy.gameObject.scene != actor.gameObject.scene) continue;
+                var delta = enemy.transform.position - actor.transform.position;
+                if (CombatRules.InArc(delta.x, delta.y, melee.AttackFacing.x, melee.AttackFacing.y, range)
+                    && ClearCombatPath(actor.transform.position, enemy.transform.position))
+                    enemy.ReceiveHostHit(damage, ((Vector2)delta).normalized * knockback);
+            }
+        }
+        public bool RequestEnemyContact(TreeMeleeEnemy enemy, CharacterInventory actor)
+        {
+            if (enemy == null || !enemy.CanContact || !enemy.HasStateAuthority || !CanFight(actor)
+                || enemy.gameObject.scene != actor.gameObject.scene
+                || !ClearCombatPath(enemy.transform.position, actor.transform.position)) return false;
+            var enemyCollider = enemy.GetComponent<Collider2D>();
+            bool touching = false;
+            foreach (var collider in actor.GetComponents<Collider2D>())
+                if (!collider.isTrigger && enemyCollider.IsTouching(collider)) { touching = true; break; }
+            if (!touching) return false;
+            var melee = actor.GetComponent<PlayerMelee>();
+            if (melee == null || !melee.HurtCooldown.TryUse(Time.time, .8)) return false;
+            return ApplyDamage(actor, 1);
+        }
         // Trusted host gameplay entry points. A future network adapter must validate
         // sender ownership and derive amounts from attacks/items, never client numbers.
         private bool CanChangeVitals(CharacterInventory actor) => !Busy && actor != null && actor.isActiveAndEnabled && actor.HasStateAuthority;
@@ -19,6 +73,7 @@ namespace SecretsReborn
         public bool ApplyHealing(CharacterInventory actor, int amount) => CanChangeVitals(actor) && World.CharacterVitals(actor.CharacterId).Heal(amount);
         public bool TrySpendMana(CharacterInventory actor, int amount) => CanChangeVitals(actor) && World.CharacterVitals(actor.CharacterId).SpendMana(amount);
         public bool RestoreMana(CharacterInventory actor, int amount) => CanChangeVitals(actor) && World.CharacterVitals(actor.CharacterId).RestoreMana(amount);
+        public bool AddHeartContainer(CharacterInventory actor) => CanChangeVitals(actor) && World.CharacterVitals(actor.CharacterId).AddHeartContainer();
         public bool RequestAreaChange(AreaPortal portal, CharacterInventory actor)
         {
             if (Busy || Time.unscaledTime < portalCooldown || portal == null || !portal.CanUse(actor)
@@ -167,6 +222,7 @@ namespace SecretsReborn
             Physics2D.SyncTransforms();
             foreach (var item in FindObjectsByType<WorldItem>(FindObjectsInactive.Include, FindObjectsSortMode.None)) item.RefreshSession();
             foreach (var puzzle in FindObjectsByType<SanctuaryPuzzle>(FindObjectsSortMode.None)) puzzle.RefreshSession();
+            foreach (var enemy in FindObjectsByType<TreeMeleeEnemy>(FindObjectsInactive.Include, FindObjectsSortMode.None)) enemy.RefreshSession();
             Status = "Savegame geladen."; Busy = false;
         }
         private void Update()

@@ -41,6 +41,10 @@ namespace SecretsReborn
         [SerializeField, Min(1)] private float framesPerSecond = 8;
         private Rigidbody2D movement;
         private int facing;
+        private float attackStarted = -10, attackUntil;
+        private int attackFacing;
+        public void PresentAttack(float duration) { attackStarted = Time.time; attackUntil = Time.time + duration; attackFacing = facing; }
+        public Vector2 FacingDirection => facing == 1 ? Vector2.right : facing == 2 ? Vector2.left : facing == 3 ? Vector2.up : Vector2.down;
         private float elapsed;
         private bool externalMotion;
         private Vector2 presentedMotion;
@@ -87,6 +91,8 @@ namespace SecretsReborn
             if (!walking || previousFacing != facing) elapsed = 0;
             else elapsed += Time.deltaTime;
             int frame = facing * 16 + (walking ? 1 + (Mathf.FloorToInt(elapsed * framesPerSecond) % 6) : 0);
+            if (Time.time < attackUntil && bodyFrames.Length >= 128)
+                frame = (attackFacing + 4) * 16 + 3 + Mathf.Min(3, Mathf.FloorToInt((Time.time - attackStarted) / (attackUntil - attackStarted) * 4));
             body.sprite = bodyFrames[frame];
             clothing.sprite = equippedClothing != null ? equippedClothing.Frame(frame) : null;
             clothing.enabled = clothing.sprite != null;

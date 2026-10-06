@@ -9,12 +9,12 @@ internal static class WorldSessionChecks
         var world = new WorldSessionState("world-a");
         var character = world.CharacterInventory("player-a");
         var vitals = world.CharacterVitals("player-a");
-        Check(vitals.Health == 100 && vitals.Mana == 50, "starting vitals");
+        Check(vitals.Health == 6 && vitals.Mana == 50, "starting vitals");
         Check(!vitals.Damage(0) && !vitals.Damage(-1) && !vitals.SpendMana(-1), "invalid amounts rejected");
-        Check(vitals.Damage(25) && vitals.Health == 75, "damage");
+        Check(vitals.Damage(1) && vitals.Health == 5, "damage");
         Check(vitals.SpendMana(20) && vitals.Mana == 30 && !vitals.SpendMana(31) && vitals.Mana == 30, "mana cost atomic");
         Check(ReferenceEquals(vitals, world.CharacterVitals("player-a")), "scene rebind retains vitals");
-        Check(world.CharacterVitals("player-b").Health == 100 && new WorldSessionState("world-b").CharacterVitals("player-a").Mana == 50, "vitals character/world separation");
+        Check(world.CharacterVitals("player-b").Health == 6 && new WorldSessionState("world-b").CharacterVitals("player-a").Mana == 50, "vitals character/world separation");
         character.TryAdd("armor", 1, 1);
         Check(character.TryEquip(0, EquipmentSlot.Armor, id => new ItemRules { kind = ItemKind.Armor, maxStack = 1 }), "equip");
         // A new scene component resolves by ID instead of constructing replacement state.
@@ -35,21 +35,50 @@ internal static class WorldSessionChecks
         world.SetPosition("player-a", "sanctuary", 2, -3, 0);
         world.AdvancePlayTime(3601.25); world.SetSavedScene("sanctuary");
         var snapshot = world.Capture(); var restored = WorldSessionState.Restore(snapshot);
-        Check(restored.CharacterVitals("player-a").Health == 75 && restored.CharacterVitals("player-a").Mana == 30, "vitals roundtrip");
+        Check(world.DefeatEnemy("oak-01") && !world.DefeatEnemy("oak-01"), "enemy defeat unique");
+        Check(WorldSessionState.Restore(world.Capture()).IsEnemyDefeated("oak-01"), "defeat survives save and scene rebind");
+        Check(!new WorldSessionState("world-b").IsEnemyDefeated("oak-01"), "enemy defeat world isolation");
+        var legacyEnemy = world.Capture(); legacyEnemy.version = 5; legacyEnemy.defeatedEnemies = null;
+        Check(!WorldSessionState.Restore(legacyEnemy).IsEnemyDefeated("oak-01"), "legacy saves have no defeated enemies");
+        var badEnemies = world.Capture(); badEnemies.defeatedEnemies = new[] { "oak-01", "oak-01" }; bool duplicateEnemy = false;
+        try { WorldSessionState.Restore(badEnemies); } catch (ArgumentException) { duplicateEnemy = true; }
+        Check(duplicateEnemy, "duplicate enemy IDs rejected");
+        Check(restored.CharacterVitals("player-a").Health == 5 && restored.CharacterVitals("player-a").Mana == 30, "vitals roundtrip");
         snapshot.characters[0].vitals.health = 1;
-        Check(vitals.Health == 75 && restored.CharacterVitals("player-a").Health == 75, "vitals snapshot isolation");
+        Check(vitals.Health == 5 && restored.CharacterVitals("player-a").Health == 5, "vitals snapshot isolation");
         var oldVitals = world.Capture(); oldVitals.version = 3;
         foreach (var c in oldVitals.characters) c.vitals = null;
-        Check(WorldSessionState.Restore(oldVitals).CharacterVitals("player-a").Health == 100, "legacy vitals migration");
-        var corrupt = world.Capture(); corrupt.characters[0].vitals.health = 101; bool badVitals = false;
+        Check(WorldSessionState.Restore(oldVitals).CharacterVitals("player-a").Health == 6, "legacy vitals migration");
+        var corrupt = world.Capture(); corrupt.characters[0].vitals.health = 7; bool badVitals = false;
         try { WorldSessionState.Restore(corrupt); } catch (ArgumentException) { badVitals = true; }
         Check(badVitals, "invalid vitals rejected");
         corrupt = world.Capture(); corrupt.characters[0].vitals = null; badVitals = false;
         try { WorldSessionState.Restore(corrupt); } catch (ArgumentException) { badVitals = true; }
-        Check(badVitals, "missing version 4 vitals rejected");
+        Check(badVitals, "missing version 5 vitals rejected");
         Check(vitals.Damage(int.MaxValue) && vitals.IsDown && !vitals.SpendMana(1) && !vitals.Damage(1), "zero HP boundary");
-        Check(vitals.Heal(int.MaxValue) && vitals.Health == 100 && !vitals.Heal(1), "heal clamps without overflow");
+        Check(vitals.Heal(int.MaxValue) && vitals.Health == 6 && !vitals.Heal(1), "heal clamps without overflow");
         Check(vitals.RestoreMana(int.MaxValue) && vitals.Mana == 50 && !vitals.RestoreMana(1), "mana restores without overflow");
+        var hearts = new CharacterVitalsState();
+        Check(hearts.HeartContainers == 3 && hearts.HeartFill(0) == 2 && hearts.HeartFill(2) == 2, "three full starting hearts");
+        hearts.Damage(3);
+        Check(hearts.HeartFill(0) == 2 && hearts.HeartFill(1) == 1 && hearts.HeartFill(2) == 0, "full half and empty hearts");
+        Check(hearts.AddHeartContainer() && hearts.MaxHealth == 8 && hearts.Health == 5, "container grows capacity and heals one heart");
+        while (hearts.HeartContainers < 20) Check(hearts.AddHeartContainer(), "container growth");
+        Check(!hearts.AddHeartContainer() && hearts.MaxHealth == 40, "twenty heart cap");
+        var savedHearts = CharacterVitalsState.Restore(hearts.Capture());
+        Check(savedHearts.HeartContainers == 20 && savedHearts.Health == hearts.Health, "container capacity roundtrip");
+        var legacyHp = world.Capture(); legacyHp.version = 4;
+        foreach (var c in legacyHp.characters) c.vitals = new VitalsSaveData { health = 75, maxHealth = 100, mana = 30, maxMana = 50 };
+        var migrated = WorldSessionState.Restore(legacyHp).CharacterVitals("player-a");
+        Check(migrated.Health == 5 && migrated.MaxHealth == 6 && migrated.Mana == 30, "100 HP migration retains ratio and mana");
+        Check(CharacterVitalsState.RestoreLegacy(new VitalsSaveData { health = 1, maxHealth = 100 }).Health == 1, "migration preserves living player");
+        Check(CharacterVitalsState.RestoreLegacy(new VitalsSaveData { health = 0, maxHealth = 100 }).IsDown, "migration preserves down state");
+        foreach (int invalidMaximum in new[] { 0, 5, 7, 42 })
+        {
+            bool invalidHearts = false;
+            try { CharacterVitalsState.Restore(new VitalsSaveData { maxHealth = invalidMaximum }); } catch (ArgumentException) { invalidHearts = true; }
+            Check(invalidHearts, "invalid heart capacity rejected");
+        }
         Check(restored.Position("player-a").scenePath == "sanctuary" && restored.Position("player-a").y == -3, "position roundtrip");
         Check(restored.PlayTimeSeconds == 3601.25 && restored.SavedScenePath == "sanctuary", "playtime and scene metadata");
         var legacy = world.Capture(); legacy.version = 2;
@@ -67,6 +96,6 @@ internal static class WorldSessionChecks
         var invalid = world.Capture(); invalid.characters[0].bag = new InventoryStack[2]; rejected = false;
         try { WorldSessionState.Restore(invalid); } catch (ArgumentException) { rejected = true; }
         Check(rejected, "invalid dimensions rejected");
-        Console.WriteLine("PASS: HP/mana boundaries, costs, snapshot isolation, v3 migration and invalid v4 rejection; scene rebinding, world/character isolation, inventory/equipment, pickups and puzzle state.");
+        Console.WriteLine("PASS: HP/mana boundaries, costs, snapshot isolation, v3 migration and invalid v5 rejection; scene rebinding, world/character isolation, inventory/equipment, pickups and puzzle state.");
     }
 }

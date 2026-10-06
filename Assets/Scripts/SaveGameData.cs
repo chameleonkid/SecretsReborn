@@ -15,12 +15,13 @@ namespace SecretsReborn
     [Serializable] public sealed class PuzzleSaveData { public string puzzleId; public int progress; }
     [Serializable] public sealed class SaveGameData
     {
-        public int version = 4;
+        public int version = 6;
         public double playTimeSeconds;
         public string savedScenePath;
         public string worldId;
         public CharacterSaveData[] characters;
         public PuzzleSaveData[] puzzles;
         public string[] collectedItems;
+        public string[] defeatedEnemies = Array.Empty<string>();
     }
 }

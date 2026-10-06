@@ -25,8 +25,10 @@ werden nicht übernommen. SaveBookDesk.prefab kann frei im Editor platziert werd
 
 ## Daten und Laden
 
-SaveGameData Version 4 speichert auch aktuelle und maximale HP/Mana pro Charakter.
-Slots der Versionen 1–3 erhalten beim Laden volle Startwerte. Details und Tests:
+SaveGameData Version 6 speichert auch besiegte Gegner-IDs. Seit Version 5 enthält
+es Herzen, Herzcontainerkapazität und Mana pro Charakter.
+Slots der Versionen 1–3 erhalten drei volle Herzen; Version 4 wird von der
+100-HP-Basis unter Erhalt des Füllstands umgerechnet. Details und Tests:
 [HP und Mana](character-vitals.md).
 
 Seit Version 3 enthält der Spielstand zusätzlich Spielzeit (Sekunden) und eine

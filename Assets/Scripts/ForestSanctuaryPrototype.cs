@@ -13,6 +13,7 @@ namespace SecretsReborn
         private Sprite waterArt;
         private Sprite treeArt;
         private PlayerLantern lantern;
+        [SerializeField] private bool showTutorialControls = false;
         private readonly RuneSequence sequence = new RuneSequence();
         private readonly RuneCircle[] circles = new RuneCircle[4];
         private SpriteRenderer basin;
@@ -193,6 +194,7 @@ namespace SecretsReborn
 
         private void OnGUI()
         {
+            if (!showTutorialControls) return;
             string status = lantern != null && lantern.IsLit ? "AN" : "AUS";
             GUI.Box(new Rect(12, 12, 460, 110),
                 "Waldheiligtum\nWASD / Pfeiltasten / Gamepad: Bewegen\nL / obere Gamepad-Taste: Laterne "

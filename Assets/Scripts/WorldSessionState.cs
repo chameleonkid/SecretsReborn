@@ -26,6 +26,9 @@ namespace SecretsReborn
         }
         private readonly Dictionary<string, RuneSequence> puzzles = new Dictionary<string, RuneSequence>();
         private readonly HashSet<string> collectedItems = new HashSet<string>();
+        private readonly HashSet<string> defeatedEnemies = new HashSet<string>();
+        public bool IsEnemyDefeated(string id) => defeatedEnemies.Contains(id);
+        public bool DefeatEnemy(string id) => !string.IsNullOrWhiteSpace(id) && defeatedEnemies.Add(id);
         private readonly Dictionary<string, CharacterSaveData> positions = new Dictionary<string, CharacterSaveData>();
         public void SetPosition(string characterId, string scenePath, float x, float y, float z)
         {
@@ -62,7 +65,7 @@ namespace SecretsReborn
         {
             var data = new SaveGameData { worldId = WorldId, playTimeSeconds = PlayTimeSeconds, savedScenePath = SavedScenePath,
                 characters = new CharacterSaveData[characters.Count],
-                puzzles = new PuzzleSaveData[puzzles.Count], collectedItems = new string[collectedItems.Count] };
+                puzzles = new PuzzleSaveData[puzzles.Count], collectedItems = new string[collectedItems.Count], defeatedEnemies = new string[defeatedEnemies.Count] };
             int i = 0; foreach (var pair in characters)
             {
                 var character = pair.Value.Capture(pair.Key);
@@ -72,11 +75,11 @@ namespace SecretsReborn
                 data.characters[i++] = character;
             }
             i = 0; foreach (var pair in puzzles) data.puzzles[i++] = new PuzzleSaveData { puzzleId = pair.Key, progress = pair.Value.Progress };
-            collectedItems.CopyTo(data.collectedItems); return data;
+            collectedItems.CopyTo(data.collectedItems); defeatedEnemies.CopyTo(data.defeatedEnemies); return data;
         }
         public static WorldSessionState Restore(SaveGameData data)
         {
-            if (data == null || data.version < 1 || data.version > 4 || data.characters == null || data.puzzles == null || data.collectedItems == null)
+            if (data == null || data.version < 1 || data.version > 6 || data.characters == null || data.puzzles == null || data.collectedItems == null || data.version >= 6 && data.defeatedEnemies == null)
                 throw new ArgumentException("Unsupported or incomplete savegame.");
             var world = new WorldSessionState(data.worldId);
             if (data.version >= 3) world.AdvancePlayTime(data.playTimeSeconds);
@@ -85,7 +88,8 @@ namespace SecretsReborn
             {
                 if (character == null || string.IsNullOrWhiteSpace(character.characterId)) throw new ArgumentException("Invalid character ID.");
                 world.characters.Add(character.characterId, InventoryState.Restore(character));
-                world.vitals.Add(character.characterId, data.version >= 4 ? CharacterVitalsState.Restore(character.vitals) : new CharacterVitalsState());
+                world.vitals.Add(character.characterId, data.version >= 5 ? CharacterVitalsState.Restore(character.vitals)
+                    : data.version == 4 ? CharacterVitalsState.RestoreLegacy(character.vitals) : new CharacterVitalsState());
                 if (data.version >= 2 && character.hasPosition) world.SetPosition(character.characterId, character.scenePath, character.x, character.y, character.z);
             }
             foreach (var puzzle in data.puzzles)
@@ -97,6 +101,8 @@ namespace SecretsReborn
             }
             foreach (var id in data.collectedItems)
                 if (string.IsNullOrWhiteSpace(id) || !world.collectedItems.Add(id)) throw new ArgumentException("Invalid collected item ID.");
+            if (data.version >= 6) foreach (var id in data.defeatedEnemies)
+                if (string.IsNullOrWhiteSpace(id) || !world.defeatedEnemies.Add(id)) throw new ArgumentException("Invalid defeated enemy ID.");
             return world;
         }
         public bool TryCollect(string worldItemId, Func<bool> receive)

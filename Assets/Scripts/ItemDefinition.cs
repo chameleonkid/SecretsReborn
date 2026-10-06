@@ -12,6 +12,10 @@ namespace SecretsReborn
         [SerializeField] private ClothingAppearance armorAppearance;
         [SerializeField] private ItemKind kind;
         [SerializeField] private bool twoHanded;
+        [SerializeField] private WeaponDefinition weapon;
+        public WeaponDefinition Weapon => weapon;
+        public Color IconTint => weapon != null ? weapon.Tint : armorAppearance != null ? armorAppearance.Tint : Color.white;
+        public void SetWeapon(WeaponDefinition profile) => weapon = profile;
         [SerializeField] private Sprite icon;
         [SerializeField] private ItemQuality quality = ItemQuality.Normal;
         [SerializeField] private Rect iconContent = new Rect(0, 0, 1, 1);

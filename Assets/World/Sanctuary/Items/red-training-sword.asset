@@ -10,15 +10,15 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 2b394140f7fa616488f316ec8734384e, type: 3}
-  m_Name: training-sword
+  m_Name: red-training-sword
   m_EditorClassIdentifier: Assembly-CSharp::SecretsReborn.ItemDefinition
-  itemId: training-sword
-  displayName: "\xDCbungsschwert"
+  itemId: red-training-sword
+  displayName: "R\xF6tliches \xDCbungsschwert"
   maxStack: 1
   armorAppearance: {fileID: 0}
   kind: 12
   twoHanded: 0
-  weapon: {fileID: 11400000, guid: 2b6cf411301bea84e87105ff8af41ce6, type: 2}
+  weapon: {fileID: 11400000, guid: 065058de8ece7fc4b8a78fa4f36a4c9c, type: 2}
   icon: {fileID: -896646969, guid: 621748371ac18424db2895a6395d9802, type: 3}
   quality: 0
   iconContent:
