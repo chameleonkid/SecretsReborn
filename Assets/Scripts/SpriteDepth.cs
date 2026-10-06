@@ -7,6 +7,9 @@ namespace SecretsReborn
     {
         private SpriteRenderer image;
         private void Awake() => image = GetComponent<SpriteRenderer>();
-        private void LateUpdate() => image.sortingOrder = 100 - Mathf.RoundToInt(transform.position.y * 10);
+        // Keep depth-sorted actors/props above terrain (0/1) and below Foreground (1000).
+        // A bounded curve preserves Y ordering without crossing the ground orders at Y=10.
+        private void LateUpdate() => image.sortingOrder =
+            500 - Mathf.RoundToInt(Mathf.Atan(transform.position.y * 0.04f) * 250);
     }
 }

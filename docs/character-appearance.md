@@ -36,3 +36,25 @@ umgesetzt; siehe [character-and-ground.md](character-and-ground.md).
 bestätigte Ausrüstungsänderungen. Noch keine Inventar-, Netzwerk- oder
 automatische Rüstungswechselmechanik implementiert. Der Waffen-Layer bleibt
 ein Asset-Vorschlag.
+
+## Augen, Haare und Figurenmaßstab
+
+Der Befehl `SecretsReborn > World > Upgrade character size eyes and hair`
+ergänzt `GreenEyes` und `PonyHair` als eigene Prefabs im Player-Prefab.
+Jeder Layer erhält 128 Frames, denselben Fußpivot und dieselbe Frame-Zuordnung
+wie Körper und Kleidung. Die braune Haarfarbe stammt aus dem ursprünglichen
+Pony-Prefab. Die Original-Prefabs bleiben als Textsnapshots zur Prüfung unter
+`docs/asset-review`; alte Gameplay-Komponenten werden nicht übernommen.
+
+Geprüfte Secrets-Referenzen am Commit `99f5b1c`: weibliche Basis und Terrain
+haben 32 PPU; MainPlayer_V1 und Body haben lokale Scale 1. Das belegt den
+Asset-/Prefab-Maßstab, nicht sämtliche Overrides in alten Spiel-Szenen.
+Originalpfade stehen in `character-layer-sources.json` im Asset-Review-Ordner.
+
+Für die neue Karte wird zunächst eine um ein Drittel größere Darstellung
+erprobt: Körper, Rangerkleidung, Haare und Augen verwenden gemeinsam 24 PPU,
+die Welt weiterhin 32 PPU. Root-Scale und Fußkollision bleiben unverändert.
+Das ist eine neue Größenentscheidung, keine exakte Übernahme des alten Maßstabs.
+Weitere Outfits müssen beim Import ebenfalls denselben Figurenmaßstab erhalten.
+Alle Darstellungsreferenzen gehören zur jeweiligen Figur; Netzwerk- und
+Charakterdaten können später ihre eigenen kosmetischen IDs vorgeben.
