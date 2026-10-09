@@ -1,4 +1,4 @@
-﻿using UnityEngine;
+using UnityEngine;
 using UnityEngine.InputSystem;
 
 namespace SecretsReborn
@@ -11,6 +11,45 @@ namespace SecretsReborn
         private PlayerMovement movement;
         private bool open, movementEnabled, loadMode;
         private int selected, confirmSlot = -1;
+        private int SlotCount => 3;
+        private bool networkExecution;
+        internal int SelectedSlot => selected;
+        internal string BookMessage => message;
+        public string BookId => gameObject.scene.path + "|" + HierarchyPath(transform);
+        private static string HierarchyPath(Transform node) => node.parent == null ? node.name + ":" + node.GetSiblingIndex()
+            : HierarchyPath(node.parent) + "/" + node.name + ":" + node.GetSiblingIndex();
+        public bool CanOpenNetwork(CharacterInventory character) => character != null && isActiveAndEnabled
+            && !GameSession.Instance.World.CharacterVitals(character.CharacterId).IsDown
+            && Vector2.Distance(transform.position, character.transform.position) <= interactionDistance;
+        internal void OpenNetwork(CharacterInventory character)
+        { actor = character; open = IsOpen = true; selected = 0; loadMode = false; confirmSlot = -1; message = null; RefreshSlots(); }
+        internal void CloseNetwork() { open = IsOpen = false; }
+        internal void SelectNetwork(int slot, bool load) { selected = slot; loadMode = load; confirmSlot = -1; message = null; }
+        internal void ExecuteNetwork() { networkExecution = true; try { Execute(selected); } finally { networkExecution = false; } }
+        internal SharedBookState CaptureNetwork()
+        {
+            var summariesCopy = new SaveGameData[3];
+            for (int i = 0; i < 3; i++) if (summaries[i] != null) summariesCopy[i] = new SaveGameData
+                { version = summaries[i].version, savedScenePath = summaries[i].savedScenePath, playTimeSeconds = summaries[i].playTimeSeconds,
+                    savedAtUtc = summaries[i].savedAtUtc, savedParticipants = summaries[i].savedParticipants };
+            return new SharedBookState { open = open, book = BookId, character = actor.CharacterId, selected = selected,
+                load = loadMode, confirm = confirmSlot, message = message, summaries = summariesCopy,
+                occupied = (bool[])occupied.Clone(), errors = (string[])slotErrors.Clone() };
+        }
+        internal void ApplyNetwork(SharedBookState state)
+        {
+            foreach (var character in FindObjectsByType<CharacterInventory>(FindObjectsSortMode.None))
+                if (character.CharacterId == state.character) actor = character;
+            if (actor == null) return;
+            open = IsOpen = true; selected = state.selected; loadMode = state.load; confirmSlot = state.confirm;
+            message = string.IsNullOrEmpty(state.message) ? null : state.message;
+            for (int i = 0; i < 3; i++) { summaries[i] = state.occupied[i] ? state.summaries[i] : null; occupied[i] = state.occupied[i]; slotErrors[i] = string.IsNullOrEmpty(state.errors[i]) ? null : state.errors[i]; }
+        }
+        private void SelectSlot(int slot, bool load)
+        {
+            if (NetworkCoop.Running) NetworkCoop.Active.BookCommand("select", this, slot, load);
+            else SelectNetwork(slot, load);
+        }
         private string message;
         private Texture2D pages;
         private readonly SaveGameData[] summaries = new SaveGameData[3];
@@ -26,15 +65,36 @@ namespace SecretsReborn
             && Vector2.Distance(transform.position, character.transform.position) <= interactionDistance;
         private void OnTriggerEnter2D(Collider2D other)
         {
+            if (NetworkCoop.Running) return;
             var character = other.GetComponentInParent<CharacterInventory>();
             if (character != null && character.HasStateAuthority && character.LocalInput) actor = character;
         }
         private void OnTriggerExit2D(Collider2D other)
         {
+            if (NetworkCoop.Running) return;
             if (actor != null && other.GetComponentInParent<CharacterInventory>() == actor) { Close(); actor = null; }
         }
         private void Update()
         {
+            if (NetworkCoop.Running)
+            {
+                if (!Application.isFocused || GameSession.Instance.Busy || NetworkCoop.Active.ChangingArea) return;
+                var local = NetworkCoop.Active.LocalCharacter; var keyboard = Keyboard.current; var controller = Gamepad.current;
+                if (!open)
+                {
+                    if (!IsOpen && CanOpenNetwork(local) && local.GetComponent<InventoryInteraction>()?.IsOpen != true
+                        && (keyboard?.eKey.wasPressedThisFrame == true || controller?.buttonSouth.wasPressedThisFrame == true))
+                        NetworkCoop.Active.BookCommand("open", this);
+                    return;
+                }
+                if (!NetworkCoop.Active.CanControlBook) return;
+                if (keyboard?.escapeKey.wasPressedThisFrame == true || controller?.buttonEast.wasPressedThisFrame == true) { Close(); return; }
+                if (keyboard?.upArrowKey.wasPressedThisFrame == true || controller?.dpad.up.wasPressedThisFrame == true) SelectSlot((selected + 2) % 3, loadMode);
+                if (keyboard?.downArrowKey.wasPressedThisFrame == true || controller?.dpad.down.wasPressedThisFrame == true) SelectSlot((selected + 1) % 3, loadMode);
+                if (keyboard?.tabKey.wasPressedThisFrame == true || controller?.leftShoulder.wasPressedThisFrame == true || controller?.rightShoulder.wasPressedThisFrame == true) SelectSlot(selected, !loadMode);
+                if (keyboard?.enterKey.wasPressedThisFrame == true || controller?.buttonSouth.wasPressedThisFrame == true) Execute(selected);
+                return;
+            }
             if (!Application.isFocused || GameSession.Instance.Busy || GameSession.Instance.RewardPresentationActive) return;
             if (actor != null && GameSession.Instance.World.CharacterVitals(actor.CharacterId).IsDown) { Close(); return; }
             var key = Keyboard.current; var pad = Gamepad.current;
@@ -54,13 +114,14 @@ namespace SecretsReborn
             int direction = 0;
             if (key != null && key.upArrowKey.wasPressedThisFrame || pad != null && pad.dpad.up.wasPressedThisFrame) direction = -1;
             if (key != null && key.downArrowKey.wasPressedThisFrame || pad != null && pad.dpad.down.wasPressedThisFrame) direction = 1;
-            if (direction != 0) { selected = (selected + direction + 3) % 3; confirmSlot = -1; }
+            if (direction != 0) { selected = (selected + direction + SlotCount) % SlotCount; confirmSlot = -1; }
             if (key != null && key.tabKey.wasPressedThisFrame || pad != null && (pad.leftShoulder.wasPressedThisFrame || pad.rightShoulder.wasPressedThisFrame))
             { loadMode = !loadMode; confirmSlot = -1; }
             if (key != null && key.enterKey.wasPressedThisFrame || pad != null && pad.buttonSouth.wasPressedThisFrame) Execute(selected);
         }
         private void Execute(int slot)
         {
+            if (NetworkCoop.Running && !networkExecution) { NetworkCoop.Active.BookCommand("execute", this); return; }
             selected = slot;
             if (!CanUse(actor)) { Close(); return; }
             if (!loadMode && SaveGameStore.Exists(SaveGameStore.SlotPath(slot)) && confirmSlot != slot)
@@ -72,14 +133,15 @@ namespace SecretsReborn
         }
         public void Close()
         {
+            if (NetworkCoop.Running) { NetworkCoop.Active.BookCommand("close", this); return; }
             if (!open) return;
             open = IsOpen = false;
             if (movement != null) movement.enabled = movementEnabled;
         }
-        private void OnDisable() => Close();
+        private void OnDisable() { if (NetworkCoop.Running) CloseNetwork(); else Close(); }
         private void RefreshSlots()
         {
-            for (int i = 0; i < 3; i++)
+            for (int i = 0; i < SlotCount; i++)
             {
                 summaries[i] = null; slotErrors[i] = null;
                 try { occupied[i] = SaveGameStore.Exists(SaveGameStore.SlotPath(i)); summaries[i] = SaveGameStore.ReadSummary(i); }
@@ -129,10 +191,13 @@ namespace SecretsReborn
         {
             if (!open)
             {
-                if (actor != null && !IsOpen) GUI.Box(new Rect(Screen.width / 2 - 170, Screen.height - 125, 340, 35), "E / A: Speicherbuch öffnen");
+                if (!IsOpen && (NetworkCoop.Running ? CanOpenNetwork(NetworkCoop.Active.LocalCharacter) : actor != null))
+                    GUI.Box(new Rect(Screen.width / 2 - 170, Screen.height - 125, 340, 35), "E / A: Speicherbuch öffnen");
                 return;
             }
             Styles();
+            bool previousEnabled = GUI.enabled;
+            if (NetworkCoop.Running) GUI.enabled = NetworkCoop.Active.CanControlBook;
             if (pages == null) pages = Resources.Load<Texture2D>("InventoryUI/ForestSaveBook");
             Fill(new Rect(0, 0, Screen.width, Screen.height), new Color(0, 0, 0, .55f));
             var old = GUI.matrix;
@@ -154,32 +219,38 @@ namespace SecretsReborn
                     if (sprite == null) continue;
                     var previous = GUI.color; GUI.color = tint;
                     var uv = sprite.textureRect;
-                    GUI.DrawTextureWithTexCoords(new Rect(190, 245, 150, 150), sprite.texture,
-                        new Rect(uv.x / sprite.texture.width, uv.y / sprite.texture.height, uv.width / sprite.texture.width, uv.height / sprite.texture.height));
+                    var target = MenuArt.PixelPortraitRect(new Rect(190,245,150,150));
+                    var source = new Rect(uv.x / sprite.texture.width, uv.y / sprite.texture.height, uv.width / sprite.texture.width, uv.height / sprite.texture.height);
+                    var material = appearance.FrontPreviewMaterial(layer);
+                    if (material == null) GUI.DrawTextureWithTexCoords(target,sprite.texture,source);
+                    else if (Event.current.type == EventType.Repaint) Graphics.DrawTexture(target,sprite.texture,source,0,0,0,0,tint,material);
                     GUI.color = previous;
                 }
             GUI.Label(new Rect(115, 420, 285, 65), "Nur am Buch wird deine\nReise festgehalten.", ink);
             GUI.Label(new Rect(115, 495, 285, 50), "LB/RB / Tab: Modus\nD-Pad / Pfeile: Speicherplatz", smallInk);
-            if (PaperButton(new Rect(490, 80, 135, 38), "Speichern", !loadMode)) { loadMode = false; confirmSlot = -1; }
-            if (PaperButton(new Rect(630, 80, 135, 38), "Laden", loadMode)) { loadMode = true; confirmSlot = -1; }
-            for (int i = 0; i < 3; i++)
+            if (PaperButton(new Rect(490, 80, 135, 38), "Speichern", !loadMode)) SelectSlot(selected, false);
+            if (PaperButton(new Rect(630, 80, 135, 38), "Laden", loadMode)) SelectSlot(selected, true);
+            for (int i = 0; i < SlotCount; i++)
             {
-                var rect = new Rect(490, 140 + i * 95, 275, 85);
+                var rect = new Rect(490, 130 + i * 115, 275, 110);
                 Fill(rect, selected == i ? new Color(.65f, .45f, .16f, .23f) : new Color(.65f, .45f, .16f, .08f));
                 Frame(rect, selected == i ? new Color(.54f, .36f, .08f) : new Color(.63f, .56f, .4f), selected == i ? 3 : 1);
                 GUI.Label(new Rect(rect.x + 12, rect.y + 7, 250, 25), "SPEICHERPLATZ " + (i + 1), centered);
                 var data = summaries[i];
-                string details = slotErrors[i] ?? (data == null ? "Noch keine Reise gespeichert" : SceneLabel(data) + "\n" + (data.version < 3 ? "Spielzeit unbekannt" : "Spielzeit  " + TimeLabel(data.playTimeSeconds)));
-                GUI.Label(new Rect(rect.x + 12, rect.y + 36, 251, 48), details, smallInk);
-                if (GUI.Button(rect, GUIContent.none, GUIStyle.none)) { selected = i; confirmSlot = -1; message = null; }
+                string details = slotErrors[i] ?? SaveSlotLabel.Details(data);
+                GUI.Label(new Rect(rect.x + 12, rect.y + 30, 251, 78), details, new GUIStyle(smallInk) { fontSize = 12 });
+                if (GUI.Button(rect, GUIContent.none, GUIStyle.none)) SelectSlot(i, loadMode);
             }
             string action = confirmSlot == selected ? "Überschreiben bestätigen" : loadMode ? "Reise laden (A)" : "Reise speichern (A)";
-            bool enabled = GUI.enabled; GUI.enabled = !loadMode || occupied[selected];
-            if (PaperButton(new Rect(490, 435, 275, 38), action, true)) Execute(selected);
+            bool enabled = GUI.enabled; GUI.enabled = enabled && (!loadMode || occupied[selected]);
+            if (PaperButton(new Rect(490, 480, 275, 35), action, true)) Execute(selected);
             GUI.enabled = enabled;
-            GUI.Label(new Rect(490, 485, 275, 60), message ?? "Enter / A: Bestätigen", smallInk);
+            GUI.Label(new Rect(490, 520, 275, 45), NetworkCoop.Running && !NetworkCoop.Active.CanControlBook
+                ? NetworkCoop.Active.BookOperatorName + " bedient das Buch.\n" + (message ?? "Du siehst die gemeinsame Auswahl.")
+                : message ?? "Enter / A: Bestätigen", smallInk);
             if (PaperButton(new Rect(490, 570, 275, 35), "Schließen (Esc / B)")) Close();
             GUI.matrix = old;
+            GUI.enabled = previousEnabled;
         }
     }
 }

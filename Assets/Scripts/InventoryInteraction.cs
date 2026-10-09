@@ -85,7 +85,7 @@ namespace SecretsReborn
         private void Update()
         {
             if (!localInput) return;
-            if (!Application.isFocused || SaveBook.IsOpen || GameSession.Instance.RewardPresentationActive)
+            if (!Application.isFocused || SaveBook.IsOpen || GameSession.Instance.Busy || GameSession.Instance.RewardPresentationActive)
             { GameSession.Instance.CancelRevive(inventory); return; }
             if (GameSession.Instance.World.CharacterVitals(inventory.CharacterId).IsDown)
             { GameSession.Instance.CancelRevive(inventory); SetOpen(false); return; }
@@ -167,7 +167,7 @@ namespace SecretsReborn
         private void OnGUI()
         {
             if (!localInput) return;
-            if (GameSession.Instance.RewardPresentationActive) return;
+            if (SaveBook.IsOpen || GameSession.Instance.RewardPresentationActive) return;
             if (!open)
             {
                 var downed = NearestDowned();
@@ -305,10 +305,11 @@ namespace SecretsReborn
         private void Preview(Rect rect)
         {
             if (appearance == null) return;
+            rect = MenuArt.PixelPortraitRect(rect);
             for (int layer = 0; layer < 6; layer++)
             {
                 var sprite = appearance.FrontPreviewLayer(layer, out var tint);
-                DrawSprite(rect, sprite, tint);
+                DrawSprite(rect, sprite, tint, null, appearance.FrontPreviewMaterial(layer));
             }
         }
         private Material GrayscaleIconMaterial()

@@ -7,6 +7,45 @@ internal static class WorldSessionChecks
     public static void Main()
     {
         var world = new WorldSessionState("world-a");
+        var lobbyWorld = new WorldSessionState("lobby-world"); lobbyWorld.EnableMultiplayer();
+        for (int i = 0; i < 4; i++) lobbyWorld.CreateWorldCharacter("Figur " + (i + 1));
+        bool fifthRejected = false; try { lobbyWorld.CreateWorldCharacter("Fünfte"); } catch (ArgumentException) { fifthRejected = true; }
+        Check(fifthRejected && lobbyWorld.CharacterSlots.Length == 4, "world character limit");
+        var deletionWorld = WorldSessionState.Restore(lobbyWorld.Capture());
+        string founder = deletionWorld.FounderCharacterId, removable = deletionWorld.CharacterSlots[1].id;
+        Check(founder == deletionWorld.CharacterSlots[0].id && !deletionWorld.DeleteWorldCharacter(founder), "founder protected");
+        Check(deletionWorld.DeleteWorldCharacter(removable) && deletionWorld.CharacterSlots.Length == 3
+            && Array.Find(deletionWorld.Capture().characters, c => c.characterId == removable) == null, "deletion removes personal state");
+        deletionWorld.CreateWorldCharacter("Ersatz");
+        Check(WorldSessionState.Restore(deletionWorld.Capture()).FounderCharacterId == founder, "replacement cannot replace founder");
+        var legacyFounder = lobbyWorld.Capture(); legacyFounder.version = 10; legacyFounder.founderCharacterId = null;
+        Check(WorldSessionState.Restore(legacyFounder).FounderCharacterId == lobbyWorld.CharacterSlots[0].id, "older roster gains founder without losing characters");
+        lobbyWorld.MarkSaved(new[] { lobbyWorld.CharacterSlots[1].id, lobbyWorld.CharacterSlots[3].id });
+        var metadata = lobbyWorld.Capture();
+        Check(DateTimeOffset.TryParse(metadata.savedAtUtc, out _) && metadata.savedParticipants.Length == 2
+            && metadata.savedParticipants[0].name == "Figur 2", "save timestamp and active participants only");
+        Check(WorldSessionState.Restore(metadata).Capture().savedParticipants[1].name == "Figur 4", "save metadata persists");
+        Check(SaveSlotLabel.Details(metadata).Contains("Figur 2") && !SaveSlotLabel.Details(metadata).Contains("Speicherzeit unbekannt"), "slot label includes participants and timestamp");
+        metadata.savedParticipants[0].name = "Mutated";
+        Check(lobbyWorld.Capture().savedParticipants[0].name == "Figur 2", "save metadata snapshot isolated");
+        var rosterSave = lobbyWorld.Capture();
+        var rosterRestored = WorldSessionState.Restore(rosterSave);
+        Check(rosterRestored.Multiplayer && rosterRestored.CharacterSlots[2].id == lobbyWorld.CharacterSlots[2].id
+            && rosterRestored.CharacterSlots[2].name == "Figur 3", "named world roster roundtrip");
+        rosterSave.characterSlots[1].id = rosterSave.characterSlots[0].id;
+        bool rosterRejected = false; try { WorldSessionState.Restore(rosterSave); } catch (ArgumentException) { rosterRejected = true; }
+        Check(rosterRejected, "duplicate roster character rejected");
+        var migration = lobbyWorld.Capture(); migration.version = 8; migration.characterSlots = null;
+        var migratedRoster = WorldSessionState.Restore(migration); migratedRoster.EnableMultiplayer();
+        Check(migratedRoster.CharacterSlots.Length == 4 && migratedRoster.CharacterSlots[0].id == lobbyWorld.CharacterSlots[0].id,
+            "legacy multiplayer migration preserves character identities");
+        Check(world.DiscoverChestItem("armor") && !world.DiscoverChestItem("armor"), "shared chest discovery unique");
+        Check(WorldSessionState.Restore(world.Capture()).IsChestItemDiscovered("armor"), "chest discovery survives save/load");
+        var oldDiscovery = world.Capture(); oldDiscovery.version = 7; oldDiscovery.discoveredChestItems = null;
+        Check(!WorldSessionState.Restore(oldDiscovery).IsChestItemDiscovered("armor"), "old saves migrate with empty discoveries");
+        var invalidDiscovery = world.Capture(); invalidDiscovery.discoveredChestItems = new[] { "armor", "armor" };
+        bool duplicateDiscovery = false; try { WorldSessionState.Restore(invalidDiscovery); } catch (ArgumentException) { duplicateDiscovery = true; }
+        Check(duplicateDiscovery, "duplicate discovered items rejected");
         var party = new[] { new CharacterVitalsState(), new CharacterVitalsState(), new CharacterVitalsState(), new CharacterVitalsState() };
         Check(!PartyRules.AllDown(Array.Empty<CharacterVitalsState>()) && !PartyRules.AllDown(party), "empty/living party cannot trigger game over");
         party[0].Damage(6);
@@ -117,6 +156,27 @@ internal static class WorldSessionChecks
         var invalid = world.Capture(); invalid.characters[0].bag = new InventoryStack[2]; rejected = false;
         try { WorldSessionState.Restore(invalid); } catch (ArgumentException) { rejected = true; }
         Check(rejected, "invalid dimensions rejected");
-        Console.WriteLine("PASS: individual death, four-member party defeat, explicit bounded revival, dead save roundtrip; HP/mana, migration, isolation, equipment and world state.");
+        var appearanceWorld = new WorldSessionState("appearance");
+        appearanceWorld.CreateSoloProfile("Ada", 5, 3);
+        var profile = WorldSessionState.Restore(appearanceWorld.Capture()).CharacterProfile("solo-player");
+        Check(profile.name == "Ada" && profile.hairColor == 5 && profile.eyeColor == 3, "named solo appearance roundtrip");
+        var oldAppearance = appearanceWorld.Capture(); oldAppearance.version = 11;
+        Check(WorldSessionState.Restore(oldAppearance).CharacterProfile("solo-player").hairColor == -1, "legacy appearance keeps prefab colors");
+        var invalidAppearance = appearanceWorld.Capture(); invalidAppearance.characterSlots[0].eyeColor = 4;
+        bool invalidPalette = false;
+        try { WorldSessionState.Restore(invalidAppearance); } catch (ArgumentException) { invalidPalette = true; }
+        Check(invalidPalette, "invalid appearance palette rejected");
+        profile.hairColor = 0;
+        Check(appearanceWorld.CharacterProfile("solo-player").hairColor == 5, "appearance profile copies state");
+        var layeredWorld = new WorldSessionState("retro-pixel");
+        layeredWorld.CreateSoloProfile("Rowan", 1, -1, CharacterCustomization.Body(true,3), CharacterCustomization.Hair(true,12), CharacterCustomization.Eyes(true,4));
+        var layered = WorldSessionState.Restore(layeredWorld.Capture()).CharacterProfile("solo-player");
+        Check(layered.bodyStyle == CharacterCustomization.Body(true,3) && layered.hairStyle == CharacterCustomization.Hair(true,12)
+            && layered.eyeStyle == CharacterCustomization.Eyes(true,4), "RetroPixel stable layer IDs roundtrip");
+        Check(!CharacterCustomization.Valid(layered.bodyStyle, "male-5-hairstyles-rpc-male-knighthelmet",layered.eyeStyle), "equipment helmet cannot be chosen as hairstyle");
+        Check(!CharacterCustomization.Valid(layered.bodyStyle,CharacterCustomization.Hair(false,0),layered.eyeStyle), "mixed body families rejected");
+        var versionTwelve = layeredWorld.Capture(); versionTwelve.version = 12;
+        Check(WorldSessionState.Restore(versionTwelve).CharacterProfile("solo-player").bodyStyle == null, "pre-layer schema retains legacy body");
+        Console.WriteLine("PASS: appearance persistence, legacy migration and validation; individual death, party defeat, revival, vitals, equipment and world state.");
     }
 }

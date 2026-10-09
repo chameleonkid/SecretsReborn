@@ -27,6 +27,7 @@ namespace SecretsReborn
 
         private void LateUpdate()
         {
+            if (NetworkCoop.Running) lantern = NetworkCoop.Active.LocalCharacter?.GetComponent<PlayerLantern>();
             bool visible = lantern != null && lantern.isActiveAndEnabled && lantern.CanRevealRunes
                 && ((Vector2)(transform.position - lantern.transform.position)).sqrMagnitude
                     <= lantern.RevealRadius * lantern.RevealRadius;

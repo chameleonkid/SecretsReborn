@@ -7,7 +7,7 @@ namespace SecretsReborn
         private void OnGUI()
         {
             var session = GetComponent<GameSession>();
-            if (session == null || !session.IsGameOver) return;
+            if (session == null || session.Busy || !session.IsGameOver) return;
             int depth = GUI.depth; var color = GUI.color; var matrix = GUI.matrix;
             try
             {
@@ -26,13 +26,17 @@ namespace SecretsReborn
                 GUI.Label(new Rect(150, 230, 500, 45), "Alle Charaktere sind gefallen.", text);
                 if (session.CanRetryCheckpoint)
                 {
-                    GUI.Label(new Rect(155, 280, 490, 40), "Fortschritt seit dem letzten Speicherstand\nwird beim Neustart zurückgesetzt.", text);
+                    GUI.Label(new Rect(155, 280, 490, 40), session.HasSavedCheckpoint
+                        ? "Fortschritt seit dem letzten Speicherstand\nwird beim Neustart zurückgesetzt."
+                        : "Noch kein Speicherstand: Rückkehr zum Start-Checkpoint.\nFortschritt seit dem Start wird zurückgesetzt.", text);
                     var button = new Rect(245, 350, 310, 40);
                     ForestInventorySkin.Button(button);
-                    GUI.Label(button, "Erneut versuchen (Enter / A)", text);
+                    GUI.Label(button, NetworkCoop.Running ? "Gemeinsam neu starten (Enter / A)" : "Erneut versuchen (Enter / A)", text);
                     if (GUI.Button(button, GUIContent.none, GUIStyle.none)) session.ReturnToCheckpoint();
                 }
-                else GUI.Label(new Rect(155, 285, 490, 70), "Gemeinsamer Neustart folgt mit der\nMultiplayer-Sitzungsverwaltung.", text);
+                else GUI.Label(new Rect(155, 285, 490, 70), NetworkCoop.IsReplica
+                    ? "Der Host kann den gemeinsamen Neustart anfragen.\nDanach müssen alle Spieler zustimmen."
+                    : "Kein Rückkehrpunkt verfügbar.", text);
             }
             finally { GUI.depth = depth; GUI.color = color; GUI.matrix = matrix; }
         }

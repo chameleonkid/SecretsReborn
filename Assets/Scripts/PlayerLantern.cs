@@ -39,7 +39,7 @@ namespace SecretsReborn
         private void Update()
         {
             if (GameSession.Instance.World.CharacterVitals(inventory.CharacterId).IsDown) { SetLit(false); return; }
-            if (localInput && Application.isFocused && !GameSession.Instance.RewardPresentationActive && !SaveBook.IsOpen && (interaction == null || !interaction.IsOpen)
+            if (localInput && Application.isFocused && !GameSession.Instance.Busy && !GameSession.Instance.RewardPresentationActive && !SaveBook.IsOpen && (interaction == null || !interaction.IsOpen)
                 && toggle.WasPressedThisFrame())
             { if (!NetworkCoop.Request(inventory, CoopAction.Lamp)) SetLit(!IsLit); }
         }

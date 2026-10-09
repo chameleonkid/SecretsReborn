@@ -28,7 +28,7 @@ namespace SecretsReborn
         {
             SetReplica(true); replicaFrame = Mathf.Clamp(pose.frame, 0, 23);
             replicaMotion.Push(pose.x, pose.y, Time.unscaledTimeAsDouble,
-                !pose.active || !gameObject.activeSelf || GameSession.Instance.RewardPresentationActive);
+                !pose.active || !gameObject.activeSelf);
             gameObject.SetActive(pose.active);
         }
         private static readonly int[] WalkFrames = { 1, 2, 3, 2 };
@@ -52,7 +52,7 @@ namespace SecretsReborn
         private void FixedUpdate()
         {
             body.linearVelocity = Vector2.zero;
-            if (!hasStateAuthority || GameSession.Instance.Busy || GameSession.Instance.IsGameOver || (!Application.isFocused && !NetworkCoop.Running) || !Alive) return;
+            if (!hasStateAuthority || SaveBook.IsOpen || GameSession.Instance.Busy || GameSession.Instance.IsGameOver || (!Application.isFocused && !NetworkCoop.Running) || !Alive) return;
             if (Time.time < knockbackUntil) { body.linearVelocity = knockback; return; }
             CharacterInventory target = null; float best = 5 * 5;
             foreach (var candidate in FindObjectsByType<CharacterInventory>(FindObjectsSortMode.None))

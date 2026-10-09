@@ -39,7 +39,7 @@ namespace SecretsReborn
         }
         private void Update()
         {
-            if (!localInput || !Application.isFocused) return;
+            if (!localInput || !Application.isFocused || GameSession.Instance.RewardInputBlocked(actor)) return;
             if (Keyboard.current?.spaceKey.wasPressedThisFrame == true || Keyboard.current?.jKey.wasPressedThisFrame == true
                 || Gamepad.current?.buttonWest.wasPressedThisFrame == true) GameSession.Instance.RequestMeleeAttack(actor);
         }

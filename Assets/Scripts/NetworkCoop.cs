@@ -13,7 +13,7 @@ namespace SecretsReborn
     // Initial LAN adapter. Domain IDs and the host's world state remain independent
     // of transport IDs. NGO carries input requests and server-authored snapshots.
     [DefaultExecutionOrder(-100)]
-    public sealed class NetworkCoop : MonoBehaviour
+    public sealed partial class NetworkCoop : MonoBehaviour
     {
         public static NetworkCoop Active { get; private set; }
         public static bool Running => Active != null && Active.manager != null && Active.manager.IsListening;
@@ -49,6 +49,8 @@ namespace SecretsReborn
         internal Vector2 TestMotion;
         internal bool TestDriverActive;
         internal int ConnectedCount => owners.Count;
+        internal IEnumerable<string> ActiveCharacterIds
+        { get { foreach (var actor in owners.Values) if (actor != null) yield return actor.CharacterId; } }
         internal void TestRequest(CoopCommand command) { if (TestDriverActive && IsReplica) SendCommand(command); }
 
         [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]
@@ -70,7 +72,7 @@ namespace SecretsReborn
             manager.NetworkConfig = new NetworkConfig
             {
                 NetworkTransport = transport, EnableSceneManagement = false,
-                ConnectionApproval = true, ProtocolVersion = 1, TickRate = 30,
+                ConnectionApproval = true, ProtocolVersion = 13, TickRate = 30,
                 ForceSamePrefabs = false, ClientConnectionBufferTimeout = 10
             };
             manager.ConnectionApprovalCallback = Approve;
@@ -78,8 +80,13 @@ namespace SecretsReborn
             manager.OnClientDisconnectCallback += Disconnected;
             manager.OnServerStarted += RegisterMessages;
             manager.OnClientStarted += RegisterMessages;
+            SceneManager.sceneLoaded += AreaLoaded;
             previousBackground = Application.runInBackground;
             var args = Environment.GetCommandLineArgs();
+            if (Debug.isDebugBuild && (Array.IndexOf(args, "--book-test-host") >= 0 || Array.IndexOf(args, "--book-test-client") >= 0))
+                gameObject.AddComponent<SharedBookIntegrationDriver>();
+            if (Debug.isDebugBuild && (Array.IndexOf(args, "--lobby-test-host") >= 0 || Array.IndexOf(args, "--lobby-test-client") >= 0))
+                gameObject.AddComponent<LobbyIntegrationDriver>();
             if (Debug.isDebugBuild && (Array.IndexOf(args, "--coop-smoke-host") >= 0 || Array.IndexOf(args, "--coop-smoke-client") >= 0))
             { TestDriverActive = true; gameObject.AddComponent<CoopSmokeDriver>(); }
         }
@@ -134,21 +141,45 @@ namespace SecretsReborn
                 if (request.Payload == null || request.Payload.Length > 1024) throw new ArgumentException();
                 var hello = JsonUtility.FromJson<CoopHello>(Encoding.UTF8.GetString(request.Payload));
                 string id = "coop-" + hello.characterToken;
-                bool duplicate = approved.ContainsValue(id);
-                response.Approved = CoopProtocol.ValidHello(hello, SceneManager.GetActiveScene().path)
+                bool runningJoin = lobbySession && !LobbyActive && hello.scene == MenuScene;
+                bool duplicate = connectionTokens.ContainsValue(hello.characterToken);
+                response.Approved = (!lobbySession || LobbyActive || runningJoin) && (runningJoin || !ChangingArea && !VotePending) && CoopProtocol.ValidHello(hello, runningJoin ? MenuScene : SceneManager.GetActiveScene().path)
                     && approved.Count < CoopProtocol.MaximumPlayers - 1 && !duplicate;
-                response.Reason = response.Approved ? "" : "Sitzung voll, Charakter bereits verbunden oder Szene/Protokoll abweichend.";
-                if (response.Approved) approved[request.ClientNetworkId] = id;
+                response.Reason = response.Approved ? "" : duplicate ? "Diese Spielerkennung ist bereits verbunden."
+                    : approved.Count >= CoopProtocol.MaximumPlayers - 1 ? "Die Sitzung ist voll (maximal vier Spieler inklusive Host)."
+                    : "Szene oder Netzwerkprotokoll passt nicht zur Host-Sitzung.";
+                if (TestDriverActive) Debug.Log("Connection approval: " + response.Approved + " scene=" + hello.scene + " runningJoin=" + runningJoin + " duplicate=" + duplicate + " clients=" + approved.Count);
+                if (response.Approved)
+                {
+                    approved[request.ClientNetworkId] = id; connectionTokens[request.ClientNetworkId] = hello.characterToken;
+                    if (runningJoin) waitingGuests[request.ClientNetworkId] = new WaitingGuest { token = hello.characterToken, name = CleanName(hello.playerName,"Spieler") };
+                    else if (LobbyActive) lobbyPlayers[request.ClientNetworkId] = new LobbyPlayer { client = request.ClientNetworkId, name = CleanName(hello.playerName, "Spieler " + (lobbyPlayers.Count + 1)) };
+                }
             }
             catch { response.Approved = false; response.Reason = "Ungültige Verbindungsanfrage."; }
         }
         private void RegisterMessages()
         {
+            manager.CustomMessagingManager.RegisterNamedMessageHandler("sr.join-notice", ReceiveJoinAnnouncement);
+            manager.CustomMessagingManager.RegisterNamedMessageHandler("sr.join-offer", ReceiveJoinOffer);
+            manager.CustomMessagingManager.RegisterNamedMessageHandler("sr.join-choice", ReceiveJoinChoice);
+            manager.CustomMessagingManager.RegisterNamedMessageHandler("sr.join-start", ReceiveJoinStart);
+            manager.CustomMessagingManager.RegisterNamedMessageHandler("sr.join-ready", ReceiveJoinReady);
+            manager.CustomMessagingManager.RegisterNamedMessageHandler("sr.book", ReceiveBook);
+            manager.CustomMessagingManager.RegisterNamedMessageHandler("sr.book-command", ReceiveBookCommand);
+            manager.CustomMessagingManager.RegisterNamedMessageHandler("sr.lobby", ReceiveLobby);
+            manager.CustomMessagingManager.RegisterNamedMessageHandler("sr.lobby-command", ReceiveLobbyCommand);
             manager.CustomMessagingManager.RegisterNamedMessageHandler("sr.command", ReceiveCommand);
             manager.CustomMessagingManager.RegisterNamedMessageHandler("sr.snapshot", ReceiveSnapshot);
+            manager.CustomMessagingManager.RegisterNamedMessageHandler("sr.area", ReceiveArea);
+            manager.CustomMessagingManager.RegisterNamedMessageHandler("sr.ready", ReceiveAreaReady);
+            manager.CustomMessagingManager.RegisterNamedMessageHandler("sr.vote", ReceiveVote);
+            manager.CustomMessagingManager.RegisterNamedMessageHandler("sr.vote-answer", ReceiveVoteAnswer);
         }
         private void Connected(ulong clientId)
         {
+            if (manager.IsServer && waitingGuests.ContainsKey(clientId)) { QueueRunningGuest(clientId); return; }
+            if (LobbyActive) { LobbyConnected(clientId); return; }
             if (!manager.IsServer) { status = "Mit Host verbunden."; return; }
             if (clientId == NetworkManager.ServerClientId)
             { owners[clientId] = original; original.ConfigureNetwork(original.CharacterId, true, true); }
@@ -161,10 +192,10 @@ namespace SecretsReborn
             GameSession.Instance.RegisterSpawn(owners[clientId]);
             status = "Host · " + owners.Count + "/4 Spieler"; nextSnapshot = 0;
         }
-        private Vector3 SafeSpawn(string id)
+        private Vector3 SafeSpawn(string id, bool useSaved = true)
         {
             var saved = GameSession.Instance.World.Position(id);
-            if (saved != null && saved.scenePath == SceneManager.GetActiveScene().path)
+            if (useSaved && saved != null && saved.scenePath == SceneManager.GetActiveScene().path)
             {
                 bool blocked = false;
                 foreach (var hit in Physics2D.OverlapCircleAll(new Vector2(saved.x, saved.y), .4f)) if (!hit.isTrigger) blocked = true;
@@ -192,21 +223,34 @@ namespace SecretsReborn
         private void Disconnected(ulong clientId)
         {
             if (quitting) return;
+            if (manager.IsServer && connectionTokens.TryGetValue(clientId,out var token))
+            { reservations.Release(token,Time.realtimeSinceStartupAsDouble); connectionTokens.Remove(clientId); }
+            if (manager.IsServer && waitingGuests.Remove(clientId)) { approved.Remove(clientId); nextJoinOffer = 0; return; }
+            if (LobbyActive && manager.IsServer && clientId != 0) { lobbyPlayers.Remove(clientId); approved.Remove(clientId); BroadcastLobby(); return; }
             if (manager.IsServer && clientId != NetworkManager.ServerClientId)
             {
+                if (bookOwner == clientId && sharedBook != null) CloseSharedBook(); if (VotePending) CancelVote();
                 if (owners.TryGetValue(clientId, out var actor))
                 {
-                    var p = actor.transform.position;
-                    GameSession.Instance.World.SetPosition(actor.CharacterId, actor.gameObject.scene.path, p.x, p.y, p.z);
-                    GameSession.Instance.CancelRevive(actor); GameSession.Instance.RemovePartyMember(actor.CharacterId);
-                    owners.Remove(clientId); Destroy(actor.gameObject);
+                    if (actor != null)
+                    {
+                        var p = actor.transform.position;
+                        GameSession.Instance.World.SetPosition(actor.CharacterId, actor.gameObject.scene.path, p.x, p.y, p.z);
+                        GameSession.Instance.CancelRevive(actor); Destroy(actor.gameObject);
+                    }
+                    GameSession.Instance.RemovePartyMember(approved[clientId]);
+                    GameSession.Instance.ReleaseChestReward(approved[clientId]);
+                    owners.Remove(clientId);
                 }
+                areaRoster.Remove(clientId); areaWaiting.Remove(clientId);
                 approved.Remove(clientId); inputs.Remove(clientId); nextSnapshot = 0;
+                lobbyPlayers.Remove(clientId);
                 status = "Host · " + owners.Count + "/4 Spieler";
             }
             else if (!manager.IsServer)
             {
                 status = "Verbindung beendet: " + manager.DisconnectReason;
+                MainMenu.ConnectionError = status;
                 if (TestDriverActive) GetComponent<CoopSmokeDriver>()?.Disconnected(); else StopAndReload();
             }
         }
@@ -234,7 +278,9 @@ namespace SecretsReborn
         { if (Running && manager.IsServer) swings[actor.CharacterId] = swings.TryGetValue(actor.CharacterId, out var count) ? count + 1 : 1; }
         private void SendCommand(CoopCommand command)
         {
+            if (ChangingArea || VotePending) return;
             command.sequence = ++outgoing;
+            command.areaEpoch = areaEpoch;
             Send("sr.command", NetworkManager.ServerClientId, JsonUtility.ToJson(command));
         }
         private void Send(string name, ulong recipient, string json)
@@ -255,10 +301,12 @@ namespace SecretsReborn
             {
                 reader.ReadValueSafe(out string json);
                 var command = JsonUtility.FromJson<CoopCommand>(json);
-                if (!CoopProtocol.Valid(command) || command.sequence <= input.sequence) return;
+                if (ChangingArea || VotePending || !CoopProtocol.Valid(command, areaEpoch) || command.sequence <= input.sequence) return;
                 if (Time.unscaledTime - input.window > 1) { input.window = Time.unscaledTime; input.packetCount = 0; }
                 if (++input.packetCount > 80) return;
                 input.sequence = command.sequence;
+                if (command.action == CoopAction.ConfirmReward)
+                { GameSession.Instance.ConfirmChestReward(actor, command.target); nextSnapshot = 0; return; }
                 if (command.action == CoopAction.Input)
                 {
                     input.motion = Vector2.ClampMagnitude(new Vector2(command.x, command.y), 1);
@@ -266,7 +314,7 @@ namespace SecretsReborn
                     return;
                 }
                 if (Time.unscaledTime - input.actionWindow > 1) { input.actionWindow = Time.unscaledTime; input.actionCount = 0; }
-                if (++input.actionCount > 20 || GameSession.Instance.Busy || GameSession.Instance.RewardPresentationActive
+                if (++input.actionCount > 20 || SaveBook.IsOpen || GameSession.Instance.Busy || GameSession.Instance.IsReceivingReward(actor)
                     || GameSession.Instance.World.CharacterVitals(actor.CharacterId).IsDown) return;
                 switch (command.action)
                 {
@@ -293,6 +341,10 @@ namespace SecretsReborn
         {
             if (Keyboard.current?.f6Key.wasPressedThisFrame == true) panel = !panel;
             if (!Running) return;
+            UpdateRejoins();
+            if (LobbyActive) { if (manager.IsServer && Time.unscaledTime >= nextLobby) { nextLobby = Time.unscaledTime + .5f; BroadcastLobby(); } return; }
+            UpdateSharedBook(); if (VotePending) { UpdateVote(); return; }
+            if (ChangingArea) return;
             if (manager.IsServer)
             {
                 foreach (var pair in inputs)
@@ -337,9 +389,9 @@ namespace SecretsReborn
             }
             var enemies = new List<CoopEnemyPose>();
             foreach (var enemy in FindObjectsByType<TreeMeleeEnemy>(FindObjectsInactive.Include, FindObjectsSortMode.None)) enemies.Add(enemy.CaptureReplica());
-            var snapshot = new CoopSnapshot { sequence = ++snapshotSequence, scene = SceneManager.GetActiveScene().path,
+            var snapshot = new CoopSnapshot { sequence = ++snapshotSequence, areaEpoch = areaEpoch, scene = SceneManager.GetActiveScene().path,
                 world = session.World.Capture(), actors = poses.ToArray(), enemies = enemies.ToArray(), gameOver = session.IsGameOver,
-                paused = session.RewardPresentationActive };
+                paused = false, rewards = session.CaptureChestRewards() };
             foreach (var pair in owners)
             {
                 if (pair.Key == NetworkManager.ServerClientId) continue;
@@ -354,12 +406,16 @@ namespace SecretsReborn
             {
                 reader.ReadValueSafe(out string json);
                 var snapshot = JsonUtility.FromJson<CoopSnapshot>(json);
-                if (snapshot == null || snapshot.protocol != 1 || snapshot.sequence <= receivedSnapshot || snapshot.actors == null
-                    || snapshot.actors.Length > 4 || snapshot.scene != SceneManager.GetActiveScene().path) return;
+                // A guest may join a running host after earlier area transitions.
+                if (!ChangingArea && receivedSnapshot == 0 && snapshot != null && snapshot.areaEpoch >= 0) areaEpoch = snapshot.areaEpoch;
+                if (snapshot == null || snapshot.protocol != 13 || snapshot.sequence <= receivedSnapshot || snapshot.actors == null
+                    || snapshot.actors.Length > 4 || snapshot.areaEpoch != areaEpoch || snapshot.scene != SceneManager.GetActiveScene().path
+                    || ChangingArea && !areaLocalReady) return;
                 CoopProtocol.RestoreWireEmptySlots(snapshot.world);
                 var restored = WorldSessionState.Restore(snapshot.world);
                 receivedSnapshot = snapshot.sequence;
                 GameSession.Instance.AcceptReplica(restored, snapshot.gameOver, snapshot.paused);
+                GameSession.Instance.AcceptChestRewards(snapshot.rewards);
                 var present = new HashSet<string>();
                 foreach (var pose in snapshot.actors)
                 {
@@ -391,6 +447,7 @@ namespace SecretsReborn
                 foreach (var pair in mirrors) if (!present.Contains(pair.Key)) { Destroy(pair.Value.gameObject); remove.Add(pair.Key); }
                 foreach (var id in remove) { mirrors.Remove(id); motion.Remove(id); }
                 GameSession.Instance.SetReplicaParty(present);
+                if (local != null && local.CharacterId == snapshot.localCharacter && present.Contains(snapshot.localCharacter)) RememberJoinedTicket();
                 if (local != null && Camera.main != null) Camera.main.GetComponent<CameraFollow>().Target = local.transform;
                 foreach (var item in FindObjectsByType<WorldItem>(FindObjectsInactive.Include, FindObjectsSortMode.None)) item.RefreshSession();
                 foreach (var loot in FindObjectsByType<EnemyLoot>(FindObjectsSortMode.None)) loot.RefreshSession();
@@ -399,6 +456,7 @@ namespace SecretsReborn
                     foreach (var pose in snapshot.enemies ?? Array.Empty<CoopEnemyPose>()) if (pose.id == enemy.EnemyId) { enemy.ApplyReplica(pose); break; }
                 foreach (var puzzle in FindObjectsByType<SanctuaryPuzzle>(FindObjectsSortMode.None)) puzzle.RefreshSession();
                 status = "Client · " + snapshot.actors.Length + "/4 Spieler";
+                if (ChangingArea) FinishArea();
             }
             catch (Exception error) { Debug.LogWarning("Koop-Zustand verworfen: " + error.Message); }
         }
@@ -417,28 +475,48 @@ namespace SecretsReborn
         {
             if (quitting) return;
             quitting = true; started = false;
-            manager.Shutdown(); Application.runInBackground = previousBackground;
-            foreach (var pair in owners) GameSession.Instance.RemovePartyMember(pair.Value.CharacterId);
+            StartCoroutine(LeaveSession());
+        }
+        private System.Collections.IEnumerator LeaveSession()
+        {
+            var path = lobbySession ? MenuScene : SceneManager.GetActiveScene().path;
+            GameSession.Instance.BeginNetworkArea();
+            manager.Shutdown();
+            // NGO completes shutdown in its network update. Destroying the transport
+            // immediately discards the disconnect packet and leaves the host waiting
+            // for a timeout before the same client can return.
+            double until = Time.realtimeSinceStartupAsDouble + 6;
+            while (manager != null && (manager.IsListening || manager.ShutdownInProgress)
+                && Time.realtimeSinceStartupAsDouble < until) yield return null;
+            Application.runInBackground = previousBackground;
+            foreach (var pair in owners) if (pair.Value != null) GameSession.Instance.RemovePartyMember(pair.Value.CharacterId);
+            foreach (var id in areaRoster.Values) GameSession.Instance.RemovePartyMember(id);
             GameSession.Instance.ClearReplicaFlags();
             if (manager != null) Destroy(manager.gameObject);
             Destroy(GameSession.Instance.gameObject);
-            var path = SceneManager.GetActiveScene().path;
 #if UNITY_EDITOR
             UnityEditor.SceneManagement.EditorSceneManager.LoadSceneAsyncInPlayMode(path, new LoadSceneParameters(LoadSceneMode.Single));
 #else
             SceneManager.LoadSceneAsync(path);
 #endif
         }
-        private void OnApplicationQuit() => quitting = true;
+        private void OnApplicationQuit() { quitting = true; LocalClientProfile.Release(); }
         private void OnDestroy()
         {
             quitting = true;
+            SceneManager.sceneLoaded -= AreaLoaded;
             if (manager != null) { manager.Shutdown(); Destroy(manager.gameObject); }
             Application.runInBackground = previousBackground;
             if (Active == this) Active = null;
         }
         private void OnGUI()
         {
+            DrawJoinAnnouncements();
+            if (JoiningSession) { DrawRejoin(); return; }
+            if (LobbyActive) { DrawLobby(); return; }
+            if (SceneManager.GetActiveScene().path == MenuScene && !ChangingArea) return;
+            if (VotePending) { DrawVote(); return; }
+            if (ChangingArea) GUI.Box(new Rect(Screen.width / 2f - 180, 70, 360, 42), "Gebiet wird gemeinsam geladen …");
             if (!panel)
             {
                 if (GUI.Button(new Rect(Screen.width - 155, 12, 140, 28), Running ? "Koop aktiv · F6" : "Koop-Test · F6")) panel = true;

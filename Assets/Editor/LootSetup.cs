@@ -80,7 +80,7 @@ namespace SecretsReborn.Editor
             if (armorSettings.FindProperty("armorValue").intValue == 0) { armorSettings.FindProperty("armorValue").intValue = 25; armorSettings.ApplyModifiedPropertiesWithoutUndo(); }
             var sword = AssetDatabase.LoadAssetAtPath<ItemDefinition>("Assets/World/Sanctuary/Items/red-training-sword.asset");
             var normal = Table("NormalEnemy", LootSourceKind.NormalEnemy, new LootEntry { item = gold, count = 5 }, new LootEntry { item = potion }, new LootEntry { item = arrows, count = 5 });
-            var chestTable = Table("SanctuaryChest", LootSourceKind.Chest, new LootEntry { item = armor }, new LootEntry { item = sword });
+            var chestTable = Table("SanctuaryChest", LootSourceKind.Chest, new LootEntry { item = armor });
             Table("BossEquipment", LootSourceKind.Boss, new LootEntry { item = armor }, new LootEntry { item = sword });
             var material = AssetDatabase.LoadAssetAtPath<Material>("Assets/World/Sanctuary/Lamps/SpriteLit.mat");
             var pickups = new[] { Pickup(gold, material), Pickup(potion, material), Pickup(arrows, material) };

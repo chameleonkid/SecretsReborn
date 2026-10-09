@@ -27,7 +27,8 @@ namespace SecretsReborn
         public event Action Changed;
         public void Configure(ItemDefinition[] definitions, ClothingAppearance fallback)
         { catalog = definitions; baseClothing = fallback; }
-        private void Awake() => State = GameSession.Instance.World.CharacterInventory(characterId);
+        private void Awake() => State = NetworkCoop.Running && NetworkCoop.Active.ChangingArea
+            ? new InventoryState() : GameSession.Instance.World.CharacterInventory(characterId);
         public void RefreshSession()
         { State = GameSession.Instance.World.CharacterInventory(characterId); GetComponent<CharacterDeath>()?.RefreshState(); ApplyAppearance(); Changed?.Invoke(); }
         private void Start() { ApplyAppearance(); GameSession.Instance.RegisterSpawn(this); }
@@ -66,19 +67,19 @@ namespace SecretsReborn
         public bool TryMove(int from, int to)
         {
             if (NetworkCoop.Request(this, CoopAction.MoveItem, from, to)) return true;
-            if (!hasStateAuthority || !State.TryMove(from, to, Rules)) return false;
+            if (!hasStateAuthority || GameSession.Instance.Busy || !State.TryMove(from, to, Rules)) return false;
             Changed?.Invoke(); return true;
         }
         public bool TryEquip(int from, EquipmentSlot target)
         {
             if (NetworkCoop.Request(this, CoopAction.Equip, from, (int)target)) return true;
-            if (!hasStateAuthority || !State.TryEquip(from, target, Rules)) return false;
+            if (!hasStateAuthority || GameSession.Instance.Busy || !State.TryEquip(from, target, Rules)) return false;
             ApplyAppearance(); Changed?.Invoke(); return true;
         }
         public bool TryUnequip(EquipmentSlot slot, int destination = -1)
         {
             if (NetworkCoop.Request(this, CoopAction.Unequip, (int)slot, destination)) return true;
-            if (!hasStateAuthority || !State.TryUnequip(slot, Rules, destination)) return false;
+            if (!hasStateAuthority || GameSession.Instance.Busy || !State.TryUnequip(slot, Rules, destination)) return false;
             ApplyAppearance(); Changed?.Invoke(); return true;
         }
         public EquipmentSlot? PreferredSlot(int index)
@@ -93,6 +94,7 @@ namespace SecretsReborn
         private void ApplyAppearance()
         {
             var appearance = GetComponent<CharacterAppearance>();
+            appearance.ApplyProfile(GameSession.Instance.World.CharacterProfile(characterId));
             appearance.Equip(Find(State.EquippedArmorId)?.ArmorAppearance ?? baseClothing);
             appearance.EquipAccessories(Find(State.GetEquipment(EquipmentSlot.Head))?.ArmorAppearance,
                 Find(State.GetEquipment(EquipmentSlot.Feet))?.ArmorAppearance);

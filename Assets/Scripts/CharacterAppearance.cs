@@ -16,6 +16,27 @@ namespace SecretsReborn
         [SerializeField] private Sprite[] hairFrames;
         private SpriteRenderer headLayer, feetLayer;
         private ClothingAppearance headAppearance, feetAppearance;
+        private Color originalHair, originalEyes;
+        private Material originalEyeMaterial, eyeTintMaterial;
+        private ClothingAppearance profileBody, profileHair, profileEyes;
+        public bool MaleBody { get; private set; }
+        public void ApplyProfile(WorldCharacterSlot profile)
+        {
+            profileBody = CharacterLookLibrary.Find(profile?.bodyStyle); profileHair = CharacterLookLibrary.Find(profile?.hairStyle);
+            profileEyes = CharacterLookLibrary.Find(profile?.eyeStyle); MaleBody = CharacterCustomization.IsMale(profile?.bodyStyle);
+            if (hair != null) hair.color = profile != null && profile.hairColor >= 0 ? CharacterPalette.Hair[profile.hairColor] : originalHair;
+            if (eyes != null)
+            {
+                if (profileEyes == null && profile != null && profile.eyeColor >= 0)
+                {
+                    if (eyeTintMaterial == null) { var shader = Resources.Load<Shader>("MenuUI/EyeTint"); if (shader != null) eyeTintMaterial = new Material(shader); }
+                    if (eyeTintMaterial != null) { eyeTintMaterial.SetColor("_Tint",CharacterPalette.Eyes[profile.eyeColor]); eyes.sharedMaterial = eyeTintMaterial; eyes.color = Color.white; }
+                }
+                else { eyes.sharedMaterial = originalEyeMaterial; eyes.color = profileEyes != null ? Color.white : originalEyes; }
+            }
+        }
+        public float NameHeight => body != null && body.sprite != null ? body.bounds.max.y - transform.position.y : 1.5f;
+        public Material FrontPreviewMaterial(int layer) => layer == 2 && eyes != null && eyeTintMaterial != null && eyes.sharedMaterial == eyeTintMaterial ? eyeTintMaterial : null;
         public void EquipAccessories(ClothingAppearance head, ClothingAppearance feet)
         { headAppearance = head; feetAppearance = feet; }
         // UI reads a fixed down-facing idle pose; gameplay facing and animation stay independent.
@@ -24,17 +45,17 @@ namespace SecretsReborn
             tint = Color.white;
             switch (layer)
             {
-                case 0: return bodyFrames != null && bodyFrames.Length > 0 ? bodyFrames[0] : null;
+                case 0: return profileBody != null ? profileBody.Frame(0) : bodyFrames != null && bodyFrames.Length > 0 ? bodyFrames[0] : null;
                 case 1: tint = equippedClothing != null ? equippedClothing.Tint : Color.white;
-                    return equippedClothing != null ? equippedClothing.Frame(0) : null;
+                    return equippedClothing != null ? equippedClothing.Frame(0, MaleBody) : null;
                 case 2: tint = eyes != null ? eyes.color : Color.white;
-                    return eyesFrames != null && eyesFrames.Length > 0 ? eyesFrames[0] : null;
+                    return profileEyes != null ? profileEyes.Frame(0) : eyesFrames != null && eyesFrames.Length > 0 ? eyesFrames[0] : null;
                 case 3: tint = hair != null ? hair.color : Color.white;
-                    return hairFrames != null && hairFrames.Length > 0 ? hairFrames[0] : null;
+                    return profileHair != null ? profileHair.Frame(0) : hairFrames != null && hairFrames.Length > 0 ? hairFrames[0] : null;
                 case 4: tint = feetAppearance != null ? feetAppearance.Tint : Color.white;
-                    return feetAppearance != null ? feetAppearance.Frame(0) : null;
+                    return feetAppearance != null ? feetAppearance.Frame(0, MaleBody) : null;
                 case 5: tint = headAppearance != null ? headAppearance.Tint : Color.white;
-                    return headAppearance != null ? headAppearance.Frame(0) : null;
+                    return headAppearance != null ? headAppearance.Frame(0, MaleBody) : null;
                 default: return null;
             }
         }
@@ -68,6 +89,8 @@ namespace SecretsReborn
 
         private void Awake()
         {
+            originalHair = hair != null ? hair.color : Color.white; originalEyes = eyes != null ? eyes.color : Color.white;
+            originalEyeMaterial = eyes != null ? eyes.sharedMaterial : null;
             movement = GetComponent<Rigidbody2D>();
             death = GetComponent<CharacterDeath>();
             headLayer = CreateLayer("Equipment head"); feetLayer = CreateLayer("Equipment feet");
@@ -80,6 +103,7 @@ namespace SecretsReborn
             if (body != null) renderer.sharedMaterial = body.sharedMaterial;
             return renderer;
         }
+        private void OnDestroy() { if (eyeTintMaterial != null) Destroy(eyeTintMaterial); }
 
         private void LateUpdate()
         {
@@ -97,30 +121,30 @@ namespace SecretsReborn
                 frame = (attackFacing + 4) * 16 + 3 + Mathf.Min(3, Mathf.FloorToInt((Time.time - attackStarted) / (attackUntil - attackStarted) * 4));
             if (death != null && death.IsDown && bodyFrames.Length >= 128)
             { frame = death.AnimationFrame(facing); attackUntil = 0; }
-            body.sprite = bodyFrames[frame];
-            clothing.sprite = equippedClothing != null ? equippedClothing.Frame(frame) : null;
+            body.sprite = profileBody != null ? profileBody.Frame(frame) : bodyFrames[frame];
+            clothing.sprite = equippedClothing != null ? equippedClothing.Frame(frame, MaleBody) : null;
             clothing.enabled = clothing.sprite != null;
             clothing.color = equippedClothing != null ? equippedClothing.Tint : Color.white;
             clothing.sortingLayerID = body.sortingLayerID;
             clothing.sortingOrder = body.sortingOrder + 1;
-            PresentLayer(eyes, eyesFrames, frame, 2);
-            PresentLayer(hair, hairFrames, frame, 3);
+            PresentLayer(eyes, eyesFrames, frame, 2, profileEyes);
+            PresentLayer(hair, hairFrames, frame, 3, profileHair);
             PresentEquipment(headLayer, headAppearance, frame, 5);
             PresentEquipment(feetLayer, feetAppearance, frame, 4);
         }
         private void PresentEquipment(SpriteRenderer renderer, ClothingAppearance appearance, int frame, int offset)
         {
-            renderer.sprite = appearance != null ? appearance.Frame(frame) : null;
+            renderer.sprite = appearance != null ? appearance.Frame(frame, MaleBody) : null;
             renderer.enabled = renderer.sprite != null;
             renderer.color = appearance != null ? appearance.Tint : Color.white;
             renderer.sortingLayerID = body.sortingLayerID;
             renderer.sortingOrder = body.sortingOrder + offset;
         }
 
-        private void PresentLayer(SpriteRenderer renderer, Sprite[] frames, int frame, int offset)
+        private void PresentLayer(SpriteRenderer renderer, Sprite[] frames, int frame, int offset, ClothingAppearance look)
         {
             if (renderer == null) return;
-            renderer.sprite = frames != null && frame < frames.Length ? frames[frame] : null;
+            renderer.sprite = look != null ? look.Frame(frame) : frames != null && frame < frames.Length ? frames[frame] : null;
             renderer.enabled = renderer.sprite != null;
             renderer.sortingLayerID = body.sortingLayerID;
             renderer.sortingOrder = body.sortingOrder + offset;

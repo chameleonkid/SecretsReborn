@@ -3,10 +3,20 @@ namespace SecretsReborn
     public static class SaveGameStore
     {
         public const string DefaultPath = "SecretsReborn/world.es3";
+        public const string MultiplayerPath = "SecretsReborn/multiplayer.es3";
+        public static string MultiplayerSlotPath(int slot)
+        {
+            if (slot < 0 || slot > 2) throw new System.ArgumentOutOfRangeException(nameof(slot));
+            // Slot 1 keeps the existing filename, so previously saved worlds remain available.
+            return slot == 0 ? MultiplayerPath : "SecretsReborn/multiplayer-slot-" + (slot + 1) + ".es3";
+        }
         private const string Key = "world-session";
+        internal static string TestSlotRoot;
         public static string SlotPath(int slot)
         {
             if (slot < 0 || slot > 2) throw new System.ArgumentOutOfRangeException(nameof(slot));
+            if (TestSlotRoot != null) return System.IO.Path.Combine(TestSlotRoot, "slot-" + slot + ".es3");
+            if (GameSession.Existing != null && GameSession.Existing.World.Multiplayer) return MultiplayerSlotPath(slot);
             return "SecretsReborn/slot-" + (slot + 1) + ".es3";
         }
         private static ES3Settings Settings(string path) => new ES3Settings(path, ES3.Location.File);
@@ -24,7 +34,10 @@ namespace SecretsReborn
         public static bool Exists(string path = DefaultPath) => ES3.FileExists(Settings(path));
         public static SaveGameData ReadSummary(int slot)
         {
-            string path = SlotPath(slot);
+            return ReadSummary(SlotPath(slot));
+        }
+        public static SaveGameData ReadSummary(string path)
+        {
             if (!Exists(path)) return null;
             var data = ES3.Load<SaveGameData>(Key, Settings(path));
             WorldSessionState.Restore(data);

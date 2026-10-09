@@ -21,6 +21,7 @@ namespace SecretsReborn
             get
             {
                 if (entries == null || entries.Length == 0) return false;
+                if (source == LootSourceKind.Chest && (entries.Length != 1 || entries[0] == null || entries[0].count != 1)) return false;
                 foreach (var entry in entries)
                     if (entry == null || entry.item == null || entry.count <= 0
                         || source == LootSourceKind.NormalEnemy && (entry.item.Rules.kind != ItemKind.None || entry.item.Purpose == ItemPurpose.Equipment)) return false;

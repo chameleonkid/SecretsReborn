@@ -38,10 +38,10 @@ namespace SecretsReborn.Editor
         public static void Build()
         {
             if (EditorApplication.isPlayingOrWillChangePlaymode) throw new InvalidOperationException("Play zuerst beenden.");
-            Setup(); Directory.CreateDirectory("Builds/LocalCoop");
+            Setup(); MainMenuSetup.Setup(); Directory.CreateDirectory("Builds/LocalCoop");
             var report = BuildPipeline.BuildPlayer(new BuildPlayerOptions
             {
-                scenes = new[] { "Assets/Scenes/Waldheiligtum-Editable.unity", "Assets/Scenes/Raetselhoehle-Editable.unity" },
+                scenes = new[] { NetworkCoop.MenuScene, "Assets/Scenes/Waldheiligtum-Editable.unity", "Assets/Scenes/Raetselhoehle-Editable.unity" },
                 locationPathName = "Builds/LocalCoop/SecretsReborn.exe", target = BuildTarget.StandaloneWindows64,
                 options = BuildOptions.Development
             });

@@ -1,4 +1,5 @@
 using UnityEngine;
+using UnityEngine.InputSystem;
 
 namespace SecretsReborn
 {
@@ -8,16 +9,17 @@ namespace SecretsReborn
         [SerializeField] private string chestId;
         [SerializeField] private LootTable loot;
         [SerializeField] private Sprite[] openingFrames;
-        [SerializeField, Min(.1f)] private float rewardDisplaySeconds = 1.2f;
-        private GameSession presentationSession;
+        private CharacterInventory recipient;
+        private float presentationSince;
         private GameObject rewardVisual;
         private Sprite rewardSprite;
         private Material rewardMaterial;
         private string rewardLabel;
         public string ChestId => chestId;
+        internal bool HasRewardVisual => rewardVisual != null && rewardLabel != null;
         public void RefreshReplica()
         {
-            if (openingFrames != null && openingFrames.Length == 4) GetComponent<SpriteRenderer>().sprite = openingFrames[Opened ? 3 : 0];
+            RefreshPresentation();
         }
         public void ConfigureVisual(Sprite[] frames) { openingFrames = frames; RefreshSession(); }
         public bool Opened => GameSession.Instance.World.IsCollected("chest:" + chestId);
@@ -26,36 +28,37 @@ namespace SecretsReborn
         private void Start() => RefreshSession();
         public void RefreshSession()
         {
-            StopAllCoroutines();
             ClearPresentation();
             var renderer = GetComponent<SpriteRenderer>(); renderer.color = Color.white;
             if (openingFrames != null && openingFrames.Length == 4) renderer.sprite = openingFrames[Opened ? 3 : 0];
         }
-        private System.Collections.IEnumerator AnimateOpen()
+        private void Update()
         {
-            presentationSession = GameSession.Instance;
-            if (!presentationSession.BeginRewardPresentation(this)) { presentationSession = null; yield break; }
-            try
+            RefreshPresentation();
+            if (recipient == null || Time.unscaledTime - presentationSince < .45f || !Application.isFocused) return;
+            var key = Keyboard.current; var pad = Gamepad.current;
+            if (key?.enterKey.wasPressedThisFrame == true || pad?.buttonSouth.wasPressedThisFrame == true || pad?.buttonWest.wasPressedThisFrame == true)
+                GameSession.Instance.ConfirmChestReward(recipient, chestId);
+        }
+        private void RefreshPresentation()
+        {
+            var local = NetworkCoop.Running ? NetworkCoop.Active.LocalCharacter
+                : Camera.main?.GetComponent<CameraFollow>()?.Target?.GetComponent<CharacterInventory>();
+            var reward = GameSession.Instance.RewardFor(local);
+            if (reward == null || reward.chestId != chestId)
             {
-                var renderer = GetComponent<SpriteRenderer>();
-                if (openingFrames != null && openingFrames.Length == 4)
-                    foreach (var sprite in openingFrames) { renderer.sprite = sprite; yield return new WaitForSecondsRealtime(.1f); }
-                foreach (var entry in loot.Entries)
-                {
-                    if (entry == null || entry.item == null) continue;
-                    ShowReward(entry.item, entry.count);
-                    float elapsed = 0;
-                    while (elapsed < rewardDisplaySeconds)
-                    {
-                        elapsed += Time.unscaledDeltaTime;
-                        if (rewardVisual != null) rewardVisual.transform.position = transform.position
-                            + Vector3.up * (1.1f + .15f * Mathf.Clamp01(elapsed / .3f));
-                        yield return null;
-                    }
-                    RemoveRewardVisual();
-                }
+                if (recipient != null) ClearPresentation();
+                if (openingFrames != null && openingFrames.Length == 4) GetComponent<SpriteRenderer>().sprite = openingFrames[Opened ? 3 : 0];
+                return;
             }
-            finally { ClearPresentation(); }
+            if (recipient == null)
+            {
+                recipient = local; presentationSince = Time.unscaledTime;
+                var item = local.Find(reward.itemId); if (item != null) ShowReward(item, 1);
+            }
+            float elapsed = Time.unscaledTime - presentationSince;
+            if (openingFrames != null && openingFrames.Length == 4) GetComponent<SpriteRenderer>().sprite = openingFrames[Mathf.Clamp((int)(elapsed / .1f), 0, 3)];
+            if (rewardVisual != null) rewardVisual.transform.position = transform.position + Vector3.up * (1.1f + .15f * Mathf.Clamp01(elapsed / .3f));
         }
         private void ShowReward(ItemDefinition item, int count)
         {
@@ -85,16 +88,23 @@ namespace SecretsReborn
         private void ClearPresentation()
         {
             RemoveRewardVisual();
-            if (presentationSession != null) presentationSession.EndRewardPresentation(this);
-            presentationSession = null;
+            recipient = null;
         }
-        private void OnDisable() { StopAllCoroutines(); ClearPresentation(); }
+        private void OnDisable()
+        {
+            ClearPresentation();
+            var session = GameSession.Existing;
+            if (session != null && !NetworkCoop.IsReplica)
+                foreach (var reward in session.CaptureChestRewards()) if (reward.chestId == chestId) session.ReleaseChestReward(reward.characterId);
+        }
         private void OnGUI()
         {
             if (rewardLabel == null || Camera.main == null) return;
             var point = Camera.main.WorldToScreenPoint(transform.position + Vector3.up * 1.7f);
             var style = new GUIStyle(GUI.skin.box) { alignment = TextAnchor.MiddleCenter, fontSize = 16 };
-            GUI.Box(new Rect(point.x - 150, Screen.height - point.y - 20, 300, 35), rewardLabel, style);
+            GUI.Box(new Rect(point.x - 180, Screen.height - point.y - 20, 360, 65), rewardLabel + "\nA / X / Enter: bestätigen", style);
+            if (Time.unscaledTime - presentationSince >= .45f && GUI.Button(new Rect(point.x - 60, Screen.height - point.y + 48, 120, 28), "Bestätigen"))
+                GameSession.Instance.ConfirmChestReward(recipient, chestId);
         }
         public bool CanUse(CharacterInventory actor) => !string.IsNullOrWhiteSpace(chestId) && actor != null
             && (actor.HasStateAuthority || NetworkCoop.IsReplica && actor.LocalInput) && isActiveAndEnabled && actor.gameObject.scene == gameObject.scene
@@ -104,8 +114,15 @@ namespace SecretsReborn
             if (CanUse(actor) && NetworkCoop.Request(actor, CoopAction.Chest, target: chestId)) return true;
             if (!CanUse(actor) || Opened || loot == null || loot.Source != LootSourceKind.Chest || !loot.IsValid
                 || !GameSession.Instance.CanFight(actor)) return false;
+            var entries = loot.Entries;
+            if (entries.Length != 1 || entries[0].count != 1) { Debug.LogWarning("Truhen benötigen genau einen Gegenstand.", this); return false; }
             bool received = GameSession.Instance.World.TryCollect("chest:" + chestId, () => actor.TryReceiveBatch(loot.Rewards()));
-            if (received) { RefreshSession(); StartCoroutine(AnimateOpen()); }
+            if (received)
+            {
+                GameSession.Instance.World.DiscoverChestItem(entries[0].item.ItemId);
+                GameSession.Instance.BeginChestReward(this, actor, entries[0].item);
+                RefreshSession();
+            }
             return received;
         }
     }

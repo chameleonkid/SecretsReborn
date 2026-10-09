@@ -2,10 +2,11 @@ using System;
 
 namespace SecretsReborn
 {
-    public enum CoopAction { Input, MoveItem, Equip, Unequip, UseItem, Pickup, Chest, Attack, Lamp }
+    public enum CoopAction { Input, MoveItem, Equip, Unequip, UseItem, Pickup, Chest, Attack, Lamp, ConfirmReward }
     [Serializable] public sealed class CoopCommand
     {
         public long sequence;
+        public int areaEpoch;
         public CoopAction action;
         public int from, to;
         public float x, y;
@@ -14,8 +15,8 @@ namespace SecretsReborn
     }
     [Serializable] public sealed class CoopHello
     {
-        public int protocol = 1;
-        public string characterToken, scene;
+        public int protocol = 13;
+        public string characterToken, scene, playerName;
     }
     [Serializable] public sealed class CoopActorPose
     {
@@ -23,6 +24,11 @@ namespace SecretsReborn
         public float x, y, dx, dy, reviveProgress;
         public bool lamp, reviveInterrupted;
         public int swing;
+    }
+    [Serializable] public sealed class ChestRewardState
+    {
+        public string characterId, chestId, itemId;
+        [NonSerialized] public double confirmAt;
     }
     [Serializable] public sealed class CoopEnemyPose
     {
@@ -33,19 +39,37 @@ namespace SecretsReborn
     }
     [Serializable] public sealed class CoopSnapshot
     {
-        public int protocol = 1;
+        public int protocol = 13;
         public long sequence;
+        public int areaEpoch;
         public string localCharacter, scene;
         public bool gameOver, paused;
         public SaveGameData world;
         public CoopActorPose[] actors;
         public CoopEnemyPose[] enemies;
+        public ChestRewardState[] rewards;
+    }
+    [Serializable] public sealed class CoopAreaMessage
+    {
+        public int epoch;
+        public string scene, entrance;
+        public bool load;
+    }
+    [Serializable] public sealed class CoopVote
+    {
+        public long id;
+        public string scene;
+        public bool load, answer, cancel;
+        public bool retry, initialCheckpoint;
     }
     // Pure boundary checks: sender-to-character ownership is resolved by the host,
     // never from a character ID, damage amount or position supplied in a command.
     public static class CoopProtocol
     {
         public const int MaximumPlayers = 4;
+        public static bool MatchesAreaReady(CoopAreaMessage ready, CoopAreaMessage expected) => ready != null && expected != null
+            && ready.epoch == expected.epoch && ready.scene == expected.scene && ready.load == expected.load
+            && (ready.entrance ?? "") == (expected.entrance ?? "");
         // JsonUtility expands null class-array entries to zero/default objects and
         // null strings to empty strings. Canonicalize only these wire empty slots;
         // the persisted SaveGameData validator remains strict and unchanged.
@@ -65,11 +89,11 @@ namespace SecretsReborn
                         if (character.equipment[i] == "") character.equipment[i] = null;
             }
         }
-        public static bool ValidHello(CoopHello hello, string scene) => hello != null && hello.protocol == 1
+        public static bool ValidHello(CoopHello hello, string scene) => hello != null && hello.protocol == 13
             && hello.scene == scene && Guid.TryParseExact(hello.characterToken, "N", out _);
         public static bool Valid(CoopCommand command)
         {
-            if (command == null || command.sequence <= 0 || !Enum.IsDefined(typeof(CoopAction), command.action)
+            if (command == null || command.sequence <= 0 || command.areaEpoch < 0 || !Enum.IsDefined(typeof(CoopAction), command.action)
                 || command.target != null && command.target.Length > 160) return false;
             switch (command.action)
             {
@@ -80,10 +104,13 @@ namespace SecretsReborn
                 case CoopAction.Unequip: return Equipment(command.from) && (command.to == -1 || Bag(command.to));
                 case CoopAction.UseItem: return Bag(command.from);
                 case CoopAction.Pickup:
+                case CoopAction.ConfirmReward:
                 case CoopAction.Chest: return !string.IsNullOrWhiteSpace(command.target);
                 default: return true;
             }
         }
+        public static bool Valid(CoopCommand command, int currentAreaEpoch) => command != null
+            && command.areaEpoch == currentAreaEpoch && Valid(command);
         private static bool Finite(float value) => !float.IsNaN(value) && !float.IsInfinity(value);
         private static bool Bag(int slot) => slot >= 0 && slot < InventoryState.Capacity;
         private static bool Equipment(int slot) => slot >= 0 && slot < InventoryState.EquipmentCapacity;

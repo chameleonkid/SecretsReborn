@@ -9,8 +9,8 @@ public static class CoopProtocolChecks
         var hello = new CoopHello { characterToken = Guid.NewGuid().ToString("N"), scene = "forest" };
         Check(CoopProtocol.ValidHello(hello, "forest"), "valid handshake");
         Check(!CoopProtocol.ValidHello(hello, "cave"), "different scene");
-        hello.protocol = 2; Check(!CoopProtocol.ValidHello(hello, "forest"), "version mismatch");
-        hello.protocol = 1; hello.characterToken = "solo-player"; Check(!CoopProtocol.ValidHello(hello, "forest"), "host identity spoof");
+        hello.protocol = 1; Check(!CoopProtocol.ValidHello(hello, "forest"), "version mismatch");
+        hello.protocol = 13; hello.characterToken = "solo-player"; Check(!CoopProtocol.ValidHello(hello, "forest"), "host identity spoof");
         var input = new CoopCommand { sequence = 1, action = CoopAction.Input, x = 1, y = 1 };
         Check(CoopProtocol.Valid(input), "diagonal input");
         input.x = float.NaN; Check(!CoopProtocol.Valid(input), "NaN");
@@ -23,6 +23,14 @@ public static class CoopProtocolChecks
         Check(CoopProtocol.Valid(new CoopCommand { sequence = 1, action = CoopAction.Unequip, from = 14, to = -1 }), "automatic bag destination");
         Check(!CoopProtocol.Valid(new CoopCommand { sequence = 1, action = CoopAction.Pickup }), "missing target");
         Check(!CoopProtocol.Valid(new CoopCommand { sequence = 1, action = (CoopAction)999 }), "unknown action");
+        Check(!CoopProtocol.Valid(new CoopCommand { sequence = 1, areaEpoch = -1 }), "invalid area generation");
+        Check(!CoopProtocol.Valid(new CoopCommand { sequence = 1, action = CoopAction.Attack, areaEpoch = 0 }, 2), "stale attack after return to same scene");
+        Check(CoopProtocol.Valid(new CoopCommand { sequence = 1, action = CoopAction.Input, areaEpoch = 2 }, 2), "current area input");
+        var loadReady = new CoopAreaMessage { epoch = 4, scene = "forest", load = true, entrance = "" };
+        var loadExpected = new CoopAreaMessage { epoch = 4, scene = "forest", load = true };
+        Check(CoopProtocol.MatchesAreaReady(loadReady, loadExpected), "JSON empty entrance for load acknowledgment");
+        loadReady.epoch = 3; Check(!CoopProtocol.MatchesAreaReady(loadReady, loadExpected), "stale load acknowledgment");
+        loadReady.epoch = 4; loadReady.scene = "cave"; Check(!CoopProtocol.MatchesAreaReady(loadReady, loadExpected), "wrong load scene");
         var character = new InventoryState().Capture("guest");
         character.bag[0] = new InventoryStack { itemId = "", count = 0 };
         character.bag[1] = new InventoryStack { itemId = "armor", count = 1 };

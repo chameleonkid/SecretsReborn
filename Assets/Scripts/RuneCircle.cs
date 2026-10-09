@@ -9,7 +9,9 @@ namespace SecretsReborn
         private PlayerLantern lantern;
         private Action<int> entered;
         private int index;
+        internal int Order => index;
         private bool inside;
+        private readonly System.Collections.Generic.HashSet<string> occupants = new System.Collections.Generic.HashSet<string>();
         private SpriteRenderer[] runes;
         [SerializeField, Min(0.1f)] private float activationRadius = 0.85f;
 
@@ -18,6 +20,7 @@ namespace SecretsReborn
             player = target;
             lantern = target != null ? target.GetComponent<PlayerLantern>() : null;
             inside = false;
+            occupants.Clear();
             index = order;
             entered = onEntered;
             runes = GetComponentsInChildren<SpriteRenderer>(true);
@@ -26,6 +29,24 @@ namespace SecretsReborn
         private void FixedUpdate()
         {
             if (NetworkCoop.IsReplica) return;
+            if (GameSession.Instance.Busy) return;
+            if (NetworkCoop.Running)
+            {
+                var present = new System.Collections.Generic.HashSet<string>();
+                bool newlyEntered = false;
+                foreach (var member in FindObjectsByType<CharacterInventory>(FindObjectsSortMode.None))
+                {
+                    var light = member.GetComponent<PlayerLantern>();
+                    float squared = ((Vector2)(member.transform.position - transform.position)).sqrMagnitude;
+                    if (!GameSession.Instance.CanFight(member) || light == null || !light.CanRevealRunes
+                        || squared > activationRadius * activationRadius || squared > light.RevealRadius * light.RevealRadius) continue;
+                    present.Add(member.CharacterId);
+                    if (!occupants.Contains(member.CharacterId)) newlyEntered = true;
+                }
+                occupants.Clear(); foreach (var id in present) occupants.Add(id);
+                if (newlyEntered) entered?.Invoke(index);
+                return;
+            }
             if (player == null) return;
             float distance = ((Vector2)(player.position - transform.position)).sqrMagnitude;
             var actor = player.GetComponent<CharacterInventory>();

@@ -13,6 +13,20 @@ namespace SecretsReborn
         private InputAction move;
         private bool networkDriven;
         private Vector2 networkMotion;
+        private bool rewardImmobilized;
+        private RigidbodyConstraints2D constraintsBeforeReward;
+        internal void SetRewardImmobilized(bool value)
+        {
+            if (body == null || rewardImmobilized == value) return;
+            rewardImmobilized = value;
+            if (value)
+            {
+                constraintsBeforeReward = body.constraints;
+                body.linearVelocity = Vector2.zero; body.angularVelocity = 0;
+                body.constraints = RigidbodyConstraints2D.FreezeAll;
+            }
+            else body.constraints = constraintsBeforeReward;
+        }
         public void SetNetworkMotion(Vector2 motion) { networkDriven = true; networkMotion = motion; }
         public Vector2 ReadLocalMotion() => Vector2.ClampMagnitude(move.ReadValue<Vector2>(), 1);
 
@@ -33,13 +47,18 @@ namespace SecretsReborn
         }
 
         private void OnEnable() => move.Enable();
-        private void FixedUpdate() => body.linearVelocity =
-            !NetworkCoop.IsReplica && (networkDriven || Application.isFocused) && !GameSession.Instance.Busy
-                && (actor == null || !GameSession.Instance.World.CharacterVitals(actor.CharacterId).IsDown) && (melee == null || !melee.IsSwinging)
+        private void FixedUpdate()
+        {
+            SetRewardImmobilized(actor != null && actor.HasStateAuthority && GameSession.Instance.IsReceivingReward(actor));
+            body.linearVelocity =
+            !NetworkCoop.IsReplica && (networkDriven || Application.isFocused) && !GameSession.Instance.Busy && !SaveBook.IsOpen
+                && (actor == null || !GameSession.Instance.World.CharacterVitals(actor.CharacterId).IsDown && !GameSession.Instance.IsReceivingReward(actor)) && (melee == null || !melee.IsSwinging)
                 ? (networkDriven ? networkMotion : ReadLocalMotion()) * speed : Vector2.zero;
+        }
         private void OnDisable()
         {
             move.Disable();
+            SetRewardImmobilized(false);
             if (body != null) body.linearVelocity = Vector2.zero;
         }
         private void OnDestroy() => move.Dispose();
