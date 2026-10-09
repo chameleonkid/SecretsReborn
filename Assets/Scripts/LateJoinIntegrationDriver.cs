@@ -55,18 +55,28 @@ namespace SecretsReborn
                 var added = restored.CharacterSlots[2];
                 if (added.name != "Neue Figur" || added.bodyStyle != CharacterCustomization.Body(true,3) || added.hairStyle != CharacterCustomization.Hair(true,12))
                 { Finish("FAIL: created appearance not persisted"); yield break; }
+                Signal("BothDisconnect.request");
+                while (net.ConnectedCount != 1) yield return null;
+                Signal("ThirdReconnect.request");
+                while (net.ConnectedCount != 2 || !Exists("ThirdReturned.ready")) yield return null;
+                Signal("FirstReconnect.request");
+                while (net.ConnectedCount != 3 || !Exists("FirstReturned.ready")) yield return null;
                 Signal("Done.request");
                 while (net.ConnectedCount != 1) yield return null;
-                Finish("PASS: two-player start, third joins running world, host validates and saves creator appearance; announcement reaches all three.");
+                Finish("PASS: late join and appearance save; both guests disconnect and confirm figures in reverse order, including the last free figure; global announcement.");
             }
             else if (role == "first")
             {
                 while (net.Lobby.characters.Length != 2) yield return null;
-                net.ChooseLobbyCharacter(net.Lobby.characters[1].id,ready:true);
+                string identity = net.Lobby.characters[1].id;
+                net.ChooseLobbyCharacter(identity,ready:true);
                 while (net.LatestJoinAnnouncement != "Später Gast ist beigetreten." || GameSession.Instance.World.CharacterSlots.Length != 3) yield return null;
                 File.WriteAllText(Path.Combine(folder,"First.profile"),LocalClientProfile.KeySuffix);
-                Signal("First.ready"); while (!Exists("Done.request")) yield return null;
-                Finish("PASS: existing guest receives third player and global join announcement.");
+                Signal("First.ready");
+                yield return DisconnectAndSelectAgain(net,identity,"FirstReconnect.request",2);
+                if (finished) yield break;
+                Signal("FirstReturned.ready"); while (!Exists("Done.request")) yield return null;
+                Finish("PASS: existing guest receives announcement and explicitly confirms the last free figure after reverse reconnect.");
             }
             else
             {
@@ -87,11 +97,35 @@ namespace SecretsReborn
                 while (NetworkCoop.Active == null || NetworkCoop.Active == previous || UnityEngine.SceneManagement.SceneManager.GetActiveScene().path != NetworkCoop.MenuScene) yield return null;
                 net = NetworkCoop.Active;
                 if (!net.OpenLobby(false,"127.0.0.1","Später Gast")) { Finish("FAIL: third reconnect start"); yield break; }
-                while (net.LocalCharacter == null || net.JoiningSession || net.LobbyActive || net.ChangingArea) yield return null;
+                yield return ConfirmFreeCharacter(net,identity,2);
+                if (finished) yield break;
                 if (net.LocalCharacter.CharacterId != identity) { Finish("FAIL: third client lost own reconnect profile"); yield break; }
-                Signal("Third.ready"); while (!Exists("Done.request")) yield return null;
-                Finish("PASS: concurrent normal join creates figure; own reconnect retained; invalid appearance/duplicate create rejected; notification received.");
+                Signal("Third.ready");
+                yield return DisconnectAndSelectAgain(net,identity,"ThirdReconnect.request",1);
+                if (finished) yield break;
+                Signal("ThirdReturned.ready"); while (!Exists("Done.request")) yield return null;
+                Finish("PASS: creation, immediate release and explicit reconnect; reverse return verified; invalid appearance and duplicate creation rejected.");
             }
+        }
+        private IEnumerator DisconnectAndSelectAgain(NetworkCoop net,string identity,string trigger,int occupied)
+        {
+            while (!Exists("BothDisconnect.request")) yield return null;
+            var previous = net; net.StopAndReload();
+            while (NetworkCoop.Active == null || NetworkCoop.Active == previous || UnityEngine.SceneManagement.SceneManager.GetActiveScene().path != NetworkCoop.MenuScene) yield return null;
+            while (!Exists(trigger)) yield return null;
+            net = NetworkCoop.Active;
+            if (!net.OpenLobby(false,"127.0.0.1",role)) { Finish("FAIL: reverse reconnect start"); yield break; }
+            yield return ConfirmFreeCharacter(net,identity,occupied);
+        }
+        private IEnumerator ConfirmFreeCharacter(NetworkCoop net,string identity,int occupied)
+        {
+            while (net.RejoinSelection == null || net.RejoinSelection.waiting) yield return null;
+            yield return new WaitForSecondsRealtime(.7f);
+            if (net.LocalCharacter != null || net.RejoinSelection.unavailable.Length != occupied || Array.IndexOf(net.RejoinSelection.unavailable,identity) >= 0)
+            { Finish("FAIL: automatic assignment or disconnected figure blocked"); yield break; }
+            net.ChooseRejoinCharacter(identity);
+            while (net.LocalCharacter == null || net.JoiningSession || net.LobbyActive || net.ChangingArea) yield return null;
+            if (net.LocalCharacter.CharacterId != identity) Finish("FAIL: confirmed identity lost");
         }
     }
 }

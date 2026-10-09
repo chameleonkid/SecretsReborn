@@ -10,7 +10,7 @@ public static class CoopProtocolChecks
         Check(CoopProtocol.ValidHello(hello, "forest"), "valid handshake");
         Check(!CoopProtocol.ValidHello(hello, "cave"), "different scene");
         hello.protocol = 1; Check(!CoopProtocol.ValidHello(hello, "forest"), "version mismatch");
-        hello.protocol = 13; hello.characterToken = "solo-player"; Check(!CoopProtocol.ValidHello(hello, "forest"), "host identity spoof");
+        hello.protocol = 14; hello.characterToken = "solo-player"; Check(!CoopProtocol.ValidHello(hello, "forest"), "host identity spoof");
         var input = new CoopCommand { sequence = 1, action = CoopAction.Input, x = 1, y = 1 };
         Check(CoopProtocol.Valid(input), "diagonal input");
         input.x = float.NaN; Check(!CoopProtocol.Valid(input), "NaN");

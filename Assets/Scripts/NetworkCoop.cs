@@ -72,7 +72,7 @@ namespace SecretsReborn
             manager.NetworkConfig = new NetworkConfig
             {
                 NetworkTransport = transport, EnableSceneManagement = false,
-                ConnectionApproval = true, ProtocolVersion = 13, TickRate = 30,
+                ConnectionApproval = true, ProtocolVersion = 14, TickRate = 30,
                 ForceSamePrefabs = false, ClientConnectionBufferTimeout = 10
             };
             manager.ConnectionApprovalCallback = Approve;
@@ -224,7 +224,7 @@ namespace SecretsReborn
         {
             if (quitting) return;
             if (manager.IsServer && connectionTokens.TryGetValue(clientId,out var token))
-            { reservations.Release(token,Time.realtimeSinceStartupAsDouble); connectionTokens.Remove(clientId); }
+            { connectionTokens.Remove(clientId); nextJoinOffer = 0; }
             if (manager.IsServer && waitingGuests.Remove(clientId)) { approved.Remove(clientId); nextJoinOffer = 0; return; }
             if (LobbyActive && manager.IsServer && clientId != 0) { lobbyPlayers.Remove(clientId); approved.Remove(clientId); BroadcastLobby(); return; }
             if (manager.IsServer && clientId != NetworkManager.ServerClientId)
@@ -408,7 +408,7 @@ namespace SecretsReborn
                 var snapshot = JsonUtility.FromJson<CoopSnapshot>(json);
                 // A guest may join a running host after earlier area transitions.
                 if (!ChangingArea && receivedSnapshot == 0 && snapshot != null && snapshot.areaEpoch >= 0) areaEpoch = snapshot.areaEpoch;
-                if (snapshot == null || snapshot.protocol != 13 || snapshot.sequence <= receivedSnapshot || snapshot.actors == null
+                if (snapshot == null || snapshot.protocol != 14 || snapshot.sequence <= receivedSnapshot || snapshot.actors == null
                     || snapshot.actors.Length > 4 || snapshot.areaEpoch != areaEpoch || snapshot.scene != SceneManager.GetActiveScene().path
                     || ChangingArea && !areaLocalReady) return;
                 CoopProtocol.RestoreWireEmptySlots(snapshot.world);

@@ -146,7 +146,7 @@ namespace SecretsReborn
             areaRoster.Clear(); areaWaiting.Clear(); areaLamps.Clear();
             foreach (var p in lobbyPlayers.Values)
             { areaRoster[p.client] = p.character; if (p.client != 0) { approved[p.client] = p.character; areaWaiting.Add(p.client); inputs[p.client] = new RemoteInput();
-                    reservations.Bind(connectionTokens[p.client],world.WorldId,p.character); } }
+                    } }
             lobbyLocalCharacter = areaRoster[0];
             // The common saved host point is independent of which character hosts today.
             var anchor = world.Position(world.SavedHostCharacterId ?? "");

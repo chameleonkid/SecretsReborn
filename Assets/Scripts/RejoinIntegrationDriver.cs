@@ -37,6 +37,8 @@ namespace SecretsReborn
             if (!finished && Time.unscaledTime >= nextDiagnostics)
             {
                 nextDiagnostics = Time.unscaledTime + 5;
+                var selection = NetworkCoop.Active?.RejoinSelection;
+                if (selection != null) File.AppendAllText(report+".trace","selection: "+JsonUtility.ToJson(selection)+"\n");
                 foreach (var manager in FindObjectsByType<Unity.Netcode.NetworkManager>(FindObjectsSortMode.None))
                     File.AppendAllText(report+".trace","transport: listening="+manager.IsListening+" server="+manager.IsServer+" clients="+manager.ConnectedClientsIds.Count+" singleton="+(manager == Unity.Netcode.NetworkManager.Singleton)+" time="+manager.NetworkTimeSystem?.LocalTime+" endpoint="+manager.GetComponent<Unity.Netcode.Transports.UTP.UnityTransport>().ConnectionData.Address+" status="+NetworkCoop.Active?.Status+"\n");
             }
@@ -98,10 +100,13 @@ namespace SecretsReborn
                 // Client cancels its provisional fresh attempt, resumes its old
                 // figure, then leaves again to select a different free figure.
                 while (net.ConnectedCount != 2) yield return null;
+                Signal("CancelResumeSeen.request","ready");
                 while (net.ConnectedCount != 1) yield return null;
+                Signal("SecondFreshConnect.request","ready");
                 while (net.ConnectedCount != 2) yield return null;
+                Signal("FinalJoinSeen.request","ready");
                 while (net.ConnectedCount != 1) yield return null;
-                Finish("PASS: running-session reconnect queued during host operation, absent character saved, state/death preserved; fresh join cannot steal reserved figure and can select free figure.");
+                Finish("PASS: running-session reconnect queued during host operation, absent character saved, state/death preserved; disconnect frees figure immediately; reconnect requires confirmation; occupied figures rejected.");
             }
             else
             {
@@ -127,10 +132,15 @@ namespace SecretsReborn
                     yield return new WaitForSecondsRealtime(.5f);
                     Mark("client reconnecting " + round);
                     net = NetworkCoop.Active; if (!net.OpenLobby(false,"127.0.0.1","Gast")) { Finish("FAIL: reconnect request"); yield break; }
+                    while (!net.CanChooseRejoin) yield return null;
+                    yield return new WaitForSecondsRealtime(.7f);
+                    if (net.LocalCharacter != null || Array.IndexOf(net.RejoinSelection.unavailable,guest) >= 0)
+                    { Finish("FAIL: automatic assignment or disconnected figure still blocked"); yield break; }
+                    net.ChooseRejoinCharacter(guest);
                     while (net.LocalCharacter == null || net.JoiningSession || net.LobbyActive || net.ChangingArea) yield return null;
                     Mark("client resumed " + round);
                     if (net.LocalCharacter.CharacterId != guest || GameSession.Instance.World.CharacterInventory(guest).GetSlot(0)?.count != 7)
-                    { Finish("FAIL: reserved identity or inventory lost"); yield break; }
+                    { Finish("FAIL: selected identity or inventory lost"); yield break; }
                     var hostPose = GameSession.Instance.World.Position(GameSession.Instance.World.FounderCharacterId);
                     if (SceneManager.GetActiveScene().path != "Assets/Scenes/Raetselhoehle-Editable.unity" || hostPose == null
                         || Vector2.Distance(net.LocalCharacter.transform.position,new Vector2(hostPose.x,hostPose.y)) > 3)
@@ -144,28 +154,37 @@ namespace SecretsReborn
                 while (!File.Exists(Path.Combine(folder,"RejoinConnect.request"))) yield return null;
                 File.Delete(Path.Combine(folder,"RejoinConnect.request")); net = NetworkCoop.Active;
                 if (!net.OpenLobby(false,"127.0.0.1","Neuer Gast",resume:false)) { Finish("FAIL: fresh connection"); yield break; }
-                while (net.RejoinSelection == null || net.RejoinSelection.waiting) yield return null;
+                while (!net.CanChooseRejoin) yield return null;
                 string free = net.RejoinSelection.characters[2].id;
-                if (Array.IndexOf(net.RejoinSelection.unavailable,guest) < 0) { Finish("FAIL: reservation not visible"); yield break; }
-                net.ChooseRejoinCharacter(guest); yield return new WaitForSecondsRealtime(.7f);
-                if (net.LocalCharacter != null) { Finish("FAIL: reserved figure stolen"); yield break; }
+                if (Array.IndexOf(net.RejoinSelection.unavailable,guest) >= 0) { Finish("FAIL: disconnected figure not immediately free"); yield break; }
+                net.ChooseRejoinCharacter(net.RejoinSelection.characters[0].id); yield return new WaitForSecondsRealtime(.7f);
+                if (net.LocalCharacter != null) { Finish("FAIL: occupied host figure stolen"); yield break; }
                 last = net; net.StopAndReload();
                 while (NetworkCoop.Active == null || NetworkCoop.Active == last || SceneManager.GetActiveScene().path != NetworkCoop.MenuScene) yield return null;
                 net = NetworkCoop.Active;
                 if (!net.OpenLobby(false,"127.0.0.1","Gast")) { Finish("FAIL: normal join after fresh cancellation"); yield break; }
-                while (net.LocalCharacter == null || net.JoiningSession || net.LobbyActive || net.ChangingArea) yield return null;
+                while (!net.CanChooseRejoin) yield return null;
+                    yield return new WaitForSecondsRealtime(.7f);
+                    if (net.LocalCharacter != null || Array.IndexOf(net.RejoinSelection.unavailable,guest) >= 0)
+                    { Finish("FAIL: automatic assignment or disconnected figure still blocked"); yield break; }
+                    net.ChooseRejoinCharacter(guest);
+                    while (net.LocalCharacter == null || net.JoiningSession || net.LobbyActive || net.ChangingArea) yield return null;
                 if (net.LocalCharacter.CharacterId != guest) { Finish("FAIL: cancelled fresh attempt overwrote saved identity"); yield break; }
                 Mark("cancelled fresh attempt preserved original reconnect identity");
+                while (!File.Exists(Path.Combine(folder,"CancelResumeSeen.request"))) yield return null;
                 last = net; net.StopAndReload();
                 while (NetworkCoop.Active == null || NetworkCoop.Active == last || SceneManager.GetActiveScene().path != NetworkCoop.MenuScene) yield return null;
+                while (!File.Exists(Path.Combine(folder,"SecondFreshConnect.request"))) yield return null;
                 net = NetworkCoop.Active;
                 if (!net.OpenLobby(false,"127.0.0.1","Neuer Gast",resume:false)) { Finish("FAIL: second fresh connection"); yield break; }
-                while (net.RejoinSelection == null || net.RejoinSelection.waiting) yield return null;
+                while (!net.CanChooseRejoin) yield return null;
+                Mark("confirming other free figure " + free + " offer=" + JsonUtility.ToJson(net.RejoinSelection));
                 net.ChooseRejoinCharacter(free);
                 while (net.LocalCharacter == null || net.JoiningSession || net.ChangingArea) yield return null;
                 if (net.LocalCharacter.CharacterId != free)
                 { Finish("FAIL: free figure binding"); yield break; }
-                Finish("PASS: reserved reconnect retains inventory/death; cancelled fresh connection preserves normal reconnect; fresh selection rejects reserved figure and binds free figure.");
+                while (!File.Exists(Path.Combine(folder,"FinalJoinSeen.request"))) yield return null;
+                Finish("PASS: explicit reconnect retains inventory/death; repeat selection works; occupied host rejected and free figure selectable.");
             }
         }
     }

@@ -19,7 +19,6 @@ namespace SecretsReborn
         { public string token, name, character; public RejoinStart load; public double deadline, lastChoice; }
         private readonly Dictionary<ulong,string> connectionTokens = new Dictionary<ulong,string>();
         private readonly Dictionary<ulong,WaitingGuest> waitingGuests = new Dictionary<ulong,WaitingGuest>();
-        private readonly ReconnectReservations reservations = new ReconnectReservations();
         private static readonly Dictionary<string,string> processTickets = new Dictionary<string,string>();
         private string attemptedHost, attemptedTicket;
         private RejoinOffer joinOffer;
@@ -30,6 +29,8 @@ namespace SecretsReborn
         { try { reader.ReadValueSafe(out string json); return JsonUtility.FromJson<T>(json); } catch { return null; } }
         public bool JoiningSession { get; private set; }
         internal RejoinOffer RejoinSelection => joinOffer;
+        internal bool CanChooseRejoin => joinOffer != null && JoiningSession && !loadingJoin
+            && !joinOffer.waiting && manager.IsConnectedClient;
         private bool loadingJoin;
         private bool joinCreatorOpen;
         private CharacterCreatorSelection joinCreator = new CharacterCreatorSelection();
@@ -68,13 +69,12 @@ namespace SecretsReborn
         {
             foreach (var actor in owners.Values) if (actor != null && actor.CharacterId == id) return true;
             foreach (var pair in waitingGuests) if (pair.Key != client && pair.Value.character == id) return true;
-            return reservations.ReservedForOther(id,waitingGuests[client].token,GameSession.Instance.World.WorldId,Time.realtimeSinceStartupAsDouble);
+            return false;
         }
         private void QueueRunningGuest(ulong client)
         {
-            var guest = waitingGuests[client];
-            string previous = reservations.Resolve(guest.token,GameSession.Instance.World.WorldId,Time.realtimeSinceStartupAsDouble);
-            if (GameSession.Instance.World.CharacterProfile(previous) != null && !CharacterUnavailable(previous,client)) guest.character = previous;
+            // A connection credential identifies a connection, never a character.
+            // Every guest must explicitly confirm a currently available figure.
             nextJoinOffer = 0;
         }
         private void UpdateRejoins()
@@ -112,7 +112,7 @@ namespace SecretsReborn
                         : GameSession.Instance.World.CharacterSlots.Length < 4
                         ? "Wähle eine freie Figur oder erstelle eine neue. Die Gruppe spielt weiter."
                         : blocked.Count == GameSession.Instance.World.CharacterSlots.Length
-                        ? "Keine Figur frei: alle sind belegt oder nach Disconnect bis zu 5 Minuten reserviert. Für deine bisherige Figur: abbrechen und normal verbinden."
+                        ? "Keine Figur frei: alle werden gerade gespielt oder für einen bestätigten Beitritt geladen."
                         : "Wähle eine freie gespeicherte Figur. Die Gruppe spielt weiter." };
                 Send("sr.join-offer",pair.Key,JsonUtility.ToJson(offer));
             }
@@ -126,12 +126,12 @@ namespace SecretsReborn
         }
         internal void ChooseRejoinCharacter(string id)
         {
-            if (joinOffer == null || !JoiningSession || loadingJoin || joinOffer.waiting) return;
+            if (!CanChooseRejoin) return;
             Send("sr.join-choice",0,JsonUtility.ToJson(new RejoinChoice { world = joinOffer.world, character = id }));
         }
         internal void CreateRejoinCharacter(WorldCharacterSlot profile)
         {
-            if (joinOffer == null || !JoiningSession || loadingJoin || joinOffer.waiting || joinOffer.characters.Length >= 4 || profile == null) return;
+            if (!CanChooseRejoin || joinOffer.characters.Length >= 4 || profile == null) return;
             Send("sr.join-choice",0,JsonUtility.ToJson(new RejoinChoice { world = joinOffer.world, creating = true, create = profile }));
         }
         private void ReceiveJoinChoice(ulong sender, FastBufferReader reader)
@@ -186,7 +186,7 @@ namespace SecretsReborn
             if (JoinBlocked || ready.epoch != areaEpoch || ready.world != GameSession.Instance.World.WorldId) { guest.load = null; return; }
             var actor = CreateCharacter(guest.character,true,false,SafeSpawn(guest.character,false));
             owners[sender] = actor; approved[sender] = guest.character; inputs[sender] = new RemoteInput { received = Time.unscaledTime };
-            reservations.Bind(guest.token,ready.world,guest.character); waitingGuests.Remove(sender);
+            waitingGuests.Remove(sender);
             lobbyPlayers[sender] = new LobbyPlayer { client = sender, name = guest.name, character = guest.character, ready = true };
             GameSession.Instance.RegisterSpawn(actor); nextSnapshot = 0; Broadcast();
             AnnounceActiveJoins();
@@ -205,7 +205,7 @@ namespace SecretsReborn
                 GUI.Label(new Rect(565,270,320,25),"Charaktername",MenuArt.Label());
                 joinCharacterName = GUI.TextField(new Rect(565,305,320,38),joinCharacterName,24);
                 joinCreator.Draw(new Rect(565,350,320,235));
-                GUI.enabled = !joinOffer.waiting && joinOffer.characters.Length < 4 && !string.IsNullOrWhiteSpace(joinCharacterName);
+                GUI.enabled = CanChooseRejoin && joinOffer.characters.Length < 4 && !string.IsNullOrWhiteSpace(joinCharacterName);
                 if (MenuArt.Button(new Rect(305,600,280,45),"Erstellen und beitreten")) { CreateRejoinCharacter(joinCreator.Profile(joinCharacterName)); joinCreatorOpen = false; }
                 GUI.enabled = true;
                 if (MenuArt.Button(new Rect(610,600,280,45),"Zurück zur Auswahl")) joinCreatorOpen = false;
@@ -221,13 +221,13 @@ namespace SecretsReborn
                     LobbyPortrait gear = null; foreach (var p in joinOffer.portraits) if (p.id == c.id) gear = p;
                     MenuArt.Portrait(new Rect(card.x+35,card.y+65,190,190),c,gear);
                     bool unavailable = Array.IndexOf(joinOffer.unavailable,c.id) >= 0;
-                    GUI.enabled = !joinOffer.waiting && !unavailable;
-                    if (MenuArt.Button(new Rect(card.x+20,card.y+265,220,42),unavailable ? "Belegt / reserviert" : "Figur übernehmen")) ChooseRejoinCharacter(c.id);
+                    GUI.enabled = CanChooseRejoin && !unavailable;
+                    if (MenuArt.Button(new Rect(card.x+20,card.y+265,220,42),unavailable ? "Belegt" : "Mit Figur beitreten")) ChooseRejoinCharacter(c.id);
                     GUI.enabled = true;
                 }
             if (!loadingJoin && joinOffer != null && joinOffer.characters.Length < 4)
             {
-                GUI.enabled = !joinOffer.waiting;
+                GUI.enabled = CanChooseRejoin;
                 if (MenuArt.Button(new Rect(440,550,320,48),"Neue Figur erstellen")) { joinCreatorOpen = true; joinCreator = new CharacterCreatorSelection(); }
                 GUI.enabled = true;
             }
