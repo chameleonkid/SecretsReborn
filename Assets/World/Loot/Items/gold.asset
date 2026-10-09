@@ -20,6 +20,9 @@ MonoBehaviour:
   twoHanded: 0
   description: 
   armorValue: 0
+  sellValue: 0
+  buyPrice: 0
+  useCooldown: 2
   purpose: 1
   useAmount: 1
   weapon: {fileID: 0}
@@ -28,7 +31,7 @@ MonoBehaviour:
   quality: 0
   iconContent:
     serializedVersion: 2
-    x: 0
-    y: 0
-    width: 1
-    height: 1
+    x: 0.125
+    y: 0.0625
+    width: 0.75
+    height: 0.875

@@ -6,6 +6,7 @@ namespace SecretsReborn
     public sealed class VitalsSaveData
     {
         public int health, maxHealth, mana, maxMana;
+        public int baseMaxHealth, baseMaxMana;
     }
 
     // Host-owned runtime state; presentation never writes these values directly.
@@ -16,16 +17,31 @@ namespace SecretsReborn
         // One health unit is half a heart, including attack/healing amounts.
         public int Health { get; private set; } = StartingHearts * 2;
         public int MaxHealth { get; private set; } = StartingHearts * 2;
+        public int BaseMaxHealth { get; private set; } = StartingHearts * 2;
+        public int BaseMaxMana { get; private set; } = 50;
+        private int equipmentHealth, equipmentMana;
         public int HeartContainers => MaxHealth / 2;
         public int HeartFill(int index) => index < 0 || index >= HeartContainers ? 0 : Math.Max(0, Math.Min(2, Health - index * 2));
         public bool AddHeartContainer()
         {
-            if (IsDown || MaxHealth >= MaximumHearts * 2) return false;
-            MaxHealth += 2; Health += 2; return true;
+            if (IsDown || BaseMaxHealth >= MaximumHearts * 2) return false;
+            BaseMaxHealth += 2; SetEquipmentBonuses(equipmentHealth,equipmentMana); Health = Math.Min(MaxHealth,Health+2); return true;
         }
         public int Mana { get; private set; } = 50;
         public int MaxMana { get; private set; } = 50;
         public bool IsDown => Health == 0;
+        public void SetEquipmentBonuses(int halfHearts,int mana)
+        {
+            equipmentHealth=Math.Max(0,Math.Min(40,halfHearts))/2*2; equipmentMana=Math.Max(0,Math.Min(10000,mana));
+            MaxHealth=Math.Min(MaximumHearts*2,BaseMaxHealth+equipmentHealth); MaxMana=Math.Min(10000,BaseMaxMana+equipmentMana);
+            Health=Math.Min(Health,MaxHealth); Mana=Math.Min(Mana,MaxMana);
+        }
+        public bool AddManaCrystal(int amount=20)
+        {
+            if (IsDown || amount<=0 || BaseMaxMana>=10000) return false;
+            int gain=Math.Min(amount,10000-BaseMaxMana); BaseMaxMana+=gain;
+            SetEquipmentBonuses(equipmentHealth,equipmentMana); Mana=Math.Min(Mana+gain,MaxMana); return true;
+        }
         public bool Damage(int amount)
         {
             if (amount <= 0 || IsDown) return false;
@@ -52,13 +68,18 @@ namespace SecretsReborn
             if (amount <= 0 || Mana == MaxMana) return false;
             Mana += Math.Min(amount, MaxMana - Mana); return true;
         }
-        public VitalsSaveData Capture() => new VitalsSaveData { health = Health, maxHealth = MaxHealth, mana = Mana, maxMana = MaxMana };
+        public VitalsSaveData Capture() => new VitalsSaveData { health = Health, maxHealth = MaxHealth, mana = Mana, maxMana = MaxMana, baseMaxHealth=BaseMaxHealth, baseMaxMana=BaseMaxMana };
         public static CharacterVitalsState Restore(VitalsSaveData data)
         {
             Validate(data);
             if (data.maxHealth < StartingHearts * 2 || data.maxHealth > MaximumHearts * 2 || data.maxHealth % 2 != 0)
                 throw new ArgumentException("Invalid character vitals.");
-            return new CharacterVitalsState { Health = data.health, MaxHealth = data.maxHealth, Mana = data.mana, MaxMana = data.maxMana };
+            int baseHealth=data.baseMaxHealth==0 ? data.maxHealth : data.baseMaxHealth;
+            int baseMana=data.baseMaxHealth==0 ? data.maxMana : data.baseMaxMana;
+            if (baseHealth<6 || baseHealth>40 || baseHealth%2!=0 || baseHealth>data.maxHealth || baseMana<0 || baseMana>data.maxMana || data.maxMana>10000)
+                throw new ArgumentException("Invalid base character vitals.");
+            return new CharacterVitalsState { Health=data.health, MaxHealth=data.maxHealth, Mana=data.mana, MaxMana=data.maxMana,
+                BaseMaxHealth=baseHealth, BaseMaxMana=baseMana, equipmentHealth=data.maxHealth-baseHealth, equipmentMana=data.maxMana-baseMana };
         }
         public static CharacterVitalsState RestoreLegacy(VitalsSaveData data)
         {

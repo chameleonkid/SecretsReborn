@@ -1,5 +1,22 @@
 # Optionaler Asset-Fundus: Secrets
 
+## Ausrüstungsgrundlage – 9. Oktober 2026
+
+`Assets/World/Equipment` enthält drei neue Itemdefinitionen und Einzelitem-Truhen
+für Warrior-Armor, Wizard-Robes und Paladin-Armor. Die bereits importierten
+RetroPixel-Characters-Outfits werden einschließlich ihrer Körpervarianten verwendet.
+Der Figuren-Creator erhält dadurch keine auswählbaren Rüstungen.
+
+Manatrank: unverändertes Original `potion_07.png` aus
+`Assets/Art/Items/SkyeScribbles RPG Assets/dark outline/misc/potions/` im Secrets-Repo,
+Commit `99f5b1c15fa6201e84044fbd81f9397d4f9709a2`.
+Ziel `Assets/World/Equipment/Art/ManaPotion.png`, neuer Unity-GUID,
+Point-Filter, keine Kompression/Mipmaps, Full Rect. Icons dürfen wie beschlossen
+aus anderen vorhandenen Paketen stammen; Figuren-Outfits sind RetroPixel.
+Die Rüstungsicons verwenden vorerst deren frontale Outfit-Frames.
+
+Details und Bedienung: [Item-Fortschritt](item-progression.md).
+
 Quelle: https://github.com/chameleonkid/Secrets
 
 Aktueller Figurenimport: 78 Originalbögen aus Retro Pixel Characters mit

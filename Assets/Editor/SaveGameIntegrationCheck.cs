@@ -29,10 +29,14 @@ namespace SecretsReborn.Editor
                 character.TryAdd("test-ring", 2, 1);
                 character.TryAdd("test-lamp", 1, 1);
                 character.TryEquip(2, EquipmentSlot.Lamp, id => new ItemRules { kind = ItemKind.Lamp, maxStack = 1 });
+                character.TryAddGold(125);
+                character.TryAdd("test-health-potion", 3, 10);
+                character.BindPotion(0, "test-health-potion", id => new ItemRules { potionKind = 1, maxStack = 10 });
                 world.TryCollect("test-pickup", () => true);
                 world.TryCollect("chest:test-chest", () => true);
                 world.TryCollect("loot:test-oak:0", () => true);
                 world.DefeatEnemy("test-oak");
+                world.SharedStash.TryAdd("test-stash-armor", 1, 1);
                 world.Puzzle("test-puzzle").Enter(0);
                 world.SetPosition("test-player", "Assets/Scenes/Waldheiligtum-Editable.unity", 2.5f, -4, 0);
                 world.SetSavedScene("Assets/Scenes/Waldheiligtum-Editable.unity");
@@ -43,9 +47,13 @@ namespace SecretsReborn.Editor
                 var loaded = SaveGameStore.Load(path);
                 if (loaded.WorldId != "test-world" || loaded.CharacterInventory("test-player").EquippedArmorId != "test-armor"
                     || loaded.CharacterInventory("test-player").GetEquipment(EquipmentSlot.Lamp) != "test-lamp"
+                    || loaded.CharacterInventory("test-player").Gold != 125
+                    || loaded.CharacterInventory("test-player").PotionItem(0) != "test-health-potion"
+                    || loaded.CharacterInventory("test-player").Count("test-health-potion") != 3
                     || loaded.CharacterInventory("test-player").GetSlot(1).itemId != "test-ring"
                     || !loaded.IsCollected("test-pickup") || !loaded.IsCollected("chest:test-chest") || !loaded.IsCollected("loot:test-oak:0")
                     || !loaded.IsEnemyDefeated("test-oak") || loaded.Puzzle("test-puzzle").Progress != 1
+                    || loaded.SharedStash.GetSlot(0)?.itemId != "test-stash-armor"
                     || loaded.Position("test-player").scenePath != "Assets/Scenes/Waldheiligtum-Editable.unity"
                     || loaded.Position("test-player").x != 2.5f || loaded.Position("test-player").y != -4
                     || loaded.PlayTimeSeconds != 3723.5 || loaded.SavedScenePath != "Assets/Scenes/Waldheiligtum-Editable.unity"
@@ -76,7 +84,7 @@ namespace SecretsReborn.Editor
                     throw new Exception("V6 equipment migration mismatch.");
                 world.CharacterVitals("test-player").AddHeartContainer(); SaveGameStore.Save(world, path);
                 if (SaveGameStore.Load(path).CharacterVitals("test-player").HeartContainers != 4) throw new Exception("Heart container roundtrip mismatch.");
-                File.WriteAllText("Temp/SaveGameCheckReport.txt", "PASS: v7 lamp slot, hearts/mana and heart containers roundtrip; v3/v4/v6 migration, backup, position, inventory and puzzles. Separate test save.");
+                File.WriteAllText("Temp/SaveGameCheckReport.txt", "PASS: v15 shared stash, gold/potion references, lamp slot, hearts/mana and heart containers roundtrip; v3/v4/v6 migration, backup, position, inventory and puzzles. Separate test save.");
                 Debug.Log("PASS: Herzen, Easy-Save-Roundtrip, Migration und Backup geprüft.");
             }
             finally

@@ -18,13 +18,20 @@ MonoBehaviour:
   armorAppearance: {fileID: 0}
   kind: 14
   twoHanded: 0
+  description: 
+  armorValue: 0
+  sellValue: 10
+  buyPrice: 40
+  useCooldown: 2
+  purpose: 0
+  useAmount: 2
   weapon: {fileID: 0}
   lamp: {fileID: 11400000, guid: eda333974159ef9438cf3b08e5b63f5c, type: 2}
   icon: {fileID: 21300000, guid: 7b793ebd51a441f1a4b96f972b214efa, type: 3}
   quality: 0
   iconContent:
     serializedVersion: 2
-    x: 0
+    x: 0.125
     y: 0
-    width: 1
+    width: 0.78125
     height: 1

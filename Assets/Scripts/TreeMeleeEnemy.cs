@@ -8,6 +8,9 @@ namespace SecretsReborn
         [SerializeField] private string enemyId;
         [SerializeField] private Sprite[] frames;
         [SerializeField] private bool hasStateAuthority = true;
+        [SerializeField, Min(1)] private int maxHealth = 6;
+        public int MaxHealth => Mathf.Max(1,maxHealth);
+        public int Health => health;
         private Rigidbody2D body;
         private SpriteRenderer image;
         private Vector2 home;
@@ -46,7 +49,7 @@ namespace SecretsReborn
         }
         public void RefreshSession()
         {
-            health = 6; flashUntil = 0; knockbackUntil = 0; walkElapsed = 0;
+            health = MaxHealth; flashUntil = 0; knockbackUntil = 0; walkElapsed = 0;
             gameObject.SetActive(!GameSession.Instance.World.IsEnemyDefeated(enemyId));
         }
         private void FixedUpdate()

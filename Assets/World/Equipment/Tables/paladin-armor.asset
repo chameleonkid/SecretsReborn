@@ -1,0 +1,18 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: eab4e3db2366fe849b3d0750000e991d, type: 3}
+  m_Name: paladin-armor
+  m_EditorClassIdentifier: Assembly-CSharp::SecretsReborn.LootTable
+  source: 2
+  entries:
+  - item: {fileID: 11400000, guid: 5e41166e71f213d41add18ac1c958b4b, type: 2}
+    count: 1

@@ -6,7 +6,7 @@ SecretsReborn ist ein neues 2D-Action-Adventure mit Schwerpunkt auf Erkundung un
 
 - Vollständig allein spielbar, optional Koop mit insgesamt maximal vier Spielern.
 - Der Host speichert die Welt und sämtliche Charaktere dieser Welt.
-- Jeder Spieler besitzt eigenes Inventar, eigene XP und eigenen Fortschritt.
+- Jeder Spieler besitzt eigenes Inventar, eigene Ausrüstung, eigenes Gold und eigenen Fortschritt. Vorerst keine XP oder Charakterlevel; Fortschritt durch Erkundung und Gegenstände.
 - Charaktere sind an die jeweilige Host-Welt gebunden.
 - Innerhalb eines Gebiets bewegen sich Spieler frei; größere Gebietswechsel erfolgen gemeinsam.
 - Secrets ist ausschließlich ein optionaler Asset-Fundus. Alte Inhalte müssen nicht übernommen werden.
@@ -14,6 +14,12 @@ SecretsReborn ist ein neues 2D-Action-Adventure mit Schwerpunkt auf Erkundung un
 
 ## Dokumentation
 
+- [Item-Fortschritt und Builds: Gold, Tränke, Testausrüstung und nächste Schritte](docs/item-progression.md)
+- [Items in Unity anlegen](docs/item-authoring.md)
+- [Canvas-Inventar und Lager im Unity-Editor gestalten](docs/inventory-ui-authoring.md)
+- [Charakterwerte, Equipment-Boni und Rüstungsformel](docs/character-stats.md)
+- [Vereinbartes Zaubersystem: Ringmenü, Zielwahl, Ränge und Loot](docs/spell-system.md)
+- [Shared Stash: gemeinsames Lager und Transfers](docs/shared-stash.md)
 - [Vision und feste Rahmenbedingungen](docs/vision.md)
 - [Erster Abenteuerentwurf](docs/first-adventure.md)
 - [Entwicklungsplan und technische Prüfung](docs/development-plan.md)

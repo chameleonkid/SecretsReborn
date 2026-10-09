@@ -12,7 +12,7 @@ Angelegte Rüstung verändert das Aussehen der jeweiligen Spielerfigur. Diese
 Darstellung muss auch für Mitspieler sichtbar sein; Details und geprüfte
 Asset-Grundlagen stehen in [character-appearance.md](character-appearance.md).
 
-Der Host speichert die Welt und alle zugehörigen Charaktere. Jeder Spieler hat ein eigenes Inventar, eigene XP und eigenen Fortschritt. Charaktere gehören ausschließlich zur jeweiligen Host-Welt.
+Der Host speichert die Welt und alle zugehörigen Charaktere. Jeder Spieler hat ein eigenes Inventar, eigene Ausrüstung, eigenes Gold und eigenen Fortschritt. Charaktere gehören ausschließlich zur jeweiligen Host-Welt. Vorerst gibt es keine XP oder Charakterlevel: Erkundung, Gegenstände und seltene Herzcontainer/Manakristalle tragen den Fortschritt. Ausrüstung und Fähigkeiten ermöglichen wechselbare Builds statt fester Klassen. Details: [Item-Fortschritt](item-progression.md).
 
 Festlegung vom 8. Oktober 2026: Der Multiplayer-Spielstand enthält maximal vier
 feste Charakterplätze. Lokale Multiplayer-Charakterprofile entfallen. In der Lobby
@@ -28,6 +28,14 @@ Löschungen, Wiederherstellung und spätere Absicherung gegen Sackgassen sind in
 Innerhalb eines Gebiets ist freie Bewegung möglich. Größere Gebietswechsel erfolgen
 gemeinsam nach Zustimmung aller aktiven Spieler.
 
+## Magie und Belohnungen
+
+Magie erhält ein eigenes Ringmenü mit Elementen, Zielwahl und Zauberrängen.
+Zauber ignorieren Umgebungskollisionen; Wirken sperrt die eigene Bewegung.
+Unverzichtbare freigeschaltete Gegenstände sind wiederbeschaffbar, gewöhnliche
+Waren kaufbar und optionale Bossausrüstung über wiederholbare Dungeons erhältlich.
+Die abgestimmte Grundlage und offenen Detailregeln stehen im [Zauberkonzept](spell-system.md).
+
 ## Eigenständigkeit und Assets
 
 Secrets dient nur bei Bedarf als Asset-Fundus. Es besteht keine Pflicht, alte Inhalte, Geschichte oder Mechaniken zu übernehmen. Für die erste Entwicklung werden Platzhaltergrafiken eingesetzt.
@@ -35,7 +43,7 @@ Secrets dient nur bei Bedarf als Asset-Fundus. Es besteht keine Pflicht, alte In
 ## Noch offene Entscheidungen
 
 - Konkrete Welt, Figuren und Geschichte über den ersten Abenteuerentwurf hinaus.
-- Bedeutung und Umfang von XP und individuellem Fortschritt.
+- Balancing von Ausrüstung, Fähigkeiten und seltenen Kapazitätserweiterungen.
 - Wiederbeitritt während eines laufenden Abenteuers und Umgang mit Verbindungsabbrüchen.
 - Internet-Beitritt und weitere Zielplattformen über den aktuellen Windows/LAN-Test hinaus.
 

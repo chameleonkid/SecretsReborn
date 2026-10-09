@@ -1,0 +1,39 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 2b394140f7fa616488f316ec8734384e, type: 3}
+  m_Name: wizard-robes
+  m_EditorClassIdentifier: Assembly-CSharp::SecretsReborn.ItemDefinition
+  itemId: foundation-wizard-robes
+  displayName: Waldmagierrobe
+  maxStack: 1
+  armorAppearance: {fileID: 11400000, guid: 7222deaca20b0794e8d84ec9bc162557, type: 2}
+  kind: 3
+  twoHanded: 0
+  description: 
+  armorValue: 10
+  bonusHearts: 0
+  bonusMana: 30
+  sellValue: 35
+  buyPrice: 140
+  useCooldown: 2
+  purpose: 0
+  useAmount: 2
+  weapon: {fileID: 0}
+  lamp: {fileID: 0}
+  icon: {fileID: -7862133626450965942, guid: d899d6b71590fa248b1c6a81f4b9e6ab, type: 3}
+  quality: 1
+  iconContent:
+    serializedVersion: 2
+    x: 0.28125
+    y: 0
+    width: 0.40625
+    height: 0.5

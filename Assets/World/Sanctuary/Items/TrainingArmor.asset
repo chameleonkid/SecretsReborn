@@ -20,6 +20,9 @@ MonoBehaviour:
   twoHanded: 0
   description: 
   armorValue: 25
+  sellValue: 10
+  buyPrice: 40
+  useCooldown: 2
   purpose: 0
   useAmount: 2
   weapon: {fileID: 0}

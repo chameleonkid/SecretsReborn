@@ -7,6 +7,8 @@ namespace SecretsReborn
         public string characterId;
         public InventoryStack[] bag;
         public string[] equipment;
+        public int gold;
+        public string[] potionItems = new string[2];
         public bool hasPosition;
         public string scenePath;
         public float x, y, z;
@@ -15,7 +17,8 @@ namespace SecretsReborn
     [Serializable] public sealed class PuzzleSaveData { public string puzzleId; public int progress; }
     [Serializable] public sealed class SaveGameData
     {
-        public int version = 13;
+        public int version = 16;
+        public InventoryStack[] sharedStash = new InventoryStack[InventoryState.Capacity];
         public string founderCharacterId;
         public string savedAtUtc;
         public WorldCharacterSlot[] savedParticipants = Array.Empty<WorldCharacterSlot>();

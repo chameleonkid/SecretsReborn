@@ -16,6 +16,19 @@ namespace SecretsReborn
         [SerializeField, TextArea] private string description = "";
         [SerializeField, Min(0)] private int armorValue = 0;
         public int ArmorValue => Mathf.Max(0, armorValue);
+        [SerializeField, Range(0,17)] private int bonusHearts;
+        [SerializeField, Range(0,10000)] private int bonusMana;
+        public int BonusHalfHearts => Mathf.Clamp(bonusHearts,0,17)*2;
+        public int BonusMana => Mathf.Clamp(bonusMana,0,10000);
+        public void SetStatBonuses(int hearts,int mana) { bonusHearts=Mathf.Clamp(hearts,0,17); bonusMana=Mathf.Clamp(mana,0,10000); }
+        [SerializeField, Min(0)] private int sellValue;
+        [SerializeField, Min(0)] private int buyPrice;
+        [SerializeField, Range(1, 30)] private float useCooldown = 2;
+        public int SellValue => Mathf.Max(0, sellValue);
+        public int BuyPrice => Mathf.Max(SellValue, buyPrice);
+        public float UseCooldown => Mathf.Clamp(useCooldown, 1, 30);
+        public void SetValues(int selling, int buying, int armor = 0)
+        { sellValue = Mathf.Max(0, selling); buyPrice = Mathf.Max(sellValue, buying); armorValue = Mathf.Max(0, armor); }
         [SerializeField] private ItemPurpose purpose;
         [SerializeField, Min(1)] private int useAmount = 2;
         public ItemPurpose Purpose => purpose;
@@ -33,8 +46,12 @@ namespace SecretsReborn
                         || Rules.kind == ItemKind.Feet || Rules.kind == ItemKind.Shield ? "Rüstungswert: " + ArmorValue
                     : purpose == ItemPurpose.HealthPotion ? "Heilt " + (UseAmount / 2f).ToString("0.#") + " Herzen · A / Enter: benutzen"
                     : purpose == ItemPurpose.ManaPotion ? "Stellt " + UseAmount + " Mana wieder her · A / Enter: benutzen"
-                    : purpose == ItemPurpose.Gold ? "Gold · für spätere Händler aufbewahren"
+                    : purpose == ItemPurpose.Gold ? "Gold · wird dem persönlichen Goldzähler gutgeschrieben"
                     : purpose == ItemPurpose.Arrows ? "Pfeile · Munition für spätere Fernkampfwaffen" : "Ausrüstungsgegenstand";
+                if (purpose == ItemPurpose.HealthPotion || purpose == ItemPurpose.ManaPotion) stats += "\nTrank-Cooldown: " + UseCooldown.ToString("0.#") + " s (gemeinsam)";
+                if (purpose != ItemPurpose.Gold) stats += "\nVerkaufswert: " + SellValue + " Gold · Kaufpreis: " + BuyPrice + " Gold";
+                if (BonusHalfHearts>0) stats += "\n+"+(BonusHalfHearts/2)+" maximale Herzen";
+                if (BonusMana>0) stats += "\n+"+BonusMana+" maximales Mana";
                 return string.IsNullOrWhiteSpace(description) ? stats : description + "\n" + stats;
             }
         }
@@ -59,7 +76,8 @@ namespace SecretsReborn
             : quality == ItemQuality.Epic ? "Episch" : quality == ItemQuality.Legendary ? "Legendär" : "Normal";
         public Sprite Icon => icon != null ? icon : armorAppearance != null ? armorAppearance.Frame(0) : null;
         public ItemRules Rules => new ItemRules { kind = kind == ItemKind.None && armorAppearance != null ? ItemKind.Armor : kind,
-            twoHanded = twoHanded, maxStack = MaxStack };
+            twoHanded = twoHanded, maxStack = MaxStack, currency = purpose == ItemPurpose.Gold, currencyUnits = UseAmount,
+            potionKind = purpose == ItemPurpose.HealthPotion ? 1 : purpose == ItemPurpose.ManaPotion ? 2 : 0 };
         public void SetEquipment(ItemKind category, bool usesBothHands, Sprite image)
         { kind = category; twoHanded = usesBothHands; icon = image; }
         public string ItemId => itemId;

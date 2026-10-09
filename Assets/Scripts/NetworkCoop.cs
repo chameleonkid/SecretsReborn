@@ -72,7 +72,7 @@ namespace SecretsReborn
             manager.NetworkConfig = new NetworkConfig
             {
                 NetworkTransport = transport, EnableSceneManagement = false,
-                ConnectionApproval = true, ProtocolVersion = 14, TickRate = 30,
+                ConnectionApproval = true, ProtocolVersion = 16, TickRate = 30,
                 ForceSamePrefabs = false, ClientConnectionBufferTimeout = 10
             };
             manager.ConnectionApprovalCallback = Approve;
@@ -255,10 +255,10 @@ namespace SecretsReborn
             }
         }
         public bool OwnsLocal(CharacterInventory actor) => actor != null && actor == local;
-        public static bool Request(CharacterInventory actor, CoopAction action, int from = 0, int to = 0, string target = null)
+        public static bool Request(CharacterInventory actor, CoopAction action, int from = 0, int to = 0, string target = null, string expectedItem = null, int expectedCount = 0)
         {
             if (!IsReplica || !Active.OwnsLocal(actor)) return false;
-            Active.SendCommand(new CoopCommand { action = action, from = from, to = to, target = target }); return true;
+            Active.SendCommand(new CoopCommand { action = action, from = from, to = to, target = target, expectedItem = expectedItem, expectedCount = expectedCount }); return true;
         }
         public bool SetReviveIntent(CharacterInventory actor, string target)
         {
@@ -322,6 +322,13 @@ namespace SecretsReborn
                     case CoopAction.Equip: actor.TryEquip(command.from, (EquipmentSlot)command.to); break;
                     case CoopAction.Unequip: actor.TryUnequip((EquipmentSlot)command.from, command.to); break;
                     case CoopAction.UseItem: actor.TryUseItem(command.from); break;
+                    case CoopAction.UsePotion: actor.TryUsePotion(command.from); break;
+                    case CoopAction.BindPotion: actor.TryBindPotion(command.to,command.from); break;
+                    case CoopAction.StashDeposit:
+                    case CoopAction.StashWithdraw:
+                        foreach (var container in FindObjectsByType<SharedStashContainer>(FindObjectsSortMode.None))
+                            if (container.ContainerId == command.target) { container.TryTransfer(actor, command.action == CoopAction.StashDeposit, command.from, command.to, command.expectedItem, command.expectedCount); break; }
+                        break;
                     case CoopAction.Attack: GameSession.Instance.RequestMeleeAttack(actor); break;
                     case CoopAction.Lamp:
                         if (GameSession.Instance.CanFight(actor)) actor.GetComponent<PlayerLantern>().SetLit(!actor.GetComponent<PlayerLantern>().IsLit);
@@ -384,7 +391,7 @@ namespace SecretsReborn
                 foreach (var owner in owners) if (owner.Value == actor && inputs.TryGetValue(owner.Key, out var input)) interrupted = input.interrupted;
                 session.World.SetPosition(actor.CharacterId, actor.gameObject.scene.path, p.x, p.y, p.z);
                 poses.Add(new CoopActorPose { id = actor.CharacterId, x = p.x, y = p.y, dx = v.x, dy = v.y,
-                    reviveProgress = session.ReviveProgress(actor), lamp = actor.GetComponent<PlayerLantern>().IsLit, reviveInterrupted = interrupted,
+                    reviveProgress = session.ReviveProgress(actor), potionCooldown = actor.PotionCooldownRemaining, lamp = actor.GetComponent<PlayerLantern>().IsLit, reviveInterrupted = interrupted,
                     swing = swings.TryGetValue(actor.CharacterId, out var count) ? count : 0 });
             }
             var enemies = new List<CoopEnemyPose>();
@@ -408,7 +415,7 @@ namespace SecretsReborn
                 var snapshot = JsonUtility.FromJson<CoopSnapshot>(json);
                 // A guest may join a running host after earlier area transitions.
                 if (!ChangingArea && receivedSnapshot == 0 && snapshot != null && snapshot.areaEpoch >= 0) areaEpoch = snapshot.areaEpoch;
-                if (snapshot == null || snapshot.protocol != 14 || snapshot.sequence <= receivedSnapshot || snapshot.actors == null
+                if (snapshot == null || snapshot.protocol != 17 || snapshot.sequence <= receivedSnapshot || snapshot.actors == null
                     || snapshot.actors.Length > 4 || snapshot.areaEpoch != areaEpoch || snapshot.scene != SceneManager.GetActiveScene().path
                     || ChangingArea && !areaLocalReady) return;
                 CoopProtocol.RestoreWireEmptySlots(snapshot.world);
@@ -433,7 +440,7 @@ namespace SecretsReborn
                     blend.Sample(Time.unscaledTimeAsDouble, out float displayX, out float displayY);
                     actor.transform.position = new Vector3(displayX, displayY, actor.transform.position.z);
                     actor.GetComponent<CharacterAppearance>().SetPresentedMotion(new Vector2(pose.dx, pose.dy));
-                    actor.RefreshSession(); actor.GetComponent<PlayerLantern>().SetLit(pose.lamp);
+                    actor.RefreshSession(); actor.SetReplicaPotionCooldown(pose.potionCooldown); actor.GetComponent<PlayerLantern>().SetLit(pose.lamp);
                     progress[pose.id] = pose.reviveProgress;
                     if (pose.reviveInterrupted) blockedRevives.Add(pose.id); else blockedRevives.Remove(pose.id);
                     if (swings[pose.id] != pose.swing)

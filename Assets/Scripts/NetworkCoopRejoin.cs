@@ -40,6 +40,9 @@ namespace SecretsReborn
             var args = Environment.GetCommandLineArgs();
             int report = Array.IndexOf(args,"--rejoin-report");
             int lateReport = Array.IndexOf(args,"--late-join-report");
+            int economyReport = Array.IndexOf(args,"--economy-report");
+            if (Debug.isDebugBuild && Array.IndexOf(args,"--economy-role") >= 0 && economyReport >= 0 && economyReport + 1 < args.Length)
+                return "SecretsReborn.Test.Economy." + args[economyReport+1] + "." + ip;
             if (Debug.isDebugBuild && Array.IndexOf(args,"--late-join-role") >= 0 && lateReport >= 0 && lateReport + 1 < args.Length)
                 return "SecretsReborn.Test.LateJoin." + System.IO.Path.GetDirectoryName(args[lateReport+1]) + "." + ip + LocalClientProfile.KeySuffix;
             if (Debug.isDebugBuild && Array.IndexOf(args,"--rejoin-client") >= 0 && report >= 0 && report + 1 < args.Length)

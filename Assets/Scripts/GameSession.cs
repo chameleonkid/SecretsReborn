@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
@@ -155,7 +155,7 @@ namespace SecretsReborn
         }
         // Trusted host gameplay entry points. A future network adapter must validate
         // sender ownership and derive amounts from attacks/items, never client numbers.
-        private bool CanChangeVitals(CharacterInventory actor) => !NetworkCoop.IsReplica && !Busy && actor != null && !IsReceivingReward(actor) && actor.isActiveAndEnabled && actor.HasStateAuthority;
+        internal bool CanChangeVitals(CharacterInventory actor) => !NetworkCoop.IsReplica && !Busy && actor != null && !IsReceivingReward(actor) && actor.isActiveAndEnabled && actor.HasStateAuthority;
         public bool ApplyDamage(CharacterInventory actor, int amount)
         {
             if (!CanChangeVitals(actor) || !World.CharacterVitals(actor.CharacterId).Damage(CombatRules.MitigatedDamage(amount, actor.TotalArmor))) return false;
@@ -165,6 +165,7 @@ namespace SecretsReborn
         public bool TrySpendMana(CharacterInventory actor, int amount) => CanChangeVitals(actor) && World.CharacterVitals(actor.CharacterId).SpendMana(amount);
         public bool RestoreMana(CharacterInventory actor, int amount) => CanChangeVitals(actor) && World.CharacterVitals(actor.CharacterId).RestoreMana(amount);
         public bool AddHeartContainer(CharacterInventory actor) => CanChangeVitals(actor) && World.CharacterVitals(actor.CharacterId).AddHeartContainer();
+        public bool AddManaCrystal(CharacterInventory actor,int amount=20) => CanChangeVitals(actor) && World.CharacterVitals(actor.CharacterId).AddManaCrystal(amount);
         public bool RequestAreaChange(AreaPortal portal, CharacterInventory actor)
         {
             if (Busy || HasAnyReward || Time.unscaledTime < portalCooldown || portal == null || !portal.CanUse(actor)

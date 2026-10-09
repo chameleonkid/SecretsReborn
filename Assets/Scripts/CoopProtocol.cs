@@ -2,7 +2,7 @@ using System;
 
 namespace SecretsReborn
 {
-    public enum CoopAction { Input, MoveItem, Equip, Unequip, UseItem, Pickup, Chest, Attack, Lamp, ConfirmReward }
+    public enum CoopAction { Input, MoveItem, Equip, Unequip, UseItem, Pickup, Chest, Attack, Lamp, ConfirmReward, BindPotion, UsePotion, StashDeposit, StashWithdraw }
     [Serializable] public sealed class CoopCommand
     {
         public long sequence;
@@ -12,16 +12,18 @@ namespace SecretsReborn
         public float x, y;
         public bool menuOpen;
         public string target;
+        public string expectedItem;
+        public int expectedCount;
     }
     [Serializable] public sealed class CoopHello
     {
-        public int protocol = 14;
+        public int protocol = 17;
         public string characterToken, scene, playerName;
     }
     [Serializable] public sealed class CoopActorPose
     {
         public string id;
-        public float x, y, dx, dy, reviveProgress;
+        public float x, y, dx, dy, reviveProgress, potionCooldown;
         public bool lamp, reviveInterrupted;
         public int swing;
     }
@@ -39,7 +41,7 @@ namespace SecretsReborn
     }
     [Serializable] public sealed class CoopSnapshot
     {
-        public int protocol = 14;
+        public int protocol = 17;
         public long sequence;
         public int areaEpoch;
         public string localCharacter, scene;
@@ -76,6 +78,8 @@ namespace SecretsReborn
         public static void RestoreWireEmptySlots(SaveGameData data)
         {
             if (data?.characters == null) return;
+            if (data.sharedStash != null) for (int i = 0; i < data.sharedStash.Length; i++)
+                if (data.sharedStash[i] != null && data.sharedStash[i].count == 0 && string.IsNullOrEmpty(data.sharedStash[i].itemId)) data.sharedStash[i] = null;
             foreach (var character in data.characters)
             {
                 if (character?.bag != null)
@@ -87,9 +91,12 @@ namespace SecretsReborn
                 if (character?.equipment != null)
                     for (int i = 0; i < character.equipment.Length; i++)
                         if (character.equipment[i] == "") character.equipment[i] = null;
+                if (character?.potionItems != null)
+                    for (int i = 0; i < character.potionItems.Length; i++)
+                        if (character.potionItems[i] == "") character.potionItems[i] = null;
             }
         }
-        public static bool ValidHello(CoopHello hello, string scene) => hello != null && hello.protocol == 14
+        public static bool ValidHello(CoopHello hello, string scene) => hello != null && hello.protocol == 17
             && hello.scene == scene && Guid.TryParseExact(hello.characterToken, "N", out _);
         public static bool Valid(CoopCommand command)
         {
@@ -103,6 +110,11 @@ namespace SecretsReborn
                 case CoopAction.Equip: return Bag(command.from) && Equipment(command.to);
                 case CoopAction.Unequip: return Equipment(command.from) && (command.to == -1 || Bag(command.to));
                 case CoopAction.UseItem: return Bag(command.from);
+                case CoopAction.UsePotion: return command.from >= 0 && command.from < 2;
+                case CoopAction.BindPotion: return (command.from == -1 || Bag(command.from)) && command.to >= 0 && command.to < 2;
+                case CoopAction.StashDeposit:
+                case CoopAction.StashWithdraw: return Bag(command.from) && Bag(command.to) && !string.IsNullOrWhiteSpace(command.target)
+                    && !string.IsNullOrWhiteSpace(command.expectedItem) && command.expectedItem.Length <= 160 && command.expectedCount > 0;
                 case CoopAction.Pickup:
                 case CoopAction.ConfirmReward:
                 case CoopAction.Chest: return !string.IsNullOrWhiteSpace(command.target);

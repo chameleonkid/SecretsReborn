@@ -9,6 +9,10 @@ namespace SecretsReborn
         public ItemKind kind;
         public bool twoHanded;
         public int maxStack;
+        public bool currency;
+        public int currencyUnits;
+        // 0 = none, 1 = health, 2 = mana; quick slots never contain stacks.
+        public int potionKind;
         public bool Fits(EquipmentSlot slot)
         {
             switch (kind)
@@ -44,13 +48,44 @@ namespace SecretsReborn
         private InventoryStack[] bag = new InventoryStack[Capacity];
         public const int EquipmentCapacity = 15;
         private string[] equipment = new string[EquipmentCapacity];
+        public const int MaximumGold = 99999999;
+        public int Gold { get; private set; }
+        private string[] potionItems = new string[2];
+        public bool NeedsEconomyMigration { get; private set; } = true;
+        public double PotionReadyAt { get; set; }
+        public string PotionItem(int slot) => slot >= 0 && slot < 2 ? potionItems[slot] : null;
+        public int Count(string id)
+        {
+            long count = 0;
+            if (id != null) foreach (var stack in bag) if (stack != null && stack.itemId == id) count += stack.count;
+            return (int)Math.Min(int.MaxValue, count);
+        }
+        public int FirstSlot(string id) => id == null ? -1 : Array.FindIndex(bag, s => s != null && s.itemId == id);
+        public bool BindPotion(int slot, string id, Func<string, ItemRules> rules)
+        {
+            if (slot < 0 || slot > 1 || id != null && (FirstSlot(id) < 0 || rules(id).potionKind != slot + 1)) return false;
+            potionItems[slot] = id; return true;
+        }
+        public bool TryAddGold(long amount)
+        {
+            if (amount <= 0 || amount > MaximumGold - Gold) return false;
+            Gold += (int)amount; return true;
+        }
+        public bool MigrateCurrency(string id, int units)
+        {
+            long amount = (long)Count(id) * units;
+            if (amount == 0 || !TryAddGold(amount)) return false;
+            for (int i = 0; i < bag.Length; i++) if (bag[i]?.itemId == id) bag[i] = null;
+            return true;
+        }
+        public void CompleteEconomyMigration() => NeedsEconomyMigration = false;
         public InventoryStack GetSlot(int index) => index >= 0 && index < Capacity && bag[index] != null
             ? new InventoryStack { itemId = bag[index].itemId, count = bag[index].count } : null;
         public string GetEquipment(EquipmentSlot slot) => (int)slot >= 0 && (int)slot < equipment.Length ? equipment[(int)slot] : null;
         public string EquippedArmorId => GetEquipment(EquipmentSlot.Armor);
         public CharacterSaveData Capture(string characterId) => new CharacterSaveData
-        { characterId = characterId, bag = Clone(bag), equipment = (string[])equipment.Clone() };
-        public static InventoryState Restore(CharacterSaveData data, bool allowLegacyEquipment = false)
+        { characterId = characterId, bag = Clone(bag), equipment = (string[])equipment.Clone(), gold = Gold, potionItems = (string[])potionItems.Clone() };
+        public static InventoryState Restore(CharacterSaveData data, bool allowLegacyEquipment = false, bool legacyEconomy = false)
         {
             if (data == null || data.bag == null || data.bag.Length != Capacity || data.equipment == null
                 || data.equipment.Length != EquipmentCapacity && !(allowLegacyEquipment && data.equipment.Length == 14))
@@ -61,7 +96,13 @@ namespace SecretsReborn
                 if (id != null && string.IsNullOrWhiteSpace(id)) throw new ArgumentException("Invalid equipment ID.");
             var restoredEquipment = new string[EquipmentCapacity];
             Array.Copy(data.equipment, restoredEquipment, data.equipment.Length);
-            return new InventoryState { bag = Clone(data.bag), equipment = restoredEquipment };
+            if (!legacyEconomy && (data.gold < 0 || data.gold > MaximumGold || data.potionItems == null || data.potionItems.Length != 2))
+                throw new ArgumentException("Invalid gold or potion shortcuts.");
+            if (!legacyEconomy) foreach (var id in data.potionItems)
+                if (id != null && string.IsNullOrWhiteSpace(id)) throw new ArgumentException("Invalid potion shortcut.");
+            return new InventoryState { bag = Clone(data.bag), equipment = restoredEquipment,
+                Gold = legacyEconomy ? 0 : data.gold, potionItems = legacyEconomy ? new string[2] : (string[])data.potionItems.Clone(),
+                NeedsEconomyMigration = legacyEconomy };
         }
         public bool TryAdd(string id, int count, int maxStack, int capacity = Capacity)
         {
@@ -69,13 +110,37 @@ namespace SecretsReborn
             if (!Add(next, id, count, maxStack, Math.Min(capacity, Capacity))) return false;
             bag = next; return true;
         }
+        // Two containers commit together. A stale request cannot take a new item
+        // which has since occupied the same slot. Whole stacks only, no swapping.
+        public bool TryTransferTo(InventoryState destination, int from, int to, string expectedItem, int expectedCount, Func<string, ItemRules> rules)
+        {
+            if (destination == null || destination == this || !Valid(from) || !Valid(to) || rules == null) return false;
+            var source = bag[from];
+            if (source == null || source.itemId != expectedItem || source.count != expectedCount) return false;
+            var item = rules(source.itemId); var target = destination.bag[to];
+            if (item.currency || item.maxStack < source.count || target != null && (target.itemId != source.itemId || (long)target.count + source.count > item.maxStack)) return false;
+            var nextSource = Clone(bag); var nextTarget = Clone(destination.bag);
+            nextTarget[to] = new InventoryStack { itemId = source.itemId, count = source.count + (target?.count ?? 0) }; nextSource[from] = null;
+            bag = nextSource; destination.bag = nextTarget; return true;
+        }
         public bool TryAddBatch(InventoryStack[] rewards, Func<string, ItemRules> rules)
         {
             if (rewards == null || rewards.Length == 0 || rules == null) return false;
             var next = Clone(bag);
+            long nextGold = Gold;
             foreach (var reward in rewards)
-                if (reward == null || !Add(next, reward.itemId, reward.count, rules(reward.itemId).maxStack, Capacity)) return false;
-            bag = next; return true;
+            {
+                if (reward == null || string.IsNullOrWhiteSpace(reward.itemId) || reward.count <= 0) return false;
+                var item = rules(reward.itemId);
+                if (item.currency)
+                {
+                    if (item.currencyUnits <= 0) return false;
+                    nextGold += (long)reward.count * item.currencyUnits;
+                    if (nextGold > MaximumGold) return false;
+                }
+                else if (!Add(next, reward.itemId, reward.count, item.maxStack, Capacity)) return false;
+            }
+            bag = next; Gold = (int)nextGold; return true;
         }
         public bool TryConsume(int index)
         {

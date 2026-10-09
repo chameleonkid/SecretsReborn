@@ -6,6 +6,7 @@ namespace SecretsReborn
     // Runtime host-world state. No scene objects, input, sprites or singleton character inventory.
     public sealed class WorldSessionState
     {
+        public InventoryState SharedStash { get; private set; } = new InventoryState();
         public string WorldId { get; }
         public string FounderCharacterId { get; private set; }
         private string savedAtUtc;
@@ -142,7 +143,7 @@ namespace SecretsReborn
         public SaveGameData Capture()
         {
             var data = new SaveGameData { worldId = WorldId, multiplayer = Multiplayer, characterSlots = CharacterSlots, playTimeSeconds = PlayTimeSeconds, savedScenePath = SavedScenePath, savedHostCharacterId = SavedHostCharacterId,
-                founderCharacterId = FounderCharacterId,
+                founderCharacterId = FounderCharacterId, sharedStash = SharedStash.Capture("shared-stash").bag,
                 savedAtUtc = savedAtUtc, savedParticipants = Array.ConvertAll(savedParticipants, s => new WorldCharacterSlot { id = s.id, name = s.name }),
                 characters = new CharacterSaveData[characters.Count],
                 puzzles = new PuzzleSaveData[puzzles.Count], collectedItems = new string[collectedItems.Count], defeatedEnemies = new string[defeatedEnemies.Count],
@@ -160,10 +161,11 @@ namespace SecretsReborn
         }
         public static WorldSessionState Restore(SaveGameData data)
         {
-            if (data == null || data.version < 1 || data.version > 13 || data.characters == null || data.puzzles == null || data.collectedItems == null || data.version >= 6 && data.defeatedEnemies == null
+            if (data == null || data.version < 1 || data.version > 16 || data.characters == null || data.puzzles == null || data.collectedItems == null || data.version >= 6 && data.defeatedEnemies == null
                 || data.version >= 8 && data.discoveredChestItems == null)
                 throw new ArgumentException("Unsupported or incomplete savegame.");
             var world = new WorldSessionState(data.worldId);
+            if (data.version >= 15) world.SharedStash = InventoryState.Restore(new CharacterSaveData { bag = data.sharedStash, equipment = new string[InventoryState.EquipmentCapacity] });
             if (data.version >= 3) world.AdvancePlayTime(data.playTimeSeconds);
             world.SavedScenePath = data.savedScenePath;
             world.SavedHostCharacterId = data.version >= 9 ? data.savedHostCharacterId : null;
@@ -180,7 +182,7 @@ namespace SecretsReborn
             foreach (var character in data.characters)
             {
                 if (character == null || string.IsNullOrWhiteSpace(character.characterId)) throw new ArgumentException("Invalid character ID.");
-                world.characters.Add(character.characterId, InventoryState.Restore(character, data.version < 7));
+                world.characters.Add(character.characterId, InventoryState.Restore(character, data.version < 7, data.version < 14));
                 world.vitals.Add(character.characterId, data.version >= 5 ? CharacterVitalsState.Restore(character.vitals)
                     : data.version == 4 ? CharacterVitalsState.RestoreLegacy(character.vitals) : new CharacterVitalsState());
                 if (data.version >= 2 && character.hasPosition) world.SetPosition(character.characterId, character.scenePath, character.x, character.y, character.z);

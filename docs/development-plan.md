@@ -2,6 +2,28 @@
 
 Stand: 9. Oktober 2026. Die Netzwerk-Testphase ist laut Nutzer abgeschlossen.
 Schwerpunkt bleibt die Weiterentwicklung der Mechaniken.
+Die neue Richtung und Reihenfolge stehen in [Item-Fortschritt und Builds](item-progression.md):
+Gold, Trank-Schnellplätze und Testausrüstung zuerst; anschließend Shared Stash,
+gemeinsame Stat-Berechnung, Händler und ein erstes Zaubersystem. Vorerst keine XP.
+Der erste Schritt ist implementiert und automatisch geprüft (einschließlich
+echtem Host-/Client-Trankverbrauch und Easy Save). Der Nutzer bestätigt die
+anlegbaren Testrüstungen und den funktionierenden Shared Stash.
+Der Shared Stash ist der nächste umgesetzte Schritt: 40 gemeinsame Weltplätze,
+Host-validierte atomare Transfers und Save-Migration. Siehe [Shared Stash](shared-stash.md).
+Inventar und Lager sind anschließend auf editierbare Canvas-Prefabs umgestellt;
+siehe [UI-Authoring](inventory-ui-authoring.md). Als nächstes die neue Oberfläche
+mit Maus und Controller prüfen, danach Stat-Berechnung und Rüstungs-Balancing
+abstimmen. Das erste Zaubersystem baut auf dieser gemeinsamen Stat-Grundlage auf.
+Rüstungsformel bleibt unverändert und wird vor weiterem Stat-Balancing abgestimmt.
+Die gemeinsame Stat-Berechnung und Canvas-Anzeige sind jetzt ergänzt:
+[Charakterwerte](character-stats.md). Equipment-Maxima bleiben von dauerhaften
+Basiswerten getrennt. Der Nutzer bestätigt den Stat-Spieltest als erfolgreich.
+Nächster Schwerpunkt ist das [vereinbarte Zaubersystem](spell-system.md):
+Secrets-Effekte sichten, persistente Zauberdefinitionen/Ränge und Host-Ausführung
+aufbauen, danach Canvas-Ringmenü, Zielwahl und Feuerball/Heal durchgängig prüfen.
+Zauber ignorieren Umgebungskollision; die Figur steht während Auswahl und Wirken.
+Händler, essentielle Wiederbeschaffung und wiederholbare Boss-Dungeons folgen
+auf dieser Grundlage. Exakte Kosten, Rundung und Unterbrechungsregeln vorher festlegen.
 Code ist freigegeben; Commits und Pushes erfolgen auf ausdrücklichen Auftrag.
 
 ## Erreichter Stand
