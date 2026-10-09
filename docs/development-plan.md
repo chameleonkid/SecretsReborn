@@ -1,4 +1,4 @@
-﻿# Entwicklungsplan
+# Entwicklungsplan
 
 Stand: 6. Oktober 2026. Schwerpunkt bleibt die Weiterentwicklung der Mechaniken.
 Code ist freigegeben; Commits und Pushes erfolgen auf ausdrücklichen Auftrag.
@@ -18,7 +18,7 @@ der manuelle Bewegungstest wurde ebenfalls bestätigt.
 Details: [Übergabe](handoff-2026-10-06.md), [Prüfstand](verification-2026-10-06.md)
 und [Koop-Test](local-coop.md).
 
-## Nächster konkreter Schritt: gemeinsamer Gebietswechsel
+## Gemeinsamer Gebietswechsel – umgesetzt am 7. Oktober 2026
 
 1. Waldheiligtum und Rätselhöhle gemeinsam über einen Host-gesteuerten Ablauf laden.
 2. Währenddessen Eingaben sperren und laufende Aktionen abbrechen; Verbindung,
@@ -32,7 +32,11 @@ und [Koop-Test](local-coop.md).
 Die bestehende Sperre für Netzwerk-Gebietswechsel nicht einfach entfernen:
 Szenenobjekte und die Zuordnungen der Netzwerkfiguren müssen erneuert werden.
 
-## Danach: Multiplayer-Save/Load und Gruppen-Retry
+Der beschriebene Ladeablauf ist implementiert und im echten Zwei-Prozess-Test
+mit Hin-/Rückweg, Equipment, HP, Weltzustand und anschließendem Revive geprüft.
+Der manuelle Spieltest steht noch aus; siehe [Details](multiplayer-area-transitions.md).
+
+## Multiplayer-Save/Load und Gruppen-Retry – umgesetzt
 
 Der Host speichert am Buch in drei Slots die Welt und alle Charaktere inklusive
 Position, Szene und Spielzeit. Das gemeinsame Laden verwendet den Ablauf des
@@ -44,8 +48,8 @@ Nach Gruppen-Game-Over muss der Host den gemeinsamen Checkpoint laden können.
 
 1. Vier Spieler, Rejoin, Verbindungsabbruch und verständliche Rückmeldungen zu
    vom Host abgelehnten Aktionen prüfen.
-2. Runen durch jeden geeigneten Spieler aktivierbar machen; Truhenpräsentation
-   auf allen Clients anzeigen und gleichzeitige Interaktionen prüfen.
+2. Bereits vorhandene Gäste-Runen und persönliche Truhenpräsentation
+   mit gleichzeitigen Interaktionen und vier Spielern prüfen.
 3. Gold als Währung, Verbrauchsgegenstände und Pfeile als Munition ergänzen;
    optionale Schnellslots für Controller vorsehen.
 4. Bogen und Projektile mit hostseitiger Trefferprüfung implementieren.
@@ -65,3 +69,73 @@ bearbeiten; bei geöffnetem Projekt keinen parallelen CLI-Editor starten.
 Generierte IDE-Dateien nicht manuell korrigieren. Library behalten.
 Easy Save 3 ist eine lokal installierte Kaufabhängigkeit; Library, Temp, Builds
 und das ausgeschlossene Plugin werden nicht ins Git aufgenommen.
+
+Prüfstand 7. Oktober: Der Nutzer hat den gemeinsamen Szenenwechsel bestätigt.
+Gäste-Runen, Zustimmung/Ablehnung und gemeinsames Laden bestehen den erweiterten
+Zwei-Prozess-Test. Details: [Abfrage und Laden](multiplayer-votes-and-load.md).
+Gruppen-Retry nach Game Over ist inzwischen umgesetzt; siehe [Prüfung und Ablauf](party-retry.md).
+
+Truhenstand 7. Oktober: Persönliche, bestätigungspflichtige Belohnungsanzeige
+auch auf Clients ist umgesetzt; nur der Empfänger ist geschützt und gesperrt,
+die Welt läuft weiter. Jede Truhe gibt ein Item. Gemeinsame Fund-Freischaltungen
+liegen in Savegame-Version 8 als Grundlage für den späteren Händler.
+Details und bestandener Zwei-Prozess-Test: [Truhenbelohnungen](chest-rewards.md).
+
+## Nächster konkreter Schritt
+
+Update 9. Oktober: Der Nutzer bestätigt den letzten manuellen Test als erfolgreich.
+Der vereinbarte Stand wird jetzt strukturiert committed und gepusht; die Prüfung
+und weiterhin offenen Grenzfälle stehen in [Prüfstand 9. Oktober](verification-2026-10-09.md).
+Vier Teilnehmer, echte Abbrüche und Host-Ende bleiben die nächsten konkreten
+Prüfungen. Weitere Mechaniken erst danach festlegen.
+
+Tagesabschluss 8. Oktober: **Manueller Test und Push am 9. Oktober**.
+Heute keine weiteren Spieltests, kein Commit und kein Push. Aktuelle Übergabe
+mit Prüfablauf und Git-Aufteilung: [8. Oktober](handoff-2026-10-08.md).
+Zuerst den letzten Fix für mehrere EXE-Clients am selben Rechner bestätigen:
+zu zweit starten, dritten Spieler normal verbinden, Figur erstellen und
+reconnecten. Danach Vier-Spieler-Grenzen und gemeinsame Aktionen prüfen.
+Der letzte Drei-Prozess-Test mit gemeinsam genutzten Test-PlayerPrefs besteht;
+die manuelle Bestätigung steht noch aus. Build: 22:17, Netzwerk-/Save-Schema 13.
+
+Stand 8. Oktober: MainMenu, Host-Lobby, Spielernamen und vier benannte
+Charakterplätze pro Multiplayer-Welt sind umgesetzt. Keine lokalen Multiplayer-
+Charakterprofile; abwesende Figuren bleiben gespeichert. Singleplayer behält drei
+lokale Slots, Multiplayer verwendet drei eigene Speicherplätze. Schema 13 übernimmt
+ältere Spielstände. Details: [MainMenu und Lobby](main-menu-and-lobby.md).
+
+Der Nutzer hat den Lobby-Ablauf bestätigt. Gemeinsame Buchbedienung durch jeden
+Spieler und die neue Menüführung sind umgesetzt; der Zwei-Prozess-Buchtest besteht.
+Details: [gemeinsames Speicherbuch](shared-save-book.md).
+
+Die gemeinsame Buchoberfläche wurde manuell bestätigt. Noch ausstehend:
+Vier-Spieler-Test, letzter Rejoin-Fix und Verbindungsabbrüche gezielt prüfen, insbesondere
+während Abstimmung, Szenenwechsel, Save/Load und Truhenanzeige. Danach als
+Vorschlag Gold/Währung, Trank-Schnellslots und Bogen/Pfeile ausbauen.
+
+Festgehalten und umgesetzt: geschützte Gründerfigur ohne Teilnahmezwang,
+Host-Charakterlöschung in der Lobby und Spielstand-Papierkorb im Hauptmenü.
+Wiederbeschaffung unverzichtbarer Items ist eine spätere Anforderung;
+gebietsgerechte Einstiegsausrüstung bleibt ein Vorschlag. Details:
+[Charakter- und Spielstand-Lebenszyklus](character-and-save-lifecycle.md).
+
+Menüs erhalten Waldgrafik und segmentierte Rahmen; die Lobby zeigt vier
+Charakterkarten. Neue Figuren werden mit Namen, Körper, Haut, Frisur,
+Haar- und Augenfarbe erstellt.
+Farben bleiben im Host-Spielstand und werden an Clients übertragen; Namen sind
+über den Figuren sichtbar. Details:
+[Menüs und Charaktergestaltung](menu-art-and-character-creator.md).
+
+Der Nutzer bestätigt die funktionalen Spieltests für Charaktergestaltung, Lobby,
+Save/Load, gemeinsames Buch, Gebietswechsel, Truhe/Tod und Verbindungsabbruch.
+Ein Vier-Spieler-Test ist damit nicht separat nachgewiesen. Reconnect und Beitritt
+zur laufenden Session sind umgesetzt und im Zwei-Prozess-Test bestanden;
+Details und ausstehende manuelle Tests:
+[Reconnect](reconnect.md). Doku und Planung sind zum Tagesabschluss aktualisiert.
+Nach den morgigen manuellen Tests den Prüfstand ergänzen und den bestätigten
+Stand in strukturierten Commits pushen.
+
+Laufender Beitritt erweitert: neue Spieler können im normalen Join-Ablauf eine
+Figur in einem freien Host-Weltplatz erstellen. Der zusätzliche Test-Button
+entfällt; der Code bleibt erhalten. Erfolgreiche Beitritte werden allen aktiven
+Teilnehmern mit dem Spielernamen angezeigt. Details: [Reconnect](reconnect.md).

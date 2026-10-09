@@ -14,7 +14,19 @@ Asset-Grundlagen stehen in [character-appearance.md](character-appearance.md).
 
 Der Host speichert die Welt und alle zugehörigen Charaktere. Jeder Spieler hat ein eigenes Inventar, eigene XP und eigenen Fortschritt. Charaktere gehören ausschließlich zur jeweiligen Host-Welt.
 
-Innerhalb eines Gebiets ist freie Bewegung möglich. Größere Gebietswechsel erfolgen gemeinsam. Die konkrete Abstimmung eines gemeinsamen Wechsels ist noch offen.
+Festlegung vom 8. Oktober 2026: Der Multiplayer-Spielstand enthält maximal vier
+feste Charakterplätze. Lokale Multiplayer-Charakterprofile entfallen. In der Lobby
+wählen Host und Clients eine freie gespeicherte Figur oder erstellen auf einem
+freien Platz eine neue. Abwesende Figuren bleiben gespeichert; eine Übernahme
+durch andere Mitspieler ist erlaubt. Spielernamen und Charaktername sind getrennt.
+Singleplayer speichert vollständig lokal. Siehe [MainMenu und Lobby](main-menu-and-lobby.md).
+
+Eine Gründerfigur bleibt vor Löschung geschützt, ihre Teilnahme ist frei.
+Löschungen, Wiederherstellung und spätere Absicherung gegen Sackgassen sind in
+[Charakter- und Spielstand-Lebenszyklus](character-and-save-lifecycle.md) festgehalten.
+
+Innerhalb eines Gebiets ist freie Bewegung möglich. Größere Gebietswechsel erfolgen
+gemeinsam nach Zustimmung aller aktiven Spieler.
 
 ## Eigenständigkeit und Assets
 
@@ -24,9 +36,8 @@ Secrets dient nur bei Bedarf als Asset-Fundus. Es besteht keine Pflicht, alte In
 
 - Konkrete Welt, Figuren und Geschichte über den ersten Abenteuerentwurf hinaus.
 - Bedeutung und Umfang von XP und individuellem Fortschritt.
-- Charakterzuordnung bei erneutem Beitritt, Tod oder Verbindungsabbruch.
-- Verfahren für gemeinsame Gebietswechsel.
-- Netzwerk-Technik, Speicherformat und Zielplattformen.
+- Wiederbeitritt während eines laufenden Abenteuers und Umgang mit Verbindungsabbrüchen.
+- Internet-Beitritt und weitere Zielplattformen über den aktuellen Windows/LAN-Test hinaus.
 
 ## Zusätzliche Ideen – Vorschläge
 

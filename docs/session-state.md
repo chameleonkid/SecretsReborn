@@ -7,9 +7,16 @@ Szene erzeugt deshalb kein neues Inventar und setzt das Rätsel nicht zurück.
 
 ## Gespeichert im Arbeitsspeicher
 
-- Inventar mit 40 Taschenplätzen und 14 Ausrüstungsplätzen pro Character ID.
+- Inventar mit 40 Taschenplätzen und 15 Ausrüstungsplätzen inklusive Lampe pro Character ID.
+- Weltgebundene Charakterprofile mit Namen und Körper-/Haar-/Augenoptik.
+- HP/Mana, Position und Szene pro Charakter; Spielzeit und gespeichertes Gebiet.
 - Aufgesammelte Welt-Item-IDs innerhalb der Host-Welt.
 - Runenfortschritt und Abschluss pro Puzzle ID.
+- Besiegte Gegner, geöffnete Truhen und gemeinsame Fund-Freischaltungen.
+
+Die aktive Gruppe wird getrennt von den gespeicherten Figuren verwaltet.
+Abwesende Charaktere bleiben im Weltzustand und werden beim nächsten Speichern
+mit erfasst. Beim Disconnect entsteht kein automatischer Festplatten-Spielstand.
 
 `CharacterInventory` bindet sich in Awake über seine ID an diesen Zustand und
 stellt in Start die Ausrüstungsgrafik wieder her. `WorldItem` blendet bereits
@@ -23,20 +30,24 @@ enthält keine Szenenreferenzen, Sprites oder Eingabegeräte.
 
 ## Lebensdauer und Grenzen
 
-Die aktuelle Solo-Welt heißt `prototype-world`, der Spieler `solo-player`.
-Für unterschiedliche Charaktere eindeutige IDs zuweisen. Mehrere Spieler dürfen
+Neue Welten und ihre Figuren entstehen über Hauptmenü/Lobby mit eindeutigen IDs.
+Der direkte Prototyp-Szenenstart verwendet weiterhin `prototype-world` und
+`solo-player`. Für unterschiedliche Charaktere eindeutige IDs zuweisen. Mehrere Spieler dürfen
 nicht unbeabsichtigt dieselbe Character ID verwenden. Welt-Item- und Puzzle-IDs
 müssen innerhalb der Welt eindeutig sein und dürfen bei einem späteren Umbau
 nicht einfach neu vergeben werden.
 
 Der Einstieg wird auch bei deaktiviertem Domain Reload zurückgesetzt.
-Neue Sitzungen starten leer; gespeicherte Stände werden ausschließlich am Buch
-geladen, siehe [savegame.md](savegame.md). Neue Welt, Welt-Auswahl und echte
-Netzwerksynchronisierung folgen anschließend. Script-
+Neue Spiele starten mit neuer Welt; gespeicherte Stände werden über Hauptmenü
+oder Speicherbuch geladen, siehe [savegame.md](savegame.md) und
+[gemeinsames Buch](shared-save-book.md). In Multiplayer entscheidet der Host über
+den autoritativen Zustand; Clients erhalten Snapshots. Script-
 Domain-Reload während Play ist noch kein persistenter Savegame-Ersatz.
-Szene und Spielerposition sind inzwischen im Savegame enthalten. Laternenzustand,
-HP/Mana, XP und Zeit fehlen weiterhin. Gezielte Eintrittspunkte beim regulären
-Gebietswechsel werden später ergänzt.
+Szene, Spielerposition, HP/Mana und Spielzeit sind im versionierten Savegame
+enthalten. Gemeinsame Gebietswechsel nutzen definierte Eintrittspunkte, Load und
+laufender Beitritt setzen Gäste nahe den Host. Der eingeschaltete Laternenzustand
+wird live synchronisiert, ist aber keine persistente Itemdefinition. Individuelle
+XP/Level-Regeln und Tag/Nacht-Weltzeit sind weitere geplante Mechaniken.
 
 ## Prüfung
 
@@ -52,5 +63,8 @@ der Editor-Befehl lädt die gespeicherte Szene, ohne die Play-Sitzung zu beenden
 Rüstung/Ausrüstung müssen erhalten, Pickup entfernt und Kreise aktiviert bleiben.
 Nach Abschluss müssen Quelle und Tor wieder richtig dargestellt werden.
 
-Easy Save wird später über ein versioniertes Datenmodell angebunden. Die
-private Runtime-Struktur nicht ungeprüft als vollständiges Savegame serialisieren.
+Easy Save 3 speichert das versionierte Datenmodell `SaveGameData` (Schema 13),
+nicht Szenenobjekte oder die private Runtime-Struktur. Charakterdefinitionen und
+Weltzustand bleiben von Unity-Szenenlebensdauer und Verbindungs-IDs getrennt.
+
+Aktuelle Übergabe und offene Prüfungen: [8. Oktober](handoff-2026-10-08.md).

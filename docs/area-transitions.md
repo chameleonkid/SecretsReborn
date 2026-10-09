@@ -12,7 +12,7 @@ Unter `World/Transitions` liegen `AreaPortal` und `AreaEntrance`. Ein Portal ver
 
 `GameSession.RequestAreaChange` ist der zentrale Einstieg. Die Host-Session bleibt über den Szenenwechsel erhalten; neue Spielerinstanzen binden sich an dasselbe Charakterinventar. Gesammelte Gegenstände und Rätselstand kommen aus dem Weltzustand. Savegames speichern weiterhin Szene, Position und Spielzeit; ein Höhlen-Save kann vom Wald-Buch aus geladen werden.
 
-Aktuell werden Übergänge ausschließlich mit einem aktiven Spieler unterstützt. Gruppenbereitschaft, Netzwerksynchronisation und mehrere Spawnplätze fehlen noch. Mehrere aktive Charaktere werden deshalb beim Übergang ausdrücklich abgewiesen. Vorschlag: später gemeinsame Übergänge als Host-Entscheidung nach Zustimmung aller Spieler behandeln.
+Seit dem 7. Oktober 2026 unterstützt die Netzwerksitzung gemeinsame Host-gesteuerte Gebietswechsel. Alle Clients bestätigen das Laden, bevor Bewegung und Aktionen wieder freigegeben werden. Charakteridentitäten, Ausrüstung und Weltzustand bleiben erhalten. Details und Prüfstand: [Multiplayer-Gebietswechsel](multiplayer-area-transitions.md). Multiplayer-Savegame-Laden und eine verbindliche Zustimmung aller Spieler sind ebenfalls umgesetzt; siehe [Abfrage und Laden](multiplayer-votes-and-load.md). Gruppen-Retry folgt als nächster Schritt.
 
 ## Manueller Test
 

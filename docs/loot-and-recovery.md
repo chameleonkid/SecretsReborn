@@ -1,4 +1,4 @@
-﻿# Kampf, Beute und Truhen
+# Kampf, Beute und Truhen
 
 ## Erste Regeln – anpassbare Vorschläge
 
@@ -22,13 +22,13 @@ Bei null Herzen stoppen Bewegung, Angriffe, Aufheben, Truhen, Speicherbuch und G
 
 ## Prüfen in Play
 
-1. Die Truhe nahe dem Start mit E / A öffnen; Rüstung und Schwert im Inventar kontrollieren. Erneutes Öffnen gibt keine weiteren Items.
+1. Die Truhe nahe dem Start mit E / A öffnen; Die einzelne Rüstung nach Bestätigung mit A / X / Enter im Inventar kontrollieren. Erneutes Öffnen gibt keine weiteren Items.
 2. Mit voller Tasche versuchen: keine Teilbelohnung, Truhe bleibt geschlossen.
 3. Den Baum besiegen: Gold, Heiltrank und Pfeile aufheben. Am Buch speichern und laden; bereits eingesammelte Beute erscheint nicht erneut.
 4. Einen Heiltrank verletzt und bei voller Gesundheit ausprobieren.
 5. Am Buch speichern, Schaden bis null Herzen nehmen und Enter / A drücken. Position, Inventar, Rätsel und Beute sollten dem Speicherstand entsprechen; Herzen und Mana sind voll.
 
-Beim Öffnen pausiert der Solo-Prototyp die Welt während der Beuteanzeige. Die Truhenanimation verwendet Echtzeit; jedes erhaltene Item erscheint für 1,2 Sekunden über der Truhe, bei mehreren Items nacheinander. Farbe und zugeschnittener Icon-Bereich stammen vom Item. Bewegung, Kampf, Laterne, Inventar und Speicherbuch sind währenddessen gesperrt. Abbruch, Deaktivieren und Szenenwechsel geben die Pause wieder frei. Ein späterer Netzwerkadapter muss eine gemeinsame Pause explizit replizieren.
+Seit dem 7. Oktober enthält jede Truhe genau einen Gegenstand. Die Welt läuft während der Anzeige weiter. Nur der Empfänger ist geschützt, unbeweglich und als Gegnerziel ausgeschlossen, bis er mit A / X / Enter bestätigt. Die Anzeige wird auch auf Clients dargestellt; die gemeinsame Fund-Freischaltung wird gespeichert. Details: [Truhenbelohnungen](chest-rewards.md).
 Die Truhe verwendet weiterhin das Retro-Pixel-Dungeons-Sheet. Seine eingebetteten halbtransparenten Schatten werden nur im Truhenmaterial ausgeblendet (Alpha-Cutoff 0,99); die opaken Pixel bleiben unverändert und weiterhin beleuchtet. Das Prefab und die vorhandene Truhe werden auf Faktor 1,35 skaliert. Die geprüften übrigen Sheets lieferten keine eindeutig zuordenbare schattenfreie Holztruhenvariante; die neuere Animationsreferenz 614f9fee ist in den geprüften Quellen nicht auflösbar.
 
 Aktualisierung: Der Game-Over-Screen erscheint erst nach Abschluss der Death-Animation und nur bei vollständiger Niederlage der aktiven Gruppe. Details und Revive-Testmenüs: [Tod und Gruppe](party-death.md).

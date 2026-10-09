@@ -2,6 +2,10 @@
 
 Quelle: https://github.com/chameleonkid/Secrets
 
+Aktueller Figurenimport: 78 Originalbögen aus Retro Pixel Characters mit
+Körpern, Hautvarianten, Augen, Frisuren und Equipment-Layern. Quelle und
+Verwendung: [RetroPixel-Figurenimport](retro-pixel-character-import.md).
+
 Erste lesende Sichtung am 6. Oktober 2026, Commit `99f5b1c15fa6201e84044fbd81f9397d4f9709a2`.
 Der Repository-Zugriff funktioniert. Die rekursive GitHub-Dateiliste ist gekürzt;
 die folgenden Angaben sind daher eine erste Auswahl, kein vollständiges Inventar.

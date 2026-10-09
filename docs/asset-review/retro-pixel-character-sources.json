@@ -1,0 +1,474 @@
+{
+  "commit": "99f5b1c15fa6201e84044fbd81f9397d4f9709a2",
+  "package": "Retro Pixel Characters",
+  "files": [
+    {
+      "id": "female-1-base-rpc-female-base-brown",
+      "path": "Assets/Resources/Retro Pixel Characters/Spritesheets/Female/1 - Base/rpc female base brown.png",
+      "sha": "788733c8bd9d2b991f5e027681c93b14c7364be0",
+      "size": 42554
+    },
+    {
+      "id": "female-1-base-rpc-female-base-dark",
+      "path": "Assets/Resources/Retro Pixel Characters/Spritesheets/Female/1 - Base/rpc female base dark.png",
+      "sha": "90ff24e2cadb8480beb76fc6500420c6a7ad14fc",
+      "size": 42625
+    },
+    {
+      "id": "female-1-base-rpc-female-base-elf-blue",
+      "path": "Assets/Resources/Retro Pixel Characters/Spritesheets/Female/1 - Base/rpc female base elf blue.png",
+      "sha": "01d8aea2eb787da22e7aa641a8ac993a64374b43",
+      "size": 27284
+    },
+    {
+      "id": "female-1-base-rpc-female-base-elf-dark",
+      "path": "Assets/Resources/Retro Pixel Characters/Spritesheets/Female/1 - Base/rpc female base elf dark.png",
+      "sha": "db5b2c30d2fd17a49723830c490cdebf5473daef",
+      "size": 28100
+    },
+    {
+      "id": "female-1-base-rpc-female-base-elf",
+      "path": "Assets/Resources/Retro Pixel Characters/Spritesheets/Female/1 - Base/rpc female base elf.png",
+      "sha": "21772c27ec5ba65d0eb8efe471594161c742f729",
+      "size": 28450
+    },
+    {
+      "id": "female-1-base-rpc-female-base-pale",
+      "path": "Assets/Resources/Retro Pixel Characters/Spritesheets/Female/1 - Base/rpc female base pale.png",
+      "sha": "aeb9f12065a878bc0b5ba189033efb510e3dff4d",
+      "size": 42537
+    },
+    {
+      "id": "female-1-base-rpc-female-base-white",
+      "path": "Assets/Resources/Retro Pixel Characters/Spritesheets/Female/1 - Base/rpc female base white.png",
+      "sha": "ff8e7d767f54a9d32d2139e495ca009042b19517",
+      "size": 57154
+    },
+    {
+      "id": "female-1-base-rpc-female-base",
+      "path": "Assets/Resources/Retro Pixel Characters/Spritesheets/Female/1 - Base/rpc female base.png",
+      "sha": "b816e91a99883adcdae339e8723d54506ddd35d0",
+      "size": 41308
+    },
+    {
+      "id": "female-2-eye-colors-rpc-female-brown",
+      "path": "Assets/Resources/Retro Pixel Characters/Spritesheets/Female/2 - Eye Colors/rpc female brown.png",
+      "sha": "67ddc0e0a8a9a138c3c0b6b6904df1ade14522f3",
+      "size": 4181
+    },
+    {
+      "id": "female-2-eye-colors-rpc-female-dark-blue",
+      "path": "Assets/Resources/Retro Pixel Characters/Spritesheets/Female/2 - Eye Colors/rpc female dark blue.png",
+      "sha": "0e2ddf08abc616ad5657bcc3666b80dd7246810b",
+      "size": 4181
+    },
+    {
+      "id": "female-2-eye-colors-rpc-female-green",
+      "path": "Assets/Resources/Retro Pixel Characters/Spritesheets/Female/2 - Eye Colors/rpc female green.png",
+      "sha": "9af1b9e466f01a07539f272f9ef366854aedcade",
+      "size": 4181
+    },
+    {
+      "id": "female-2-eye-colors-rpc-female-grey",
+      "path": "Assets/Resources/Retro Pixel Characters/Spritesheets/Female/2 - Eye Colors/rpc female grey.png",
+      "sha": "a51f47c5d8cac6ca23bfadabc4b726f3b123c250",
+      "size": 4181
+    },
+    {
+      "id": "female-2-eye-colors-rpc-female-purple",
+      "path": "Assets/Resources/Retro Pixel Characters/Spritesheets/Female/2 - Eye Colors/rpc female purple.png",
+      "sha": "9dee4d04d065ec184964064e5686b7633f05760e",
+      "size": 4181
+    },
+    {
+      "id": "female-2-eye-colors-rpc-female-red",
+      "path": "Assets/Resources/Retro Pixel Characters/Spritesheets/Female/2 - Eye Colors/rpc female red.png",
+      "sha": "55dfd2b8eed59026288e3509bd420cb99a28df61",
+      "size": 4181
+    },
+    {
+      "id": "female-2-eye-colors-rpc-female-yellow",
+      "path": "Assets/Resources/Retro Pixel Characters/Spritesheets/Female/2 - Eye Colors/rpc female yellow.png",
+      "sha": "78dbc96c66a965573a223286941710abe2c679dd",
+      "size": 4181
+    },
+    {
+      "id": "female-3-outfits-tintable-clothes-rpc-female-base-tintable-pants",
+      "path": "Assets/Resources/Retro Pixel Characters/Spritesheets/Female/3 - Outfits/Tintable Clothes/rpc female base tintable pants.png",
+      "sha": "c0252260a55238ecd12f2effe4ff245837034c8d",
+      "size": 33483
+    },
+    {
+      "id": "female-3-outfits-tintable-clothes-rpc-female-base-tintable-shirt",
+      "path": "Assets/Resources/Retro Pixel Characters/Spritesheets/Female/3 - Outfits/Tintable Clothes/rpc female base tintable shirt.png",
+      "sha": "7b0deb3ff3db8f6d0f96b5e7f43997bc57220e6a",
+      "size": 35633
+    },
+    {
+      "id": "female-3-outfits-tintable-clothes-rpc-female-base-tintable-shoes-socks",
+      "path": "Assets/Resources/Retro Pixel Characters/Spritesheets/Female/3 - Outfits/Tintable Clothes/rpc female base tintable shoes-socks.png",
+      "sha": "ad0319458bc507b001bdd13ee71e8d6e99af5c2c",
+      "size": 32767
+    },
+    {
+      "id": "female-3-outfits-rpc-female-cleric-robes",
+      "path": "Assets/Resources/Retro Pixel Characters/Spritesheets/Female/3 - Outfits/rpc female cleric robes.png",
+      "sha": "4ba13b82c4c4c508a2553345c7620949d2c1ad4a",
+      "size": 24417
+    },
+    {
+      "id": "female-3-outfits-rpc-female-martial-gi",
+      "path": "Assets/Resources/Retro Pixel Characters/Spritesheets/Female/3 - Outfits/rpc female martial gi.png",
+      "sha": "ba80695e69604f245520795016427f8b54e99474",
+      "size": 6596
+    },
+    {
+      "id": "female-3-outfits-rpc-female-paladin-armor",
+      "path": "Assets/Resources/Retro Pixel Characters/Spritesheets/Female/3 - Outfits/rpc female paladin armor.png",
+      "sha": "79b923208359934eb8bafbbd7b0889fc6553c8ed",
+      "size": 38202
+    },
+    {
+      "id": "female-3-outfits-rpc-female-ranger-clothes",
+      "path": "Assets/Resources/Retro Pixel Characters/Spritesheets/Female/3 - Outfits/rpc female ranger clothes.png",
+      "sha": "ac55284ebcf37bdc48b17f63a3283e9ef882c252",
+      "size": 8775
+    },
+    {
+      "id": "female-3-outfits-rpc-female-warrior-armor",
+      "path": "Assets/Resources/Retro Pixel Characters/Spritesheets/Female/3 - Outfits/rpc female warrior armor.png",
+      "sha": "e0c0022ef2031a623c7ee7a87805ef1032b3f0d1",
+      "size": 8648
+    },
+    {
+      "id": "female-3-outfits-rpc-female-wizard-robes",
+      "path": "Assets/Resources/Retro Pixel Characters/Spritesheets/Female/3 - Outfits/rpc female wizard robes.png",
+      "sha": "d381ccd5a654641c824fe0bc767b53f81dc3e665",
+      "size": 8456
+    },
+    {
+      "id": "female-5-hairstyles-rpc-female-alpaca",
+      "path": "Assets/Resources/Retro Pixel Characters/Spritesheets/Female/5 - Hairstyles/rpc female alpaca.png",
+      "sha": "af1dc5f94a435e5a6dcdf19c0014b68a14c9cd65",
+      "size": 13352
+    },
+    {
+      "id": "female-5-hairstyles-rpc-female-bat",
+      "path": "Assets/Resources/Retro Pixel Characters/Spritesheets/Female/5 - Hairstyles/rpc female bat.png",
+      "sha": "d8d10607ec05c76eb0183ee83cc7b74e53b31bda",
+      "size": 16943
+    },
+    {
+      "id": "female-5-hairstyles-rpc-female-beetle",
+      "path": "Assets/Resources/Retro Pixel Characters/Spritesheets/Female/5 - Hairstyles/rpc female beetle.png",
+      "sha": "cff5da32d4a06f2153435273f80280cb9560423a",
+      "size": 7977
+    },
+    {
+      "id": "female-5-hairstyles-rpc-female-bumblebee",
+      "path": "Assets/Resources/Retro Pixel Characters/Spritesheets/Female/5 - Hairstyles/rpc female bumblebee.png",
+      "sha": "eb43ee96cc1193e198a6f5b9bcebd83e2d624b00",
+      "size": 3952
+    },
+    {
+      "id": "female-5-hairstyles-rpc-female-ferret",
+      "path": "Assets/Resources/Retro Pixel Characters/Spritesheets/Female/5 - Hairstyles/rpc female ferret.png",
+      "sha": "3636c24a5a2a82fb594c18822ebbf72f774f932a",
+      "size": 12153
+    },
+    {
+      "id": "female-5-hairstyles-rpc-female-hedgehog",
+      "path": "Assets/Resources/Retro Pixel Characters/Spritesheets/Female/5 - Hairstyles/rpc female hedgehog.png",
+      "sha": "d3e1423003dd3b13e41ed7fde9a09da95f46a801",
+      "size": 3394
+    },
+    {
+      "id": "female-5-hairstyles-rpc-female-hyena",
+      "path": "Assets/Resources/Retro Pixel Characters/Spritesheets/Female/5 - Hairstyles/rpc female hyena.png",
+      "sha": "ee5bea30210f355bff15cbb2f57d3406558fef48",
+      "size": 8383
+    },
+    {
+      "id": "female-5-hairstyles-rpc-female-monkey",
+      "path": "Assets/Resources/Retro Pixel Characters/Spritesheets/Female/5 - Hairstyles/rpc female monkey.png",
+      "sha": "e32cd4750f9e350210a210431659b2d6241eed34",
+      "size": 5028
+    },
+    {
+      "id": "female-5-hairstyles-rpc-female-orca",
+      "path": "Assets/Resources/Retro Pixel Characters/Spritesheets/Female/5 - Hairstyles/rpc female orca.png",
+      "sha": "ae514b3054ac3bd2ecb65618f25c06778621e1cd",
+      "size": 14887
+    },
+    {
+      "id": "female-5-hairstyles-rpc-female-panda",
+      "path": "Assets/Resources/Retro Pixel Characters/Spritesheets/Female/5 - Hairstyles/rpc female panda.png",
+      "sha": "bad49cd71038d8052c2d0c34f4d4aada0ce0aa87",
+      "size": 9868
+    },
+    {
+      "id": "female-5-hairstyles-rpc-female-pony",
+      "path": "Assets/Resources/Retro Pixel Characters/Spritesheets/Female/5 - Hairstyles/rpc female pony.png",
+      "sha": "ac1ba13a532629f4a4502f4d759373e6ff9746c6",
+      "size": 5639
+    },
+    {
+      "id": "female-5-hairstyles-rpc-female-rhino",
+      "path": "Assets/Resources/Retro Pixel Characters/Spritesheets/Female/5 - Hairstyles/rpc female rhino.png",
+      "sha": "da61d232406b7ccb255eecb3625afc5a64e20702",
+      "size": 17489
+    },
+    {
+      "id": "female-5-hairstyles-rpc-female-shark",
+      "path": "Assets/Resources/Retro Pixel Characters/Spritesheets/Female/5 - Hairstyles/rpc female shark.png",
+      "sha": "caf52df85ac33ba88386256443a50faef6c4f575",
+      "size": 4168
+    },
+    {
+      "id": "male-1-base-rpc-male-base-brown",
+      "path": "Assets/Resources/Retro Pixel Characters/Spritesheets/Male/1 - Base/rpc male base brown.png",
+      "sha": "b362fd1907a9f9fa8b145f0b4fd07106e4def30c",
+      "size": 42846
+    },
+    {
+      "id": "male-1-base-rpc-male-base-dark",
+      "path": "Assets/Resources/Retro Pixel Characters/Spritesheets/Male/1 - Base/rpc male base dark.png",
+      "sha": "bc69c344ffecab20a961a27246a5ca6f165015ce",
+      "size": 42917
+    },
+    {
+      "id": "male-1-base-rpc-male-base-elf-blue",
+      "path": "Assets/Resources/Retro Pixel Characters/Spritesheets/Male/1 - Base/rpc male base elf blue.png",
+      "sha": "0bb9a7eb6e20dcda2a7c99050c4776b06665980e",
+      "size": 28195
+    },
+    {
+      "id": "male-1-base-rpc-male-base-elf-dark",
+      "path": "Assets/Resources/Retro Pixel Characters/Spritesheets/Male/1 - Base/rpc male base elf dark.png",
+      "sha": "262d8d23d0c022fbb822778fee13a8a2532ae2c2",
+      "size": 29193
+    },
+    {
+      "id": "male-1-base-rpc-male-base-elf",
+      "path": "Assets/Resources/Retro Pixel Characters/Spritesheets/Male/1 - Base/rpc male base elf.png",
+      "sha": "7e077bf22b042045ff85bf87b09cc6d925b5b8b7",
+      "size": 29365
+    },
+    {
+      "id": "male-1-base-rpc-male-base-pale",
+      "path": "Assets/Resources/Retro Pixel Characters/Spritesheets/Male/1 - Base/rpc male base pale.png",
+      "sha": "56bb4e3eab03e60bad10d87fb015f183426b277d",
+      "size": 42843
+    },
+    {
+      "id": "male-1-base-rpc-male-base-tan",
+      "path": "Assets/Resources/Retro Pixel Characters/Spritesheets/Male/1 - Base/rpc male base tan.png",
+      "sha": "e2a0e44d0420f42ee6b591c28196d80b8b1d3eaf",
+      "size": 29522
+    },
+    {
+      "id": "male-1-base-rpc-male-base",
+      "path": "Assets/Resources/Retro Pixel Characters/Spritesheets/Male/1 - Base/rpc male base.png",
+      "sha": "edd5708909b4dd030c29d50cd1b285fe26836b8f",
+      "size": 41382
+    },
+    {
+      "id": "male-2-eye-colors-rpc-male-brown",
+      "path": "Assets/Resources/Retro Pixel Characters/Spritesheets/Male/2 - Eye Colors/rpc male brown.png",
+      "sha": "67ddc0e0a8a9a138c3c0b6b6904df1ade14522f3",
+      "size": 4181
+    },
+    {
+      "id": "male-2-eye-colors-rpc-male-dark-blue",
+      "path": "Assets/Resources/Retro Pixel Characters/Spritesheets/Male/2 - Eye Colors/rpc male dark blue.png",
+      "sha": "0e2ddf08abc616ad5657bcc3666b80dd7246810b",
+      "size": 4181
+    },
+    {
+      "id": "male-2-eye-colors-rpc-male-green",
+      "path": "Assets/Resources/Retro Pixel Characters/Spritesheets/Male/2 - Eye Colors/rpc male green.png",
+      "sha": "9af1b9e466f01a07539f272f9ef366854aedcade",
+      "size": 4181
+    },
+    {
+      "id": "male-2-eye-colors-rpc-male-grey",
+      "path": "Assets/Resources/Retro Pixel Characters/Spritesheets/Male/2 - Eye Colors/rpc male grey.png",
+      "sha": "a51f47c5d8cac6ca23bfadabc4b726f3b123c250",
+      "size": 4181
+    },
+    {
+      "id": "male-2-eye-colors-rpc-male-purple",
+      "path": "Assets/Resources/Retro Pixel Characters/Spritesheets/Male/2 - Eye Colors/rpc male purple.png",
+      "sha": "9dee4d04d065ec184964064e5686b7633f05760e",
+      "size": 4181
+    },
+    {
+      "id": "male-2-eye-colors-rpc-male-red",
+      "path": "Assets/Resources/Retro Pixel Characters/Spritesheets/Male/2 - Eye Colors/rpc male red.png",
+      "sha": "55dfd2b8eed59026288e3509bd420cb99a28df61",
+      "size": 4181
+    },
+    {
+      "id": "male-2-eye-colors-rpc-male-yellow",
+      "path": "Assets/Resources/Retro Pixel Characters/Spritesheets/Male/2 - Eye Colors/rpc male yellow.png",
+      "sha": "78dbc96c66a965573a223286941710abe2c679dd",
+      "size": 4181
+    },
+    {
+      "id": "male-3-outfits-tintable-clothes-rpc-male-base-tintable-pants",
+      "path": "Assets/Resources/Retro Pixel Characters/Spritesheets/Male/3 - Outfits/Tintable Clothes/rpc male base tintable pants.png",
+      "sha": "c5b6cc0c549ade8a7f16eecc8aafeaaccf501e93",
+      "size": 9026
+    },
+    {
+      "id": "male-3-outfits-tintable-clothes-rpc-male-base-tintable-shirt",
+      "path": "Assets/Resources/Retro Pixel Characters/Spritesheets/Male/3 - Outfits/Tintable Clothes/rpc male base tintable shirt.png",
+      "sha": "2fa9a830899c5dab9a220bbe39adca20be837400",
+      "size": 12725
+    },
+    {
+      "id": "male-3-outfits-tintable-clothes-rpc-male-base-tintable-shoes-socks",
+      "path": "Assets/Resources/Retro Pixel Characters/Spritesheets/Male/3 - Outfits/Tintable Clothes/rpc male base tintable shoes-socks.png",
+      "sha": "c84788dc3181ea4783dbb5bb8c5a56d65412e03e",
+      "size": 6830
+    },
+    {
+      "id": "male-3-outfits-rpc-male-cleric-robes",
+      "path": "Assets/Resources/Retro Pixel Characters/Spritesheets/Male/3 - Outfits/rpc male cleric robes.png",
+      "sha": "bfd9a08c4fbf631d01f6e6fcf0f713d15c11798b",
+      "size": 25120
+    },
+    {
+      "id": "male-3-outfits-rpc-male-martial-gi",
+      "path": "Assets/Resources/Retro Pixel Characters/Spritesheets/Male/3 - Outfits/rpc male martial gi.png",
+      "sha": "f5122a25991be6ea035c0154df6217fb7307be37",
+      "size": 7089
+    },
+    {
+      "id": "male-3-outfits-rpc-male-paladin-armor",
+      "path": "Assets/Resources/Retro Pixel Characters/Spritesheets/Male/3 - Outfits/rpc male paladin armor.png",
+      "sha": "0eda79e78689a148160469e19f4c01a4c87cae42",
+      "size": 38079
+    },
+    {
+      "id": "male-3-outfits-rpc-male-ranger-clothes",
+      "path": "Assets/Resources/Retro Pixel Characters/Spritesheets/Male/3 - Outfits/rpc male ranger clothes.png",
+      "sha": "5e47144e25ea7f11a40e3ad3e2f392bb548f6168",
+      "size": 9385
+    },
+    {
+      "id": "male-3-outfits-rpc-male-warrior-armor",
+      "path": "Assets/Resources/Retro Pixel Characters/Spritesheets/Male/3 - Outfits/rpc male warrior armor.png",
+      "sha": "54fbe524cc9a4bb767f1b061065deeca26a325e5",
+      "size": 8975
+    },
+    {
+      "id": "male-3-outfits-rpc-male-wizard-robes",
+      "path": "Assets/Resources/Retro Pixel Characters/Spritesheets/Male/3 - Outfits/rpc male wizard robes.png",
+      "sha": "fb11cc59d1bf264c7c1f04d421e680c5dcb33c83",
+      "size": 8839
+    },
+    {
+      "id": "male-5-hairstyles-rpc-male-crown",
+      "path": "Assets/Resources/Retro Pixel Characters/Spritesheets/Male/5 - Hairstyles/rpc male Crown.png",
+      "sha": "d1489989d0c1382c24d064cd8bf438e3698563b9",
+      "size": 20463
+    },
+    {
+      "id": "male-5-hairstyles-rpc-male-knighthelmet",
+      "path": "Assets/Resources/Retro Pixel Characters/Spritesheets/Male/5 - Hairstyles/rpc male KnightHelmet.png",
+      "sha": "44dff5942b50854aecacb598b3b4e617236057fe",
+      "size": 21501
+    },
+    {
+      "id": "male-5-hairstyles-rpc-male-knighthelmet-grey",
+      "path": "Assets/Resources/Retro Pixel Characters/Spritesheets/Male/5 - Hairstyles/rpc male KnightHelmet_grey.png",
+      "sha": "2e629350628a3b8d68e0321a609c3d5d195f1515",
+      "size": 9816
+    },
+    {
+      "id": "male-5-hairstyles-rpc-male-knighthelmet-red",
+      "path": "Assets/Resources/Retro Pixel Characters/Spritesheets/Male/5 - Hairstyles/rpc male KnightHelmet_red.png",
+      "sha": "19826110e70b07a858f92bd6ce539e0bb9139050",
+      "size": 21736
+    },
+    {
+      "id": "male-5-hairstyles-rpc-male-alpaca",
+      "path": "Assets/Resources/Retro Pixel Characters/Spritesheets/Male/5 - Hairstyles/rpc male alpaca.png",
+      "sha": "9fe885ad2ec27da459424d17095b0498b417e31e",
+      "size": 13458
+    },
+    {
+      "id": "male-5-hairstyles-rpc-male-bat",
+      "path": "Assets/Resources/Retro Pixel Characters/Spritesheets/Male/5 - Hairstyles/rpc male bat.png",
+      "sha": "fa8a348b794a58b003f524e1774eae48d8f3f5d9",
+      "size": 17104
+    },
+    {
+      "id": "male-5-hairstyles-rpc-male-beetle",
+      "path": "Assets/Resources/Retro Pixel Characters/Spritesheets/Male/5 - Hairstyles/rpc male beetle.png",
+      "sha": "2b096eafc8abe235b8e3e8e41490bf3b0aecea7a",
+      "size": 4542
+    },
+    {
+      "id": "male-5-hairstyles-rpc-male-bumblebee",
+      "path": "Assets/Resources/Retro Pixel Characters/Spritesheets/Male/5 - Hairstyles/rpc male bumblebee.png",
+      "sha": "88c88022432f216a763c14959f194524cbeb7c6f",
+      "size": 3950
+    },
+    {
+      "id": "male-5-hairstyles-rpc-male-ferret",
+      "path": "Assets/Resources/Retro Pixel Characters/Spritesheets/Male/5 - Hairstyles/rpc male ferret.png",
+      "sha": "d83e54abd79711b1e63e2afa1164ca4880702a4b",
+      "size": 12210
+    },
+    {
+      "id": "male-5-hairstyles-rpc-male-hedgehog",
+      "path": "Assets/Resources/Retro Pixel Characters/Spritesheets/Male/5 - Hairstyles/rpc male hedgehog.png",
+      "sha": "83c419681eeb6344976690175abdaf71607f1ad0",
+      "size": 3386
+    },
+    {
+      "id": "male-5-hairstyles-rpc-male-hyena",
+      "path": "Assets/Resources/Retro Pixel Characters/Spritesheets/Male/5 - Hairstyles/rpc male hyena.png",
+      "sha": "6e27b1032962781d323f6cc30382940b784ef792",
+      "size": 8410
+    },
+    {
+      "id": "male-5-hairstyles-rpc-male-monkey",
+      "path": "Assets/Resources/Retro Pixel Characters/Spritesheets/Male/5 - Hairstyles/rpc male monkey.png",
+      "sha": "34e49e16e07048e30ad760293091ad7ed096ae92",
+      "size": 5039
+    },
+    {
+      "id": "male-5-hairstyles-rpc-male-orca",
+      "path": "Assets/Resources/Retro Pixel Characters/Spritesheets/Male/5 - Hairstyles/rpc male orca.png",
+      "sha": "4a70ed1ba4ca6c9c14623c14233e01bdf9e0fc02",
+      "size": 14915
+    },
+    {
+      "id": "male-5-hairstyles-rpc-male-panda",
+      "path": "Assets/Resources/Retro Pixel Characters/Spritesheets/Male/5 - Hairstyles/rpc male panda.png",
+      "sha": "47e9c17380f51e2357e179c96a74910cfcfc649a",
+      "size": 9877
+    },
+    {
+      "id": "male-5-hairstyles-rpc-male-pony",
+      "path": "Assets/Resources/Retro Pixel Characters/Spritesheets/Male/5 - Hairstyles/rpc male pony.png",
+      "sha": "2b86e0873ff86e84cf712ede06c7690bd6e05914",
+      "size": 5638
+    },
+    {
+      "id": "male-5-hairstyles-rpc-male-rhino",
+      "path": "Assets/Resources/Retro Pixel Characters/Spritesheets/Male/5 - Hairstyles/rpc male rhino.png",
+      "sha": "afe5af183808ec115721e560cbc2a39c5874dc26",
+      "size": 17455
+    },
+    {
+      "id": "male-5-hairstyles-rpc-male-shark",
+      "path": "Assets/Resources/Retro Pixel Characters/Spritesheets/Male/5 - Hairstyles/rpc male shark.png",
+      "sha": "b9e7320d8d605ae6dc6e90b4c08c9570f1cbce60",
+      "size": 4179
+    }
+  ]
+}

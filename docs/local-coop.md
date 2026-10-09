@@ -26,9 +26,9 @@ Die Anbindung verwendet NGO Named Custom Messages statt transportabhängiger IDs
 
 ## Grenzen dieses Schritts
 
-Gebietswechsel und Savegame-Laden während einer aktiven Netzwerksitzung sind vorerst gesperrt; sie benötigen gemeinsames Szenenladen und Spawn-Zuordnung. Der Host kann am Buch den Weltzustand inklusive aller vorhandenen Charaktere speichern. Ein Gruppen-Retry nach Game Over folgt zusammen mit dem gemeinsamen Laden.
+Gemeinsame Gebietswechsel sind seit dem 7. Oktober 2026 angebunden und mit zwei Prozessen geprüft; siehe [Multiplayer-Gebietswechsel](multiplayer-area-transitions.md). Netzwerkprotokoll ist jetzt Version 5: Host und Client müssen den neuen Stand verwenden. Gebietswechsel und Host-Savegame-Laden erfordern jetzt die ausdrückliche Zustimmung aller verbundenen Spieler; siehe [Abfrage und Laden](multiplayer-votes-and-load.md). Der Host kann am Buch den Weltzustand inklusive aller vorhandenen Charaktere speichern. Gemeinsamer Retry nach Game Over ist ebenfalls angebunden; siehe [Gruppen-Retry](party-retry.md).
 
-Gegnerbewegung, Angriffe, Pickups, geöffnete Truhen und deren Weltzustand werden ebenfalls über den Host vermittelt, damit sie im Test nicht unabhängig auseinanderlaufen. Die aufwendige Truhen-Belohnungspräsentation wird zunächst nur auf dem Host animiert; Clients erhalten den Inventar-/Öffnungszustand und die kurze gemeinsame Pause. Rätselaktivierung bleibt derzeit an den ursprünglichen Host-Charakter gebunden; die Gruppen-Rätselinteraktion ist ein anschließender Schritt.
+Gegnerbewegung, Angriffe, Pickups, geöffnete Truhen und deren Weltzustand werden ebenfalls über den Host vermittelt, damit sie im Test nicht unabhängig auseinanderlaufen. Die Truhenbelohnung erscheint beim Empfänger, einschließlich Clients. Nur dieser Charakter ist bis A / X / Enter geschützt und unbeweglich; die Welt läuft weiter. Siehe [Truhenbelohnungen](chest-rewards.md). Runenkreise können jetzt von jedem lebenden, handlungsfähigen Gast mit eingeschalteter magischer Lampe aktiviert werden. Die Zeichenanzeige folgt der eigenen Lampe des jeweiligen Fensters.
 
 ## Verifikation
 
