@@ -142,3 +142,5 @@ MonoBehaviour:
   - {fileID: -884548011, guid: 1cc55b948b9b51145badee8f6c03011c, type: 3}
   - {fileID: -1075948701, guid: 1cc55b948b9b51145badee8f6c03011c, type: 3}
   - {fileID: 582312932, guid: 1cc55b948b9b51145badee8f6c03011c, type: 3}
+  tint: {r: 1, g: 1, b: 1, a: 1}
+  maleVariant: {fileID: 11400000, guid: 2fa983677d089a54b857eadfa3070c9b, type: 2}

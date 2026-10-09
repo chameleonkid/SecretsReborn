@@ -213,12 +213,12 @@ namespace SecretsReborn.Editor
             name = name, rect = new Rect(x, y, width, height), alignment = SpriteAlignment.Center,
             pivot = Vector2.one * 0.5f, spriteID = GUID.Generate() };
 
-        internal static void Slice(string path, SpriteRect[] rects)
+        internal static void Slice(string path, SpriteRect[] rects, float pixelsPerUnit = 32)
         {
             var importer = (TextureImporter)AssetImporter.GetAtPath(path);
             importer.textureType = TextureImporterType.Sprite;
             importer.spriteImportMode = SpriteImportMode.Multiple;
-            importer.spritePixelsPerUnit = 32;
+            importer.spritePixelsPerUnit = pixelsPerUnit;
             importer.filterMode = FilterMode.Point;
             importer.mipmapEnabled = false;
             importer.alphaIsTransparency = true;
