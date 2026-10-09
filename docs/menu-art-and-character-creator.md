@@ -27,7 +27,7 @@ Charakterfarben sind Daten des Host-Weltprofils. Clients schicken die Auswahl an
 den Host; dieser validiert die Indizes, erlaubten Asset-IDs und passende Körperfamilien.
 Save-Schema 13 übernimmt ältere Spielstände mit unveränderten ursprünglichen
 Figurenfarben und Layern. Mit der Reconnect-Erweiterung verlangt Netzwerkprotokoll
-13 denselben Build auf Host und Clients.
+14 denselben Build auf Host und Clients (explizite Auswahl bei jedem Rejoin).
 
 Prüfung: Domainchecks für Profil-Roundtrip, alte Spielstände, ungültige Farbindizes
 und Kopienisolation; Lobby-Zwei-Prozess-Test für Charaktererstellung und

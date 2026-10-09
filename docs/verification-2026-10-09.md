@@ -1,50 +1,86 @@
-# Prüfung und Veröffentlichung – 9. Oktober 2026
+# Prüfstand und Netzwerk-Abschluss – 9. Oktober 2026
 
-Der Nutzer hat den zuletzt vereinbarten manuellen Test mit „Der Test war
-erfolgreich“ bestätigt. Damit ist der letzte Fix für mehrere lokale Clients
-manuell bestätigt: zwei Spieler starten, ein dritter tritt über den normalen
-Join bei; getrennte lokale Client-Profile verhindern die doppelte Rejoin-Identität.
-Das ist keine gesonderte Bestätigung aller zusätzlichen Grenzfälle aus der
-[Übergabe](handoff-2026-10-08.md).
+Die Netzwerk-Testphase ist auf ausdrückliche Entscheidung des Nutzers abgeschlossen.
+Die unten aufgeführten Restpunkte bleiben dokumentiert und blockieren den weiteren
+Mechanikausbau nicht. Sie gelten nicht als getestete oder bereits gelöste Fälle.
 
-## Bereits vorhandene technische Nachweise
+## Verbindlicher Multiplayer-Stand
 
-- Unity-Import und Windows-Player-Build vom 8. Oktober, 22:17: 0 Fehler,
-  1 Warnung. Netzwerkprotokoll und Savegame-Schema jeweils 13.
-- Der erweiterte Drei-Prozess-Test besteht auf allen Teilnehmern: gemeinsamer
-  isolierter PlayerPrefs-Bereich, unterschiedliche lokale Profile, später
-  normaler Beitritt mit Creator, Save-Roundtrip der Optik, Meldung an alle und
-  Reconnect des dritten Clients zu seiner eigenen Figur.
-- Zwei-Prozess-Reconnect-Test, Protokoll-/Reservierungschecks sowie die zuvor
-  dokumentierten Menü-, Lobby-, Buch- und Multiplayer-Prüfungen bestanden.
-  Details und jeweiliger Prüfstand stehen in den Fach-Dokumenten.
+- Maximal vier Spieler einschließlich Host. Der Host verwaltet Welt und alle Figuren.
+- Figuren gehören zur Host-Welt; lokale Verbindungsschlüssel bestimmen keinen Besitz.
+- Nach erkanntem Disconnect werden Verbindungsplatz und Figur sofort freigegeben.
+  Inventar, Ausrüstung, Aussehen, HP/Mana, Tod und Position bleiben in der Host-Welt.
+- Jeder Beitritt verlangt Auswahl und Bestätigung einer freien Figur, auch wenn nur
+  eine frei ist. Keine automatische Wiederübernahme und keine Reservierungsfrist.
+- Belegte Figuren und Figuren während eines bestätigten Ladehandshakes sind gesperrt.
+- Auswahl und Erstellung sind erst bei vollständig aufgebauter Verbindung möglich.
+- Netzwerkprotokoll **14**: alle Teilnehmer benötigen denselben aktuellen Build.
+  Savegame-Schema bleibt **13**; bestehende Spielstände bleiben kompatibel.
 
-Heute keine erneute Build-/Spieltest-Runde: seit diesen Nachweisen wurde nur
-Dokumentation aktualisiert. Git-Diff, Asset-Metadaten und Ausschlüsse werden vor
-den vereinbarten strukturierten Commits und dem Push geprüft.
+Details: [Reconnect](reconnect.md), [LAN-Testablauf](lan-test.md).
 
-## Noch offen
+## Technische Nachweise
 
-1. Vier gleichzeitig aktive Teilnehmer und Ablehnung einer fünften Verbindung.
-2. Echte Netzwerkunterbrechung sowie Host-Ende und verständliche Rückmeldungen.
-3. Abbruch während gemeinsamer Buchbedienung, Abstimmung, Laden und
-   Truhenpräsentation in einer Vier-Spieler-Gruppe.
-4. Nach Neustart aller lokalen Test-Clients dieselbe Zuordnung prüfen;
-   Clients dazu in derselben Reihenfolge verbinden. Aktuell sind die Profile
-   lokale Verbindungskennungen, keine mitgebrachten Charakterdateien.
+Nativer Unity-Import und Windows-Player-Build vom 9. Oktober, 08:44:26:
+**Succeeded, 0 Fehler, 1 Warnung**. Die Player-Code-DLL ist vom 08:44:20.
+Protokollchecks für Version 14 bestehen. Der Build liegt unter
+`Builds/LocalCoop/SecretsReborn.exe`; zum Kopieren den gesamten Ordner verwenden.
 
-Als nächster konkreter Schritt die Netzwerk-Grenzfälle abschließen. Danach
-Wiederbeschaffung wichtiger Items und Einstiegsausrüstung festlegen; Gold,
-Verbrauchsgegenstände/Schnellslots und Bogen bleiben Vorschläge für den nächsten
-Mechanikausbau, keine neue Implementierungsfreigabe.
+Der Zwei-Prozess-Test besteht auf Host und Client:
+`Temp/RejoinSelection-73b71799eced4c40988e193d334c04b7`.
+Geprüft sind sofortige Freigabe, ausdrückliche Auswahl, Warteschlange während
+Host-Operationen, Save/Load abwesender Figuren, aktuelles Gebiet, Inventar,
+HP/Mana und Tod, abgebrochene Auswahl, erneuter Beitritt und Schutz der Hostfigur.
 
-## Git-Aufteilung
+Der Drei-Prozess-Test besteht auf allen Teilnehmern:
+`Temp/LateJoinSelection-d1e787c3581441d4bd3f61221e5ec7f8`.
+Geprüft sind später Beitritt mit Creator, gültige und ungültige Optik, Schutz vor
+doppelter Erstellung, Optik-Save-Roundtrip und Meldung an alle. Beide Gäste
+verlassen das Spiel und kehren in umgekehrter Reihenfolge zurück. Beide Figuren
+werden sofort frei und ausdrücklich bestätigt; auch die letzte einzelne freie
+Figur wird nicht automatisch zugewiesen. Lokale Client-Profile sind getrennt.
 
-1. RetroPixel-Figuren und Menü-Grafiken mit Metadaten und Kleidungspaaren.
-2. Zusammenhängende Spielsysteme: Menü/Creator, Host-Weltprofile, gemeinsames
-   Buch/Load, Gebietswechsel, Truhen, Reconnect/laufender Join und Tests. Diese
-   Komponenten referenzieren sich gegenseitig und werden gemeinsam committed.
-3. Dokumentation, Übergabe und bestätigter Prüfstand.
+Der anfängliche Test mit sofortiger Auswahl während des Verbindungsaufbaus blieb
+hängen. Die Bereitschaftsprüfung und synchronisierte Testschritte beheben diesen
+Fall; die abschließenden Berichte oben bestehen vollständig. Nachweise vom
+8. Oktober zur alten Reservierungsregel gelten nicht für den neuen Ablauf.
+
+Die temporären Berichte und Test-Saves bleiben außerhalb von Git. Testtreiber
+und Protokollchecks werden mit dem Code versioniert. Die Testprozesse sind beendet.
+
+## Manuell bestätigte Ergebnisse
+
+- Laufender Beitritt, Figurenwahl und Rejoin funktionieren.
+- Vier Spieler aktiv → einer disconnectet → ein neuer Spieler tritt bei und
+  bestätigt die freie Figur. Verbindungsplatz und Figur werden sauber freigegeben.
+- Ein fünfter Spieler wird abgelehnt. Dieser Test stammt aus dem vorherigen Build;
+  die unveränderte Begrenzung benötigt laut vereinbartem Prüfstand keine Wiederholung.
+- Geordnetes Host-Ende trennt alle anderen Spieler sofort.
+- LAN-Spielbetrieb wurde nach der Anleitung mit „Funktioniert perfekt“ bestätigt.
+
+Die Bestätigung eines allgemeinen LAN-Spieltests ersetzt keinen gesonderten
+Nachweis für Kabelverlust, WLAN-Abschaltung oder Prozessabsturz.
+
+## Nicht blockierende Restpunkte
+
+- Abrupte Netzwerkunterbrechung eines Clients, Transport-Timeout und anschließender Rejoin.
+- Host-Netzwerkverlust oder Host-Prozessabsturz; verständliche Rückkehr ins Menü.
+- Disconnect während Buchbedienung, Abstimmung, Laden oder Truhenanzeige mit vier Spielern.
+- Neustart aller lokalen Test-Clients und explizite Wahl unabhängig von der Startreihenfolge.
+
+## Git-Abschluss und nächster Einstieg
+
+Der Nutzer hat Dokumentation, Commit und Push freigegeben. Aufteilung:
+
+1. Reconnect-Fix, Protokoll 14 und aktualisierte Regressionstests; alte
+   Reservierungsklasse und deren Tests entfernen.
+2. Dokumentation des abgeschlossenen Prüfstands, LAN-Anleitung und nächste Schritte.
 
 Library, Temp, Builds, lokale Spielstände und das gekaufte Easy-Save-Plugin bleiben
-ausgeschlossen. Projektinhalte und bestehende Unity-Einstellungen bleiben erhalten.
+ignoriert. Manuell bearbeitete Szenen und Assets bleiben erhalten.
+
+Als Vorschlag folgt Wiederbeschaffung wichtiger Truhengegenstände für spätere
+Mitspieler: vorhandene gemeinsame Fund-Freischaltungen für ein Händlerangebot
+verwenden. Preise und Einstiegsausrüstung vorher festlegen. Gold pro Charakter
+und hostseitig geprüfte Käufe ergänzen; danach Heil-/Mana-Potions, Schnellslots
+und Bogen/Pfeile. Hier wird ausschließlich dokumentiert, nichts davon implementiert.

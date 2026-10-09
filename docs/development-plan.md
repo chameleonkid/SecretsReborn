@@ -1,6 +1,7 @@
 # Entwicklungsplan
 
-Stand: 6. Oktober 2026. Schwerpunkt bleibt die Weiterentwicklung der Mechaniken.
+Stand: 9. Oktober 2026. Die Netzwerk-Testphase ist laut Nutzer abgeschlossen.
+Schwerpunkt bleibt die Weiterentwicklung der Mechaniken.
 Code ist freigegeben; Commits und Pushes erfolgen auf ausdrücklichen Auftrag.
 
 ## Erreichter Stand
@@ -46,12 +47,11 @@ Nach Gruppen-Game-Over muss der Host den gemeinsamen Checkpoint laden können.
 
 ## Weitere Mechaniken – Vorschläge zur Reihenfolge
 
-1. Vier Spieler, Rejoin, Verbindungsabbruch und verständliche Rückmeldungen zu
-   vom Host abgelehnten Aktionen prüfen.
-2. Bereits vorhandene Gäste-Runen und persönliche Truhenpräsentation
-   mit gleichzeitigen Interaktionen und vier Spielern prüfen.
-3. Gold als Währung, Verbrauchsgegenstände und Pfeile als Munition ergänzen;
-   optionale Schnellslots für Controller vorsehen.
+1. Wiederbeschaffung wichtiger Truhengegenstände für spätere Mitspieler festlegen:
+   vorhandene gemeinsame Fund-Freischaltungen als Händlerangebot verwenden.
+   Preise und Einstiegsausrüstung vorher klären; dies bleibt ein Vorschlag.
+2. Gold pro Charakter und hostseitig geprüfte Händlerkäufe zusammen ergänzen.
+3. Heil-/Mana-Potions, Verbrauchsgegenstände und Controller-Schnellslots ergänzen.
 4. Bogen und Projektile mit hostseitiger Trefferprüfung implementieren.
 5. Eigene XP und Fortschritt ausbauen. Level-Effekte vorher festlegen;
    zusätzliche Herzen bleiben zunächst an Herzcontainer gebunden.
@@ -139,3 +139,20 @@ Laufender Beitritt erweitert: neue Spieler können im normalen Join-Ablauf eine
 Figur in einem freien Host-Weltplatz erstellen. Der zusätzliche Test-Button
 entfällt; der Code bleibt erhalten. Erfolgreiche Beitritte werden allen aktiven
 Teilnehmern mit dem Spielernamen angezeigt. Details: [Reconnect](reconnect.md).
+
+## Charakterauswahl nach Disconnect – 9. Oktober 2026
+
+Figuren werden beim Disconnect sofort frei. Jeder Rejoin erfordert die explizite
+Wahl einer freien Figur; auch eine einzige freie Figur wird nicht automatisch
+übernommen. Die Daten aller Figuren bleiben in der Host-Welt. Verbindungsschlüssel
+bestimmen keinen Charakterbesitz. Details und Tests: [Reconnect](reconnect.md).
+Zwei Disconnects, Rückkehr in anderer Reihenfolge und die einzelne freie Figur
+sind automatisiert geprüft. Vier aktive Teilnehmer mit Disconnect und anschließendem
+Beitritt eines neuen Spielers zur freien Figur sind manuell bestätigt. Die Ablehnung
+eines fünften Spielers ist aus dem vorherigen Build bestätigt.
+Das geordnete Beenden der Session durch den Host ist manuell bestätigt:
+alle Clients werden sofort getrennt. Der anschließende [LAN-Test](lan-test.md)
+ist ebenfalls manuell bestätigt. Offen bleiben gezielte Netzwerkunterbrechungen
+und Host-Absturz als eigene Grenzfälle. Die Netzwerk-Testphase ist abgeschlossen;
+diese Restpunkte blockieren den nächsten Mechanikausbau nicht. Der genaue Prüfstand
+steht in [Prüfung und Netzwerk-Abschluss](verification-2026-10-09.md).
