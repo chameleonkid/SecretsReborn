@@ -1,0 +1,38 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: ff0470a4c2b1c5c499a3c785ceaaba64, type: 3}
+  m_Name: heal
+  m_EditorClassIdentifier: Assembly-CSharp::SecretsReborn.SpellDefinition
+  spellId: heal
+  displayName: Heilung
+  element: 2
+  targets: 1
+  icon: {fileID: 21300000, guid: a8f353a1e231efd44b8eedc36b2935f3, type: 2}
+  ranks:
+  - totalBudget: 2
+    visualProjectiles: 1
+    manaCost: 10
+    castTime: 0.6
+    cooldown: 2
+    range: 8
+  - totalBudget: 4
+    visualProjectiles: 1
+    manaCost: 15
+    castTime: 0.6
+    cooldown: 2
+    range: 8
+  - totalBudget: 6
+    visualProjectiles: 1
+    manaCost: 20
+    castTime: 0.6
+    cooldown: 2
+    range: 8

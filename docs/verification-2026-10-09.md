@@ -185,3 +185,134 @@ unveränderte Basis/aktuelle HP, weiterhin Trankgrößen-Zuweisung, Lager und Da
 Windows-Spielassembly vom **9. Oktober 2026, 14:14:13 Uhr**, 0 Buildfehler,
 1 Buildwarnung. Manuelle HP-/Mana-/Armor-Vergleiche, Save/Load und Gebietswechsel
 mit angelegten Boni stehen noch aus. Kein Commit/Push durchgeführt.
+
+## Restore Point und begonnene Magie-Grundlage
+
+Der Nutzer bestätigt den Stat-Spieltest und beauftragt einen Commit mit Restore
+Point vor Magie. Commit **7a3753b**, annotierter Tag
+**restore/pre-spells-2026-10-09**. Arbeitsverzeichnis direkt danach sauber;
+kein Push beauftragt. [Restore-Anleitung](restore-point-2026-10-09.md).
+
+Anschließend uncommittet begonnen: SpellDefinition, pro Figur gespeicherte
+Lernränge, Saveformat 17/Protokoll 18 und erstes Secrets-Assetreview.
+SpellBookChecks, Protokollchecks und separate Runtime-Kompilierung bestanden.
+Noch keine angeschlossene Zauberausführung oder Ringoberfläche.
+
+Der erste Buildversuch scheiterte am unterschiedlichen
+Editor-/Player-Datenlayout (neues CharacterSaveData.spells war im geöffneten
+Editor noch nicht geladen). Nach Nutzerbestätigung und erneutem Scriptimport
+wurden Runtime und Editor vollständig neu kompiliert; das Datenlayout ist jetzt
+konsistent. Der vorbereitete Import und der anschließende Build sind erfolgreich.
+
+Bestanden: native Feuer-/Licht-Definitionen unter `Assets/World/Magic/Spells`,
+Easy-Save-Dateitest für erlernten Feuerball-Rang 2 und Migration aus Format 16
+zu leerem Zauberbuch. Zwei echte Spielprozesse bestätigen den auf dem Host
+erlernten Rang 3 auf dem Client sowie dessen Save-Roundtrip. Vorhandene
+Trankgrößen-Zuweisung, Equipment-Maxima, Inventar-/Lagertransfers, Gold-Isolation,
+Cooldown und Schutz gegen veraltete Doppelentnahme bestehen weiterhin.
+
+Windows-Spielassembly vom **9. Oktober 2026, 19:03:41 Uhr**: Build erfolgreich,
+0 Fehler, 1 Warnung. Keine Exceptions in den beiden Testlogs; Testprozesse beendet.
+Das beweist die Daten-/Persistenz-/Snapshot-Grundlage, noch keine spielbare
+Zauberausführung. Nächster Schritt: Host-Cast-Ablauf, Zielregeln und Bewegungssperre,
+danach Ringmenü. Neue Magie-Arbeit bleibt nach dem Restore Point uncommitted;
+kein neuer Commit oder Push durchgeführt.
+
+## Host-Zauberausführung: Feuerball und Heal
+
+Implementiert: Host prüft Lernrang, Zielart, Gebiet, Reichweite, Mana und
+Cooldown. Er fixiert die Ziele, zieht einmal Mana ab und verteilt das Budget
+beim Abschluss ganzzahlig ohne Vervielfachung. Keine Umgebungskollision oder
+Sichtlinienprüfung. Bewegung und physikalisches Schieben sind während der
+Wirkzeit gesperrt; Schaden bleibt möglich. Caststatus wird repliziert.
+Saveformat bleibt 17, Netzwerkprotokoll jetzt 19.
+
+Vorläufiger Tastaturzugriff: F9 am Host lernt/steigert Testzauber; F10 wechselt
+Ziele, F7 wirkt Feuerball, F8 Heilung, Shift wählt alle gültigen Ziele,
+Escape bricht das Wirken ab. F6 bleibt ausschließlich das Koop-Menü.
+Ringmenü, Controller-Zielwahl, separate Zauberbuch-Oberfläche und Effektanimationen
+sind noch offen. Regeln und Testbedienung: [Zauberablauf](spell-casting.md).
+
+Bestanden: SpellBookChecks, SpellCastChecks (Budget/Rundung), Protokollchecks
+einschließlich ungültiger Zauberanfragen, separate Runtime-Kompilierung und
+nativer Unity-Build. Spielassembly: **9. Oktober 2026, 19:24:56 Uhr**;
+Buildbericht: **0 Fehler, 1 Warnung**.
+
+Zwei echte Spielprozesse bestehen: Client-Feuerball trifft durch Testwand,
+zweite Anfrage während Wirkzeit verbraucht kein zusätzliches Mana,
+Bewegungsinput verschiebt die wirkende Figur nicht, Heilung verteilt zwei
+halbe Herzen auf zwei Figuren (je ein halbes Herz), erneute Heilung während
+Cooldown wird ohne weiteren Manaverbrauch abgelehnt. Vorhandene Inventar-,
+Trank-, Stat-, Lager- und Save-Roundtrip-Prüfungen bestehen weiterhin.
+Keine Exceptions oder Netzwerkfehler in beiden Logs; Testprozesse beendet.
+
+Nächster Schritt: editierbares Canvas-Ringmenü mit Element → Zauber →
+expliziter Zielvorschau → Bestätigung. Auswahlbewegungssperre und
+Controller-Bedienung dort ergänzen. Änderungen bleiben uncommittet;
+Restore Point `restore/pre-spells-2026-10-09` bleibt erhalten.
+
+## Editierbares Ringmenü und Zauberbuch
+
+Ergänzt: `Assets/Resources/Magic/UI/SpellRingCanvas.prefab`, acht editierbare
+Ringpositionen, wiederverwendete Inventarrahmen, klare Auswahlmarkierung,
+Element → Zauber → Einzelziel/alle → Bestätigung. Zauberbuchansicht zeigt
+alle erlernten Definitionen mit Rängen und Werten. Maus, Tastatur und
+Controller-Eingaben sind angebunden. Details: [Ringmenü](spell-ring-menu.md).
+
+Auswahl sperrt Bewegung und physikalisches Schieben auf dem Host, ohne
+Schadensimmunität. Ein eigener Netzwerk-Auswahlstatus sperrt parallele
+Aktionen. Bestätigung prüft lokal Ziel/Mana/Cooldown; der Host validiert den
+Cast erneut. Cast-Snapshots enthalten jetzt Cooldown-Anzeigen.
+Netzwerkprotokoll **20**, Saveformat weiterhin **17**.
+
+Ein erster Integrationstest deckte die leere Elementliste auf. Die
+Verzweigung ist korrigiert; der Test prüft vorhandene Elemente jetzt explizit.
+Einträge werden auf unterschiedliche, gleichmäßig verteilte Ringpositionen
+gesetzt, ohne die im Prefab angelegten Positionen umzuschreiben.
+
+Abschließender Build: **9. Oktober 2026, Spielassembly 19:54:28 Uhr**,
+**0 Fehler, 1 Warnung**. SpellRingLayoutChecks und erweiterte Protokollchecks
+bestehen; Runtime kompiliert. Zwei echte Spielprozesse bestehen:
+Ring öffnen, Auswahlbewegungssperre, Zauberbuch, Zurück/Abbrechen,
+Einzelzielvorschau, Gruppenheilung über Bestätigung sowie vorherige
+Feuerball-, Mana-, Cooldown-, Inventar-, Lager-, Stat- und Save-Prüfungen.
+Element-, Zauberbuch-, Ziel- und Bestätigungsansicht wurden als Canvas-Bilder
+gerendert und geprüft. Keine Exceptions oder verworfenen Netzwerkzustände
+in beiden Logs; Testprozesse beendet.
+
+Noch manuell prüfen: View/M öffnen, Stick/D-Pad wählen, A/Cross bestätigen,
+B/Circle zurück, Y/Triangle Zauberbuch; außerdem Auswahl unter Gegnerdruck.
+F9 am Host dient weiterhin als temporärer Lernzugriff für eine Testwelt.
+Nächster Ausbau: Cast-/Treffereffekte und zielverfolgende Projektile mit
+Host-Schaden bei Ankunft. Feuerball trifft aktuell weiterhin direkt nach
+der Wirkzeit. Kein Commit oder Push in dieser Phase.
+
+## SoM-Icon-Ring mit Secrets-Grafiken
+
+Der neue `SpellIconRingCanvas` ersetzt die Textfelder durch freistehende Icons
+um die eigene Figur. Feste Auswahlmarkierung oben, gemeinsame Rotation,
+Element → Zauber → Ziel in der Welt → Bestätigung. Separates Zauberbuch bleibt.
+Originalicons aus Secrets sind nativ mit Point/None importiert; Sprite-Assets
+beschneiden den transparenten Rand. Herkunft: [Icon-Quellen](spell-icon-sources.json).
+
+Finaler Windows-Build: **9. Oktober 2026, Spielassembly 22:00:04 Uhr**,
+**0 Fehler, 1 Warnung**. Unity-Prefab-/Icon-Prüfung besteht.
+`SpellRingLayoutChecks` prüft Ringe bis 64 Einträge und Buch-Seitenwechsel.
+Zwei echte Spielprozesse bestehen in `Temp/SpellIconRing-20261009-220138`:
+
+- Zwölf Laufzeiticons ohne Achtergrenze; danach normale erlernte Elementauswahl.
+- Rotation vorwärts/rückwärts und ausgewähltes Icon an der festen oberen Position.
+- Auswahlbewegungssperre auf dem Host, Zauberbuch, Abbrechen und Weltzielwahl
+  mit ausgeblendetem Icon-Ring.
+- Client-Cast, Mana, Cooldown, Feuerball durch Umgebung, geteilte Heilung und
+  bisherige Inventar-/Lager-/Stat-/Speicherregression.
+
+Element-, Buch-, Ziel- und Bestätigungsansicht offscreen gerendert und visuell
+geprüft. Keine Script-Exceptions oder NetworkConfig-Mismatches in den Testlogs.
+Testprozesse sind beendet. Die D3D12-Meldung zur fehlenden Info-Queue und
+Grafik-Ressourcen beim Testprozessende sind kein Nachweis eines Spiellogikfehlers.
+
+Noch manuell: physischer Controller, Rotationstempo, Lesbarkeit über dem
+normalen Spielfeld und Auswahl unter Gegnerdruck. Bedienung steht im
+[Ringmenü-Dokument](spell-ring-menu.md). Danach Cast-/Treffereffekte und
+Feuerball-Schaden erst beim Eintreffen des Host-gesteuerten Projektils.

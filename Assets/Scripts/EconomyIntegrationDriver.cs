@@ -25,7 +25,7 @@ namespace SecretsReborn
         }
         private void Update() { if (!finished && Time.realtimeSinceStartupAsDouble > deadline) Finish("FAIL: economy integration timeout: " + NetworkCoop.Active?.Status); }
         private void Finish(string result) { if (finished) return; finished = true; File.WriteAllText(report, result); Debug.Log(result); Application.Quit(result.StartsWith("PASS") ? 0 : 1); }
-        private void CaptureCanvas(InventoryCanvasView view, string name)
+        private void CaptureCanvas(Component view, string name)
         {
             // Hidden/headless players have no backbuffer. Render the actual canvas offscreen.
             var canvas = view.GetComponent<Canvas>(); var previousMode = canvas.renderMode;
@@ -68,6 +68,7 @@ namespace SecretsReborn
                 var container = FindFirstObjectByType<SharedStashContainer>();
                 if (container == null || !actor.TryReceive(actor.Find("foundation-warrior-armor"), 1)) { Finish("FAIL: stash fixture missing"); yield break; }
                 actor.transform.position = container.transform.position + Vector3.right;
+                for (int rank=0;rank<3;rank++) world.CharacterSpells(guest).Learn("fireball",3);
                 foreach (string type in new[] { "health", "mana" }) foreach (string size in new[] { "small", "medium", "large" })
                     if (!actor.TryReceive(actor.Find(type+"-potion-"+size),2)) { Finish("FAIL: potion variant catalog"); yield break; }
                 File.WriteAllText(Path.Combine(folder, "EconomyReady.signal"), "ready");
@@ -81,11 +82,26 @@ namespace SecretsReborn
                 { Finish("FAIL: host economy isolation/consumption"); yield break; }
                 string path = Path.Combine(folder, "EconomyIntegration.es3");
                 SaveGameStore.Save(world, path); var loaded = SaveGameStore.Load(path); ES3.DeleteFile(path);
+                if (loaded.CharacterSpells(guest).Rank("fireball")!=3) { Finish("FAIL: learned spell save"); yield break; }
                 if (loaded.CharacterInventory(guest).Gold != 25 || loaded.CharacterInventory(guest).PotionItem(1) != "mana-potion" || loaded.CharacterVitals(guest).Mana != 30)
                 { Finish("FAIL: real economy save roundtrip"); yield break; }
                 if (loaded.CharacterInventory(founder).Count("foundation-warrior-armor") != 1 || loaded.CharacterInventory(guest).Count("foundation-warrior-armor") != 0 || loaded.SharedStash.Count("foundation-warrior-armor") != 0)
                 { Finish("FAIL: item duplicated during stash trade or save"); yield break; }
-                Finish("PASS: native host/client gold isolation, potion RPC/cooldown, client stash deposit/host withdrawal, stale withdrawal rejected and real Easy Save roundtrip.");
+                world.CharacterSpells(guest).Learn("heal",3); world.CharacterVitals(guest).Damage(2); world.CharacterVitals(founder).Damage(2);
+                world.CharacterVitals(guest).RestoreMana(50);
+                var dummy=new GameObject("Spell test enemy",typeof(Rigidbody2D),typeof(SpriteRenderer)); dummy.transform.position=actor.transform.position+Vector3.right*4;
+                var spellEnemy=dummy.AddComponent<TreeMeleeEnemy>(); spellEnemy.Configure("spell-test-enemy",null); dummy.GetComponent<Rigidbody2D>().gravityScale=0;
+                var barrier=new GameObject("Spell test wall",typeof(BoxCollider2D)); barrier.transform.position=actor.transform.position+Vector3.right*2;
+                barrier.transform.localScale=new Vector3(.5f,3,1); Physics2D.SyncTransforms();
+                File.WriteAllText(Path.Combine(folder,"SpellReady.signal"),"ready");
+                while (!File.Exists(Path.Combine(folder,"SpellDone.signal"))) yield return null;
+                if (spellEnemy.Alive || world.CharacterVitals(guest).Health!=5 || world.CharacterVitals(founder).Health!=5 || world.CharacterVitals(guest).Mana!=20)
+                { Finish("FAIL: host spell damage/heal/budget/mana"); yield break; }
+                var hostCaster=actor.GetComponent<SpellCaster>();
+                if (hostCaster.Cooldown("heal")<=0 || hostCaster.TryCast("heal",null,true) || world.CharacterVitals(guest).Mana!=20)
+                { Finish("FAIL: spell cooldown or mana charged on rejected cast"); yield break; }
+                Destroy(dummy); Destroy(barrier);
+                Finish("PASS: economy, stash and save; client fireball through wall, shared heal, fixed cast position, host mana/cooldown and replicated casting.");
             }
             else
             {
@@ -93,6 +109,7 @@ namespace SecretsReborn
                 net.ChooseLobbyCharacter(net.Lobby.characters[1].id, ready: true);
                 while (net.LocalCharacter == null || net.LobbyActive || net.ChangingArea || !File.Exists(Path.Combine(folder, "EconomyReady.signal"))) yield return null;
                 var actor = net.LocalCharacter;
+                while (GameSession.Instance.World.CharacterSpells(actor.CharacterId).Rank("fireball")!=3) yield return null;
                 while (actor.State.Gold != 25 || actor.State.Count("mana-potion") != 3 || actor.State.PotionItem(0) != "health-potion") yield return null;
                 actor.TryUsePotion(0);
                 while (actor.State.Count("health-potion") != 2 || actor.PotionCooldownRemaining <= 0) yield return null;
@@ -150,7 +167,53 @@ namespace SecretsReborn
                 interaction.CloseMenu(); yield return null; yield return null;
                 if (canvas.StashVisible || interaction.SelectedIndex >= 57) { Finish("FAIL: canvas close/navigation reset"); yield break; }
                 File.WriteAllText(Path.Combine(folder, "EconomyClientDone.signal"), "done");
-                Finish("PASS: editable inventory/stash canvas creation and switching, UI equip/unequip/drop through host RPC, replicated currency/potions, stash trade and stale withdrawal protection.");
+                while (!File.Exists(Path.Combine(folder,"SpellReady.signal")) || GameSession.Instance.World.CharacterSpells(actor.CharacterId).Rank("heal")!=1) yield return null;
+                // Runtime-created test enemy has no authored client counterpart. Create its visual mirror.
+                var spellMirror=new GameObject("Spell test enemy",typeof(Rigidbody2D),typeof(SpriteRenderer));
+                spellMirror.transform.position=actor.transform.position+Vector3.right*4;
+                var mirrorEnemy=spellMirror.AddComponent<TreeMeleeEnemy>(); mirrorEnemy.Configure("spell-test-enemy",null); mirrorEnemy.SetReplica(true);
+                var ring=actor.GetComponent<SpellRingMenu>();
+                if (!ring.Open()) { Finish("FAIL: ring open"); yield break; }
+                if (FindFirstObjectByType<SpellRingView>().IconCount!=2 || !FindFirstObjectByType<SpellRingView>().RingVisible)
+                { Finish("FAIL: learned element choices missing"); yield break; }
+                var ringView=FindFirstObjectByType<SpellRingView>();
+                var manyLabels=new string[12]; var manyIcons=new Sprite[12];
+                for(int i=0;i<12;i++) { manyLabels[i]="Test "+i; manyIcons[i]=actor.GetComponent<SpellCaster>().Find("fireball").Icon; }
+                ringView.RenderIcons("Layout test",manyLabels,manyIcons,11,"",actor.transform,false,false);
+                if(ringView.IconCount!=12 || !ringView.RingVisible) { Finish("FAIL: ring capped at eight entries"); yield break; }
+                ring.Page(0); ring.Page(1); yield return new WaitForSecondsRealtime(.4f);
+                var top=ringView.transform.Find("Ring/Icon-1").GetComponent<RectTransform>().anchoredPosition;
+                if(Mathf.Abs(top.x)>1 || Mathf.Abs(top.y-74)>1) { Finish("FAIL: rotating selected icon missed fixed top marker"); yield break; }
+                ring.Page(-1); yield return new WaitForSecondsRealtime(.4f);
+                var ringPosition=actor.transform.position; net.TestMotion=Vector2.right;
+                yield return new WaitForSecondsRealtime(.3f);
+                if (!ring.IsOpen || Vector2.Distance(actor.transform.position,ringPosition)>.1f) { Finish("FAIL: selection movement lock"); yield break; }
+                net.TestMotion=Vector2.zero;
+                CaptureCanvas(FindFirstObjectByType<SpellRingView>(),"SpellElementRing.png");
+                ring.ToggleBook(); CaptureCanvas(FindFirstObjectByType<SpellRingView>(),"SpellBook.png"); ring.Back();
+                ring.Confirm(); ring.Confirm(); // Fire -> Fireball -> explicit target choice
+                if (FindFirstObjectByType<SpellRingView>().RingVisible) { Finish("FAIL: icon ring remained visible during target choice"); yield break; }
+                CaptureCanvas(FindFirstObjectByType<SpellRingView>(),"SpellTargetRing.png");
+                ring.Back(); ring.Back(); ring.Back(); // returns through spell/element then closes
+                if (ring.IsOpen) { Finish("FAIL: ring cancel"); yield break; }
+                yield return new WaitForSecondsRealtime(.1f);
+                var caster=actor.GetComponent<SpellCaster>(); caster.TryCast("fireball","enemy:spell-test-enemy",false);
+                while (!caster.IsCasting) yield return null;
+                var castPosition=actor.transform.position; caster.TryCast("fireball","enemy:spell-test-enemy",false);
+                net.TestMotion=Vector2.right;
+                yield return new WaitForSecondsRealtime(.2f);
+                if (Vector2.Distance(actor.transform.position,castPosition)>.1f) { Finish("FAIL: casting movement lock"); yield break; }
+                net.TestMotion=Vector2.zero;
+                while (caster.IsCasting || GameSession.Instance.World.CharacterVitals(actor.CharacterId).Mana!=30) yield return null;
+                if (!ring.Open()) { Finish("FAIL: heal ring open"); yield break; }
+                ring.Choose(1); ring.Confirm(); // Light -> Heal
+                ring.Choose(2); // All (two allies)
+                CaptureCanvas(FindFirstObjectByType<SpellRingView>(),"SpellConfirmRing.png");
+                ring.Confirm();
+                while (!caster.IsCasting) yield return null;
+                while (caster.IsCasting || GameSession.Instance.World.CharacterVitals(actor.CharacterId).Mana!=20 || GameSession.Instance.World.CharacterVitals(actor.CharacterId).Health!=5) yield return null;
+                File.WriteAllText(Path.Combine(folder,"SpellDone.signal"),"done");
+                Finish("PASS: UI/economy regression and client-authority spell requests, replicated casting, blocked movement and shared heal.");
             }
         }
     }

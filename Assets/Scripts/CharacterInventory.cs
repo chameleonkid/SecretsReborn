@@ -28,8 +28,12 @@ namespace SecretsReborn
         internal void NotifyInventoryChanged() => Changed?.Invoke();
         public void Configure(ItemDefinition[] definitions, ClothingAppearance fallback)
         { catalog = definitions; baseClothing = fallback; }
-        private void Awake() => State = NetworkCoop.Running && NetworkCoop.Active.ChangingArea
-            ? new InventoryState() : GameSession.Instance.World.CharacterInventory(characterId);
+        private void Awake()
+        {
+            State = NetworkCoop.Running && NetworkCoop.Active.ChangingArea ? new InventoryState() : GameSession.Instance.World.CharacterInventory(characterId);
+            if (GetComponent<SpellCaster>()==null) gameObject.AddComponent<SpellCaster>();
+            if (GetComponent<SpellRingMenu>()==null) gameObject.AddComponent<SpellRingMenu>();
+        }
         public void RefreshSession()
         { State = GameSession.Instance.World.CharacterInventory(characterId); MigrateEconomy(); SyncEquipmentVitals(); GetComponent<CharacterDeath>()?.RefreshState(); ApplyAppearance(); Changed?.Invoke(); }
         private void MigrateEconomy()

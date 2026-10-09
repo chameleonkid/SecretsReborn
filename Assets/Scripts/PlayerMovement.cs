@@ -49,10 +49,10 @@ namespace SecretsReborn
         private void OnEnable() => move.Enable();
         private void FixedUpdate()
         {
-            SetRewardImmobilized(actor != null && actor.HasStateAuthority && GameSession.Instance.IsReceivingReward(actor));
+            SetRewardImmobilized(actor != null && actor.HasStateAuthority && (GameSession.Instance.IsReceivingReward(actor) || actor.GetComponent<SpellCaster>()?.IsCasting==true || SpellRingMenu.Selecting(actor)));
             body.linearVelocity =
             !NetworkCoop.IsReplica && (networkDriven || Application.isFocused) && !GameSession.Instance.Busy && !SaveBook.IsOpen
-                && (actor == null || !GameSession.Instance.World.CharacterVitals(actor.CharacterId).IsDown && !GameSession.Instance.IsReceivingReward(actor)) && (melee == null || !melee.IsSwinging)
+                && (actor == null || !GameSession.Instance.World.CharacterVitals(actor.CharacterId).IsDown && !GameSession.Instance.IsReceivingReward(actor) && actor.GetComponent<SpellCaster>()?.IsCasting!=true && !SpellRingMenu.Selecting(actor)) && (melee == null || !melee.IsSwinging)
                 ? (networkDriven ? networkMotion : ReadLocalMotion()) * speed : Vector2.zero;
         }
         private void OnDisable()

@@ -2,7 +2,7 @@ using System;
 
 namespace SecretsReborn
 {
-    public enum CoopAction { Input, MoveItem, Equip, Unequip, UseItem, Pickup, Chest, Attack, Lamp, ConfirmReward, BindPotion, UsePotion, StashDeposit, StashWithdraw }
+    public enum CoopAction { Input, MoveItem, Equip, Unequip, UseItem, Pickup, Chest, Attack, Lamp, ConfirmReward, BindPotion, UsePotion, StashDeposit, StashWithdraw, CastSpell, CancelSpell, SpellSelection }
     [Serializable] public sealed class CoopCommand
     {
         public long sequence;
@@ -17,7 +17,7 @@ namespace SecretsReborn
     }
     [Serializable] public sealed class CoopHello
     {
-        public int protocol = 17;
+        public int protocol = 20;
         public string characterToken, scene, playerName;
     }
     [Serializable] public sealed class CoopActorPose
@@ -26,6 +26,7 @@ namespace SecretsReborn
         public float x, y, dx, dy, reviveProgress, potionCooldown;
         public bool lamp, reviveInterrupted;
         public int swing;
+        public SpellCastSnapshot cast;
     }
     [Serializable] public sealed class ChestRewardState
     {
@@ -41,7 +42,7 @@ namespace SecretsReborn
     }
     [Serializable] public sealed class CoopSnapshot
     {
-        public int protocol = 17;
+        public int protocol = 20;
         public long sequence;
         public int areaEpoch;
         public string localCharacter, scene;
@@ -96,7 +97,7 @@ namespace SecretsReborn
                         if (character.potionItems[i] == "") character.potionItems[i] = null;
             }
         }
-        public static bool ValidHello(CoopHello hello, string scene) => hello != null && hello.protocol == 17
+        public static bool ValidHello(CoopHello hello, string scene) => hello != null && hello.protocol == 20
             && hello.scene == scene && Guid.TryParseExact(hello.characterToken, "N", out _);
         public static bool Valid(CoopCommand command)
         {
@@ -104,6 +105,9 @@ namespace SecretsReborn
                 || command.target != null && command.target.Length > 160) return false;
             switch (command.action)
             {
+                case CoopAction.SpellSelection: return command.from==0 || command.from==1;
+                case CoopAction.CastSpell: return (command.from==0 || command.from==1) && !string.IsNullOrWhiteSpace(command.expectedItem) && command.expectedItem.Length<=64
+                    && (command.from==1 || !string.IsNullOrWhiteSpace(command.target));
                 case CoopAction.Input: return Finite(command.x) && Finite(command.y)
                     && Math.Abs(command.x) <= 1 && Math.Abs(command.y) <= 1;
                 case CoopAction.MoveItem: return Bag(command.from) && Bag(command.to);

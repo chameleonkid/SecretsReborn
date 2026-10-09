@@ -19,6 +19,7 @@ namespace SecretsReborn
         private static string HierarchyPath(Transform node) => node.parent == null ? node.name + ":" + node.GetSiblingIndex()
             : HierarchyPath(node.parent) + "/" + node.name + ":" + node.GetSiblingIndex();
         public bool CanOpenNetwork(CharacterInventory character) => character != null && isActiveAndEnabled
+            && !SpellRingMenu.BlocksInput(character) && character.GetComponent<SpellCaster>()?.IsCasting!=true
             && !GameSession.Instance.World.CharacterVitals(character.CharacterId).IsDown
             && Vector2.Distance(transform.position, character.transform.position) <= interactionDistance;
         internal void OpenNetwork(CharacterInventory character)
@@ -100,7 +101,7 @@ namespace SecretsReborn
             var key = Keyboard.current; var pad = Gamepad.current;
             if (!open)
             {
-                if (actor == null || actor.GetComponent<InventoryInteraction>()?.IsOpen == true || IsOpen) return;
+                if (actor == null || actor.GetComponent<InventoryInteraction>()?.IsOpen == true || IsOpen || SpellRingMenu.BlocksInput(actor) || actor.GetComponent<SpellCaster>()?.IsCasting==true) return;
                 if (Vector2.Distance(transform.position, actor.transform.position) > interactionDistance) return;
                 if (key != null && key.eKey.wasPressedThisFrame || pad != null && pad.buttonSouth.wasPressedThisFrame)
                 {

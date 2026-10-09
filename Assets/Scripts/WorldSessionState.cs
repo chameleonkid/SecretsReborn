@@ -56,7 +56,7 @@ namespace SecretsReborn
                 if (anchor != null) SetPosition(FounderCharacterId, anchor.scenePath, anchor.x, anchor.y, anchor.z);
                 SavedHostCharacterId = FounderCharacterId;
             }
-            slots.RemoveAll(s => s.id == id); characters.Remove(id); vitals.Remove(id); positions.Remove(id);
+            slots.RemoveAll(s => s.id == id); characters.Remove(id); vitals.Remove(id); positions.Remove(id); spellBooks.Remove(id);
             return true;
         }
         public string CreateWorldCharacter(string name, int hairColor = -1, int eyeColor = -1, string bodyStyle = null, string hairStyle = null, string eyeStyle = null)
@@ -93,6 +93,13 @@ namespace SecretsReborn
         public void SetSavedScene(string path) => SavedScenePath = path;
         private readonly Dictionary<string, InventoryState> characters = new Dictionary<string, InventoryState>();
         private readonly Dictionary<string, CharacterVitalsState> vitals = new Dictionary<string, CharacterVitalsState>();
+        private readonly Dictionary<string,SpellBookState> spellBooks=new Dictionary<string,SpellBookState>();
+        public SpellBookState CharacterSpells(string id)
+        {
+            if (string.IsNullOrWhiteSpace(id)) throw new ArgumentException("Missing character ID.");
+            if (!spellBooks.TryGetValue(id,out var book)) { book=new SpellBookState(); spellBooks.Add(id,book); }
+            return book;
+        }
         public CharacterVitalsState CharacterVitals(string characterId)
         {
             CharacterInventory(characterId);
@@ -152,6 +159,7 @@ namespace SecretsReborn
             {
                 var character = pair.Value.Capture(pair.Key);
                 character.vitals = CharacterVitals(pair.Key).Capture();
+                character.spells=CharacterSpells(pair.Key).Capture();
                 var position = Position(pair.Key);
                 if (position != null) { character.hasPosition = true; character.scenePath = position.scenePath; character.x = position.x; character.y = position.y; character.z = position.z; }
                 data.characters[i++] = character;
@@ -161,7 +169,7 @@ namespace SecretsReborn
         }
         public static WorldSessionState Restore(SaveGameData data)
         {
-            if (data == null || data.version < 1 || data.version > 16 || data.characters == null || data.puzzles == null || data.collectedItems == null || data.version >= 6 && data.defeatedEnemies == null
+            if (data == null || data.version < 1 || data.version > 17 || data.characters == null || data.puzzles == null || data.collectedItems == null || data.version >= 6 && data.defeatedEnemies == null
                 || data.version >= 8 && data.discoveredChestItems == null)
                 throw new ArgumentException("Unsupported or incomplete savegame.");
             var world = new WorldSessionState(data.worldId);
@@ -183,6 +191,7 @@ namespace SecretsReborn
             {
                 if (character == null || string.IsNullOrWhiteSpace(character.characterId)) throw new ArgumentException("Invalid character ID.");
                 world.characters.Add(character.characterId, InventoryState.Restore(character, data.version < 7, data.version < 14));
+                world.spellBooks.Add(character.characterId,data.version>=17 ? SpellBookState.Restore(character.spells) : new SpellBookState());
                 world.vitals.Add(character.characterId, data.version >= 5 ? CharacterVitalsState.Restore(character.vitals)
                     : data.version == 4 ? CharacterVitalsState.RestoreLegacy(character.vitals) : new CharacterVitalsState());
                 if (data.version >= 2 && character.hasPosition) world.SetPosition(character.characterId, character.scenePath, character.x, character.y, character.z);

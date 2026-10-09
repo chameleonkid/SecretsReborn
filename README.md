@@ -19,6 +19,8 @@ SecretsReborn ist ein neues 2D-Action-Adventure mit Schwerpunkt auf Erkundung un
 - [Canvas-Inventar und Lager im Unity-Editor gestalten](docs/inventory-ui-authoring.md)
 - [Charakterwerte, Equipment-Boni und Rüstungsformel](docs/character-stats.md)
 - [Vereinbartes Zaubersystem: Ringmenü, Zielwahl, Ränge und Loot](docs/spell-system.md)
+- [Erster Host-Zauberablauf und vorläufige Testtasten](docs/spell-casting.md)
+- [Editierbares Zauber-Ringmenü, Zauberbuch und Controller-Bedienung](docs/spell-ring-menu.md)
 - [Shared Stash: gemeinsames Lager und Transfers](docs/shared-stash.md)
 - [Vision und feste Rahmenbedingungen](docs/vision.md)
 - [Erster Abenteuerentwurf](docs/first-adventure.md)

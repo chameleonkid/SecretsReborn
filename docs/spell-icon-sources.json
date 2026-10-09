@@ -1,0 +1,16 @@
+{
+  "repository": "https://github.com/chameleonkid/Secrets",
+  "commit": "99f5b1c15fa6201e84044fbd81f9397d4f9709a2",
+  "destination": "Assets/Resources/Magic/UI/Icons",
+  "import": "Original PNG unchanged; Point, Uncompressed, no mipmaps, Full Rect. Native Sprite assets crop to alpha > 16 bounding box.",
+  "icons": {
+    "fire": "Assets/Art/Spells/Fireball/Fireball Flug 1.png",
+    "ice": "Assets/Art/Objects/snowflake.png",
+    "light": "Assets/Art/UI/Sun_type1.png",
+    "shadow": "Assets/Art/UI/Moon_star_cloud.png",
+    "water": "Assets/Art/Spells/Waterball.png",
+    "lightning": "Assets/Art/Lightning/electricLine0001.png",
+    "heal": "Assets/Art/Items/PixelArt_OldSchool/Book/book_004.png"
+  },
+  "usage": "Fireball uses fire; Heal uses heal. Only learned elements appear. This import includes graphics only, no legacy scripts or prefabs."
+}

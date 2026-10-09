@@ -86,7 +86,9 @@ namespace SecretsReborn
         }
         private void Update()
         {
+            if (SpellRingMenu.BlocksInput(inventory)) { GameSession.Instance.CancelRevive(inventory); return; }
             if (!localInput) return;
+            if (GetComponent<SpellCaster>()?.IsCasting==true) return;
             if (stash != null && (!stash.CanUse(inventory) || !stash.isActiveAndEnabled)) SetOpen(false);
             if (!Application.isFocused || SaveBook.IsOpen || GameSession.Instance.Busy || GameSession.Instance.RewardPresentationActive)
             { GameSession.Instance.CancelRevive(inventory); return; }

@@ -13,11 +13,12 @@ namespace SecretsReborn
         public string scenePath;
         public float x, y, z;
         public VitalsSaveData vitals;
+        public LearnedSpellData[] spells=Array.Empty<LearnedSpellData>();
     }
     [Serializable] public sealed class PuzzleSaveData { public string puzzleId; public int progress; }
     [Serializable] public sealed class SaveGameData
     {
-        public int version = 16;
+        public int version = 17;
         public InventoryStack[] sharedStash = new InventoryStack[InventoryState.Capacity];
         public string founderCharacterId;
         public string savedAtUtc;

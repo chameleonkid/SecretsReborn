@@ -10,9 +10,17 @@ public static class CoopProtocolChecks
         Check(CoopProtocol.ValidHello(hello, "forest"), "valid handshake");
         Check(!CoopProtocol.ValidHello(hello, "cave"), "different scene");
         hello.protocol = 1; Check(!CoopProtocol.ValidHello(hello, "forest"), "version mismatch");
-        hello.protocol = 17; hello.characterToken = "solo-player"; Check(!CoopProtocol.ValidHello(hello, "forest"), "host identity spoof");
+        hello.protocol = 20; hello.characterToken = "solo-player"; Check(!CoopProtocol.ValidHello(hello, "forest"), "host identity spoof");
         var input = new CoopCommand { sequence = 1, action = CoopAction.Input, x = 1, y = 1 };
         Check(CoopProtocol.Valid(input), "diagonal input");
+        Check(CoopProtocol.Valid(new CoopCommand { sequence=1,action=CoopAction.CastSpell,from=0,expectedItem="fireball",target="enemy:log" }), "single spell target");
+        Check(CoopProtocol.Valid(new CoopCommand { sequence=1,action=CoopAction.CastSpell,from=1,expectedItem="heal" }), "all spell targets");
+        Check(!CoopProtocol.Valid(new CoopCommand { sequence=1,action=CoopAction.CastSpell,expectedItem="fireball" }), "missing spell target");
+        Check(!CoopProtocol.Valid(new CoopCommand { sequence=1,action=CoopAction.CastSpell,from=2,expectedItem="heal" }), "invalid spell target mode");
+        Check(!CoopProtocol.Valid(new CoopCommand { sequence=1,action=CoopAction.CastSpell,from=1,expectedItem=new string('x',65) }), "oversized spell ID");
+        Check(CoopProtocol.Valid(new CoopCommand { sequence=1,action=CoopAction.SpellSelection,from=1 }), "selection open");
+        Check(CoopProtocol.Valid(new CoopCommand { sequence=1,action=CoopAction.SpellSelection,from=0 }), "selection close");
+        Check(!CoopProtocol.Valid(new CoopCommand { sequence=1,action=CoopAction.SpellSelection,from=2 }), "invalid selection state");
         input.x = float.NaN; Check(!CoopProtocol.Valid(input), "NaN");
         input.x = float.PositiveInfinity; Check(!CoopProtocol.Valid(input), "infinity");
         input.x = 20; Check(!CoopProtocol.Valid(input), "oversized movement");

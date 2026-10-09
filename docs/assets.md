@@ -130,3 +130,14 @@ richtungsabhängigen Animationen, anschließend Laterne und Höhleneingang. Klei
 und Waffen sind pro Figur darzustellen; lokale Eingabe und Kamera sowie gemeinsame
 Welt- und Rätselzustände brauchen weiterhin getrennte Zuständigkeiten. Diese
 Grafikimporte ersetzen noch keine Netzwerk-Anbindung.
+
+## Zauber-Ringicons – 9. Oktober 2026
+
+Sieben Originalgrafiken aus Secrets liegen unter
+`Assets/Resources/Magic/UI/Icons/Textures`: Feuerball, Schneeflocke, Sonne,
+Mond, Wasserball, Blitz und grünes Zauberbuch. Herkunft und Commit sind in
+[spell-icon-sources.json](spell-icon-sources.json) festgehalten. Point-Filter,
+keine Kompression/Mipmaps und Full Rect; separate Sprite-Assets beschneiden
+transparenten Leerraum, ohne die PNGs zu verändern. Feuer/Licht sind aktuell
+spielbare Elemente; weitere Symbole bereiten spätere Definitionen vor.
+Keine alten Spell-Scripts, Collider oder Prefab-Abhängigkeiten übernommen.

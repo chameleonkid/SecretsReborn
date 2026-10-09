@@ -1,6 +1,7 @@
 # Zaubersystem – vereinbarte Grundlage
 
-Stand: 9. Oktober 2026. Konzept mit dem Nutzer abgestimmt; noch nicht implementiert.
+Stand: 9. Oktober 2026. Konzept mit dem Nutzer abgestimmt; erster Host-Ablauf
+und Ringmenü implementiert. Effektanimationen und Projektilflug folgen.
 Erkundung und Item-Fortschritt bleiben die Grundlage. Secret of Mana dient als
 Inspiration für Ringmenü und Zielwahl, nicht als Pflicht zur Übernahme alter Logik.
 
@@ -24,6 +25,10 @@ Markierungen zeigen vor Bestätigung die betroffenen Figuren.
 Zaubereffekte nicht ab. Die zuvor vorgeschlagene Sichtlinien-/Hindernisprüfung
 wird für diese Magie nicht übernommen. Reichweite, Gebiet und gültige Zielart
 bleiben relevant. Fernkampfwaffen sind davon unabhängig.
+Für Feuerball gilt zusätzlich: Schaden soll beim Eintreffen des vom Host
+gesteuerten Projektils am gewählten Ziel entstehen. Mehrere Projektile teilen
+das feste Budget. Diese Flugphase ist der nächste Ausführungsschritt;
+aktuell fällt Schaden noch am Ende der Wirkzeit an.
 
 Die Welt läuft im Multiplayer weiter. Der auswählende Charakter steht während
 der Auswahl und während des eigentlichen Wirkens; keine Schadensimmunität.
@@ -102,3 +107,59 @@ Vorgeschlagene Umsetzungsreihenfolge:
 
 Schnellzugriff für häufige Zauber bleibt ein Vorschlag. Controller-Tasten werden
 vor UI-Implementierung gegen Angriff, Lampe, Tränke und Interaktion abgestimmt.
+
+## Begonnene Implementierung nach dem Restore Point
+
+Restore Point: `restore/pre-spells-2026-10-09`, Commit `7a3753b`.
+Neue, zunächst uncommittete Grundlage: SpellDefinition mit Element, Zielart und
+Rangdaten; SpellBookState speichert stabile gelernte IDs und Ränge je Figur.
+WorldSessionState übernimmt diese Daten in Capture/Restore und in Host-Snapshots.
+Saveformat 17, Netzwerkprotokoll 20; ältere Saves starten mit leerem Zauberbuch.
+Beim Löschen einer Figur wird auch ihr Lernstatus entfernt. Disconnect entfernt
+ihn nicht. Rangaufwertungen sind auf die angebotenen maximal drei Ränge begrenzt.
+
+**SecretsReborn → Magic → Prepare spell foundation** erstellt fehlende
+Feuerball-/Heilungsdefinitionen unter `Assets/Resources/Magic/Spells` und prüft eine
+echte Save-Datei plus Migration aus Format 16. Definitionen bleiben bei erneutem
+Setup erhalten. Werte sind vorläufig: Feuerball 5/8/12 Gesamtschaden, Heal
+2/4/6 halbe Herzen; 10/15/20 Mana, 0,6 Sekunden Wirkzeit, 2 Sekunden Cooldown,
+8 Welteinheiten Reichweite. Ränge sind Daten, keine zusätzlich erzeugten Items.
+
+Host-Ausführung, Bewegungssperre während des Wirkens und eine feste Zielliste
+sind angeschlossen. [Zauberablauf](spell-casting.md) beschreibt Mana, Cooldown,
+Budgetteilung und Abbruchregeln sowie den vorläufigen Tastatur-Testzugriff.
+Ringmenü mit Zielvorschau, Bestätigung, Controller-Bedienung und separater
+Zauberbuchansicht ist angeschlossen: [Ringmenü](spell-ring-menu.md).
+Lernbuch-Pickups und Effektanimationen folgen. Bestehende Waffenangriffe
+bleiben unabhängig. Als nächstes Projektile und Host-gesteuerte Treffer anbinden.
+
+Sichtung von Secrets, Commit `99f5b1c15fa6201e84044fbd81f9397d4f9709a2`:
+
+- `Assets/Prefabs/Objects/Projectiles/Player/Fireballs/FireballSpell_RANK1.prefab`
+  und RANK2 vorhanden. RANK1 enthält BoxCollider2D, Animator und mehrere alte
+  Script-Verweise; deshalb nicht ungeprüft als neue Zauberlogik importieren.
+- `Assets/Animations/Spells/Fireball/SpellFireBall_Flying.anim` referenziert
+  mehrere Sprites; Flying/Hit-Clips und Controller sind vorhanden.
+- Weitere Kandidaten: IceShardSpell, IceConeSpell, ArcaneBallSpell, WaterBlastSpell,
+  TsunamiSpell und Lightning-Animationen. Dies ist eine erste Sichtung, noch keine
+  vollständige Grafik-/Lizenz-/URP-Prüfung. Die Animationsabläufe sind noch nicht importiert.
+
+Die Ringoberfläche verwendet inzwischen Originalgrafiken aus Secrets:
+Elementicons und Feuerball-/Heilungsicon, Point-Filter ohne Kompression.
+Siehe [Icon-Herkunft](spell-icon-sources.json) und [Icon-Ring](spell-ring-menu.md).
+Der Ring dreht um die lokale Figur zur festen Markierung oben; bei der
+anschließenden Zielwahl stehen nur Weltmarkierungen und Info-Streifen bereit.
+
+Die vorhandenen Grafiken/Animationsabläufe werden im nächsten Asset-Schritt
+gezielt auf kompatible Effekte geprüft. Alte Collider und Managerscripts müssen
+wegen unserer Zielwahl und fehlender Umgebungskollision getrennt bleiben.
+
+Prüfstand: Definitionen nativ erstellt, tatsächlicher Easy-Save-Dateitest für
+gelernte Ränge und alte Saves bestanden. Host-/Client-Test bestätigt Übertragung
+und Save-Roundtrip von Feuerball-Rang 3; bisherige Inventar-/Stat-Prüfungen bestehen.
+Windows-Build vom 9. Oktober 2026, Spielassembly 19:24:56 Uhr, 0 Fehler/1 Warnung.
+Der anschließende Host-/Client-Test bestätigt Feuerball durch eine Wand,
+Mana-Verbrauch, Bewegungssperre und geteilte Heilung auf zwei Figuren.
+Details: [Verifikation](verification-2026-10-09.md). Die anschließende
+Ringmenü-Verifikation wird dort separat festgehalten. Effektanimationen stehen
+noch aus; die neuen Änderungen sind nicht Teil des Restore-Point-Commits.

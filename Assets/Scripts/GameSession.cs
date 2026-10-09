@@ -43,7 +43,7 @@ namespace SecretsReborn
         { if (NetworkCoop.IsReplica) NetworkCoop.Active.SetReviveIntent(actor, null); else if (actor != null) revivals.Remove(actor.CharacterId); }
         public bool CanRevive(CharacterInventory helper, CharacterInventory target) => (NetworkCoop.IsReplica
             ? helper != null && helper.LocalInput && !Busy && !RewardPresentationActive && !SaveBook.IsOpen
-                && helper.GetComponent<InventoryInteraction>()?.IsOpen != true && !World.CharacterVitals(helper.CharacterId).IsDown
+                && helper.GetComponent<InventoryInteraction>()?.IsOpen != true && helper.GetComponent<SpellCaster>()?.IsCasting!=true && !SpellRingMenu.Selecting(helper) && !World.CharacterVitals(helper.CharacterId).IsDown
             : CanFight(helper))
             && target != null && target.isActiveAndEnabled && (NetworkCoop.IsReplica || CanChangeVitals(target))
             && helper != target && helper.CharacterId != target.CharacterId
@@ -110,7 +110,7 @@ namespace SecretsReborn
         public bool RequestMeleeAttack(CharacterInventory actor)
         {
             if (NetworkCoop.Request(actor, CoopAction.Attack)) return true;
-            if (!CanFight(actor) || IsReviving(actor)) return false;
+            if (!CanFight(actor) || IsReviving(actor) || actor.GetComponent<SpellCaster>()?.IsCasting==true || SpellRingMenu.BlocksInput(actor)) return false;
             var melee = actor.GetComponent<PlayerMelee>();
             if (melee == null || !melee.isActiveAndEnabled) return false;
             var weapon = actor.Find(actor.State.GetEquipment(EquipmentSlot.MainHand));

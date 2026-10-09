@@ -21,9 +21,26 @@ Basiswerten getrennt. Der Nutzer bestätigt den Stat-Spieltest als erfolgreich.
 Nächster Schwerpunkt ist das [vereinbarte Zaubersystem](spell-system.md):
 Secrets-Effekte sichten, persistente Zauberdefinitionen/Ränge und Host-Ausführung
 aufbauen, danach Canvas-Ringmenü, Zielwahl und Feuerball/Heal durchgängig prüfen.
+Die erste Definition-/Lernstatus-Grundlage ist angelegt, nativ importiert und
+mit Speicherdatei sowie Host-/Client-Snapshots geprüft. Aktuell Saveformat 17,
+Protokoll 20. Die Host-Ausführung von Feuerball und Heal ist jetzt angeschlossen
+und mit zwei echten Spielprozessen geprüft: Mana, geteiltes Budget,
+Umgebung ohne Kollision und Bewegungssperre während des Wirkens.
+Siehe [Zauberablauf und Testtasten](spell-casting.md).
+Das editierbare Canvas-Ringmenü mit Elementen, Zaubern, expliziter Zielwahl,
+Bestätigung und separatem Zauberbuch ist ergänzt. Controller-Eingaben und
+Bewegungssperre während der Auswahl sind angebunden: [Ringmenü](spell-ring-menu.md).
+Der rotierende Icon-Ring nach der SoM-Referenz ist umgesetzt. Secrets-Icons
+führen von Elementen zu den Zaubern, ohne feste Dreier- oder Achtergrenze;
+die Auswahlposition bleibt oben. Zielwahl erfolgt anschließend in der Welt.
+Nächster konkreter Schritt: Rotation/Lesbarkeit mit Controller manuell prüfen,
+danach Cast-/Treffereffekte und
+Feuerball-Projektile, deren Schaden erst beim Host-gesteuerten Eintreffen entsteht.
+Restore Point vor Magie: `restore/pre-spells-2026-10-09` (`7a3753b`).
 Zauber ignorieren Umgebungskollision; die Figur steht während Auswahl und Wirken.
 Händler, essentielle Wiederbeschaffung und wiederholbare Boss-Dungeons folgen
-auf dieser Grundlage. Exakte Kosten, Rundung und Unterbrechungsregeln vorher festlegen.
+auf dieser Grundlage. Vorläufige Kosten, Rundung und Unterbrechungsregeln
+sind im Zauberablauf dokumentiert; Balance bleibt anpassbar.
 Code ist freigegeben; Commits und Pushes erfolgen auf ausdrücklichen Auftrag.
 
 ## Erreichter Stand
