@@ -9,6 +9,11 @@ namespace SecretsReborn
         private static readonly string[] HeartPixels = {
             "..###.###..", ".#########.", "###########", "###########",
             ".#########.", "..#######..", "...#####...", "....###....", ".....#....." };
+        internal static float OccupiedScreenHeight(int hearts)
+        {
+            float scale=Mathf.Clamp(Mathf.Floor(Mathf.Min(Screen.width/960f,Screen.height/540f)),1,2);
+            return (18+Mathf.CeilToInt(hearts/10f)*26+6+20)*scale;
+        }
         private void OnGUI()
         {
             if (SaveBook.IsOpen || GameSession.Instance.Busy) return;

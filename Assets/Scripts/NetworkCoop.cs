@@ -323,7 +323,7 @@ namespace SecretsReborn
                 if (++input.actionCount > 20 || SaveBook.IsOpen || GameSession.Instance.Busy || GameSession.Instance.IsReceivingReward(actor)
                     || GameSession.Instance.World.CharacterVitals(actor.CharacterId).IsDown) return;
                 if (actor.GetComponent<SpellCaster>()?.IsCasting==true && command.action!=CoopAction.CancelSpell) return;
-                if (input.spellSelection && command.action!=CoopAction.CastSpell && command.action!=CoopAction.SpellSelection) return;
+                if (input.spellSelection && command.action!=CoopAction.CastSpell && command.action!=CoopAction.SpellSelection && command.action!=CoopAction.UseRingItem) return;
                 switch (command.action)
                 {
                     case CoopAction.SpellSelection: input.spellSelection=command.from==1; break;
@@ -333,6 +333,7 @@ namespace SecretsReborn
                     case CoopAction.Equip: actor.TryEquip(command.from, (EquipmentSlot)command.to); break;
                     case CoopAction.Unequip: actor.TryUnequip((EquipmentSlot)command.from, command.to); break;
                     case CoopAction.UseItem: actor.TryUseItem(command.from); break;
+                    case CoopAction.UseRingItem: actor.TryUseRingItem(command.expectedItem); break;
                     case CoopAction.UsePotion: actor.TryUsePotion(command.from); break;
                     case CoopAction.BindPotion: actor.TryBindPotion(command.to,command.from); break;
                     case CoopAction.StashDeposit:
@@ -426,7 +427,7 @@ namespace SecretsReborn
                 var snapshot = JsonUtility.FromJson<CoopSnapshot>(json);
                 // A guest may join a running host after earlier area transitions.
                 if (!ChangingArea && receivedSnapshot == 0 && snapshot != null && snapshot.areaEpoch >= 0) areaEpoch = snapshot.areaEpoch;
-                if (snapshot == null || snapshot.protocol != 20 || snapshot.sequence <= receivedSnapshot || snapshot.actors == null
+                if (snapshot == null || snapshot.protocol != 21 || snapshot.sequence <= receivedSnapshot || snapshot.actors == null
                     || snapshot.actors.Length > 4 || snapshot.areaEpoch != areaEpoch || snapshot.scene != SceneManager.GetActiveScene().path
                     || ChangingArea && !areaLocalReady) return;
                 CoopProtocol.RestoreWireEmptySlots(snapshot.world);

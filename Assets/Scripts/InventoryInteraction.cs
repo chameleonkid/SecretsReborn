@@ -101,8 +101,6 @@ namespace SecretsReborn
                 || (pad != null && pad.startButton.wasPressedThisFrame)) SetOpen(!open);
             if (!open)
             {
-                if (key?.digit1Key.wasPressedThisFrame == true || pad?.leftShoulder.wasPressedThisFrame == true) inventory.TryUsePotion(0);
-                if (key?.digit2Key.wasPressedThisFrame == true || pad?.rightShoulder.wasPressedThisFrame == true) inventory.TryUsePotion(1);
                 var downed = NearestDowned();
                 if (interactionHeld && downed != null)
                 {
@@ -132,7 +130,7 @@ namespace SecretsReborn
             }
             GameSession.Instance.CancelRevive(inventory);
             if ((key != null && key.tabKey.wasPressedThisFrame) || (pad != null && (pad.rightShoulder.wasPressedThisFrame || pad.leftShoulder.wasPressedThisFrame)))
-            { selected = stash != null ? selected < 40 ? 40 : 0 : selected < 40 ? 40 : selected < PotionStart ? PotionStart : 0; controllerSelection = true; }
+            { selected = selected < 40 ? 40 : 0; controllerSelection = true; }
             int dx = 0, dy = 0;
             if (key != null && key.leftArrowKey.wasPressedThisFrame || pad != null && pad.dpad.left.wasPressedThisFrame) dx = -1;
             if (key != null && key.rightArrowKey.wasPressedThisFrame || pad != null && pad.dpad.right.wasPressedThisFrame) dx = 1;
@@ -161,8 +159,6 @@ namespace SecretsReborn
             if (key?.qKey.wasPressedThisFrame == true || pad?.buttonWest.wasPressedThisFrame == true)
             {
                 if (stash != null) Activate(selected);
-                else if (selected >= PotionStart) inventory.TryBindPotion(selected-PotionStart,-1);
-                else if (selected < 40 && Item(selected)?.Rules.potionKind > 0) inventory.TryBindPotion(Item(selected).Rules.potionKind-1,selected);
                 else if (selected >= 40) Activate(selected);
             }
         }
@@ -224,7 +220,7 @@ namespace SecretsReborn
         internal string SlotTitle(int index) => InStash ? index < 40 ? "Rucksack" : "Gemeinsames Lager" : SlotLabel(index);
         internal CharacterInventory ReviveTarget => NearestDowned();
         internal bool ReviveInterrupted => reviveInterrupted;
-        private bool ValidUISlot(int index) => index >= 0 && index < (InStash ? 80 : PotionStart+2);
+        private bool ValidUISlot(int index) => index >= 0 && index < (InStash ? 80 : PotionStart);
         private bool CanOperateUI => localInput && open && !PresentationBlocked && !GameSession.Instance.World.CharacterVitals(inventory.CharacterId).IsDown;
         public bool OpenStash(SharedStashContainer container)
         {

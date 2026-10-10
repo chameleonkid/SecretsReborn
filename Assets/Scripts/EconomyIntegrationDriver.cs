@@ -111,17 +111,32 @@ namespace SecretsReborn
                 var actor = net.LocalCharacter;
                 while (GameSession.Instance.World.CharacterSpells(actor.CharacterId).Rank("fireball")!=3) yield return null;
                 while (actor.State.Gold != 25 || actor.State.Count("mana-potion") != 3 || actor.State.PotionItem(0) != "health-potion") yield return null;
-                actor.TryUsePotion(0);
-                while (actor.State.Count("health-potion") != 2 || actor.PotionCooldownRemaining <= 0) yield return null;
-                actor.TryUsePotion(1); yield return new WaitForSecondsRealtime(.35f);
-                if (actor.State.Count("mana-potion") != 3) { Finish("FAIL: shared cooldown bypass"); yield break; }
-                while (actor.PotionCooldownRemaining > 0) yield return null;
-                actor.TryUsePotion(1);
+                var consumableRing=actor.GetComponent<SpellRingMenu>(); consumableRing.Open(); consumableRing.Confirm();
+                if(FindFirstObjectByType<SpellRingView>().SelectedIconAvailable) { Finish("FAIL: insufficient-mana spell not greyed out"); yield break; }
+                consumableRing.Confirm();
+                if(actor.GetComponent<SpellCaster>().IsCasting || !consumableRing.IsOpen) { Finish("FAIL: insufficient-mana spell confirmed"); yield break; }
+                CaptureCanvas(FindFirstObjectByType<SpellRingView>(),"InsufficientManaRing.png");
+                consumableRing.SwitchCategory();
+                var info=FindFirstObjectByType<SpellRingView>().transform.Find("InfoStrip");
+                var infoRect=info.GetComponent<RectTransform>();
+                float reserved=CharacterVitalsHud.OccupiedScreenHeight(GameSession.Instance.World.CharacterVitals(actor.CharacterId).HeartContainers)/info.GetComponentInParent<Canvas>().scaleFactor;
+                if(-infoRect.anchoredPosition.y<reserved || info.GetComponent<UnityEngine.UI.Image>().color.a>=1
+                    || info.Find("Title").GetComponent<UnityEngine.UI.Text>().text.Contains("MP ")
+                    || info.Find("Details").GetComponent<UnityEngine.UI.Text>().text.Contains("Trank-Cooldown"))
+                { Finish("FAIL: ring panel overlaps HUD, is opaque or duplicates mana/cooldown"); yield break; }
+                CaptureCanvas(FindFirstObjectByType<SpellRingView>(),"ConsumableRing.png");
+                consumableRing.Confirm();
+                while (actor.State.Count("health-potion") != 2) yield return null;
+                if(actor.PotionCooldownRemaining!=0) { Finish("FAIL: potion cooldown remains"); yield break; }
+                actor.TryUseRingItem("mana-potion");
                 while (actor.State.Count("mana-potion") != 2) yield return null;
-                while (actor.PotionCooldownRemaining > 0) yield return null;
+                if(actor.PotionCooldownRemaining!=0) { Finish("FAIL: consecutive mana potion blocked by cooldown"); yield break; }
                 // Health is full: using a potion must preserve the stack.
-                actor.TryUsePotion(0); yield return new WaitForSecondsRealtime(.4f);
+                actor.TryUseRingItem("health-potion"); yield return new WaitForSecondsRealtime(.4f);
                 if (actor.State.Count("health-potion") != 2 || actor.PotionCooldownRemaining > 0) { Finish("FAIL: full-health potion consumed"); yield break; }
+                if(!FindFirstObjectByType<SpellRingView>().SelectedIconAvailable) { Finish("FAIL: potion faded at full health"); yield break; }
+                CaptureCanvas(FindFirstObjectByType<SpellRingView>(),"FullHealthConsumableRing.png");
+                consumableRing.Close();
                 var container = FindFirstObjectByType<SharedStashContainer>();
                 while (actor.State.Count("foundation-warrior-armor") != 1 || !container.CanUse(actor)) yield return null;
                 var interaction = actor.GetComponent<InventoryInteraction>(); interaction.OpenInventory();
@@ -132,17 +147,13 @@ namespace SecretsReborn
                 {
                     foreach (string type in new[] { "health", "mana" })
                     {
-                        string id=type+"-potion-"+size; int shortcut=type=="health" ? 55 : 56;
+                        string id=type+"-potion-"+size;
                         while (actor.State.Count(id)!=2) yield return null;
-                        interaction.UIDrop(actor.State.FirstSlot(id),shortcut);
-                        while (actor.State.PotionItem(shortcut-55)!=id) yield return null;
-                        if (actor.State.Count(id)!=2) { Finish("FAIL: potion shortcut removed backpack stack"); yield break; }
                     }
                 }
+                foreach(var slot in canvas.GetComponentsInChildren<InventoryCanvasSlot>()) if(slot.Index>=55) { Finish("FAIL: retired quick slot remains visible"); yield break; }
                 interaction.UIDrop(actor.State.FirstSlot("mana-potion-large"),55); yield return new WaitForSecondsRealtime(.2f);
-                if (actor.State.PotionItem(0)!="health-potion-large") { Finish("FAIL: wrong potion kind accepted"); yield break; }
-                interaction.UIDrop(actor.State.FirstSlot("health-potion"),55); interaction.UIDrop(actor.State.FirstSlot("mana-potion"),56);
-                while (actor.State.PotionItem(0)!="health-potion" || actor.State.PotionItem(1)!="mana-potion") yield return null;
+                if(actor.State.PotionItem(0)!="health-potion") { Finish("FAIL: hidden quick slot accepts drops"); yield break; }
                 CaptureCanvas(canvas,"InventoryCanvas.png");
                 interaction.UIDrop(actor.State.FirstSlot("foundation-warrior-armor"),40+(int)EquipmentSlot.Armor);
                 while (actor.State.GetEquipment(EquipmentSlot.Armor) != "foundation-warrior-armor") yield return null;
@@ -181,10 +192,12 @@ namespace SecretsReborn
                 for(int i=0;i<12;i++) { manyLabels[i]="Test "+i; manyIcons[i]=actor.GetComponent<SpellCaster>().Find("fireball").Icon; }
                 ringView.RenderIcons("Layout test",manyLabels,manyIcons,11,"",actor.transform,false,false);
                 if(ringView.IconCount!=12 || !ringView.RingVisible) { Finish("FAIL: ring capped at eight entries"); yield break; }
-                ring.Page(0); ring.Page(1); yield return new WaitForSecondsRealtime(.4f);
+                ring.Page(0); float beforeRight=ringView.Rotation; ring.Page(1); yield return new WaitForSecondsRealtime(.4f);
+                if(ringView.Rotation>=beforeRight) { Finish("FAIL: right input did not rotate clockwise"); yield break; }
                 var top=ringView.transform.Find("Ring/Icon-1").GetComponent<RectTransform>().anchoredPosition;
                 if(Mathf.Abs(top.x)>1 || Mathf.Abs(top.y-74)>1) { Finish("FAIL: rotating selected icon missed fixed top marker"); yield break; }
-                ring.Page(-1); yield return new WaitForSecondsRealtime(.4f);
+                float beforeLeft=ringView.Rotation; ring.Page(-1); yield return new WaitForSecondsRealtime(.4f);
+                if(ringView.Rotation<=beforeLeft) { Finish("FAIL: left input did not rotate anticlockwise"); yield break; }
                 var ringPosition=actor.transform.position; net.TestMotion=Vector2.right;
                 yield return new WaitForSecondsRealtime(.3f);
                 if (!ring.IsOpen || Vector2.Distance(actor.transform.position,ringPosition)>.1f) { Finish("FAIL: selection movement lock"); yield break; }
@@ -197,7 +210,9 @@ namespace SecretsReborn
                 ring.Back(); ring.Back(); ring.Back(); // returns through spell/element then closes
                 if (ring.IsOpen) { Finish("FAIL: ring cancel"); yield break; }
                 yield return new WaitForSecondsRealtime(.1f);
-                var caster=actor.GetComponent<SpellCaster>(); caster.TryCast("fireball","enemy:spell-test-enemy",false);
+                var caster=actor.GetComponent<SpellCaster>();
+                ring.Open(); ring.Confirm(); ring.Confirm(); ring.Confirm();
+                if(ring.IsOpen) { Finish("FAIL: single target required extra confirmation"); yield break; }
                 while (!caster.IsCasting) yield return null;
                 var castPosition=actor.transform.position; caster.TryCast("fireball","enemy:spell-test-enemy",false);
                 net.TestMotion=Vector2.right;
@@ -207,9 +222,9 @@ namespace SecretsReborn
                 while (caster.IsCasting || GameSession.Instance.World.CharacterVitals(actor.CharacterId).Mana!=30) yield return null;
                 if (!ring.Open()) { Finish("FAIL: heal ring open"); yield break; }
                 ring.Choose(1); ring.Confirm(); // Light -> Heal
-                ring.Choose(2); // All (two allies)
-                CaptureCanvas(FindFirstObjectByType<SpellRingView>(),"SpellConfirmRing.png");
-                ring.Confirm();
+                CaptureCanvas(FindFirstObjectByType<SpellRingView>(),"SpellHealTargetRing.png");
+                ring.Choose(2); // All (two allies), starts casting immediately.
+                if(ring.IsOpen) { Finish("FAIL: group target required extra confirmation"); yield break; }
                 while (!caster.IsCasting) yield return null;
                 while (caster.IsCasting || GameSession.Instance.World.CharacterVitals(actor.CharacterId).Mana!=20 || GameSession.Instance.World.CharacterVitals(actor.CharacterId).Health!=5) yield return null;
                 File.WriteAllText(Path.Combine(folder,"SpellDone.signal"),"done");

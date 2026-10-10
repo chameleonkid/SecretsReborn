@@ -72,7 +72,7 @@ für HP und Mana angelegt. Vorläufige Testwerte:
 | Large | 6 Herzen (Use Amount 12) | 80 | 10 |
 
 Es wird höchstens bis zum persönlichen Maximum geheilt/aufgefüllt. Auch große
-Tränke teilen den gemeinsamen 2-Sekunden-Cooldown. Bei vollen Werten wird kein
+Tränke haben keinen Cooldown. Bei vollen Werten wird kein
 Trank verbraucht. Die Größen sind ein Balancing-Vorschlag für Tests.
 Die vorhandenen `health-potion`-/`mana-potion`-IDs bleiben für alte Saves erhalten.
 
@@ -82,19 +82,20 @@ Die Flaschen verwenden die bisherigen Icons und sind in der Welt je nach Größe
 unterschiedlich groß. Im Inventar bleiben alle Icons gleich groß und zentriert.
 Die zugehörigen Pickup-Prefabs liegen unter `Assets/World/Equipment/Prefabs`.
 
-Tränke liegen weiterhin im Rucksack. Die zwei Schnellplätze links unter der
-Charaktervorschau verweisen auf einen gewählten Itemtyp, ohne zusätzliche
-Tränke zu erzeugen oder Rucksackstapel zu entfernen. Gewünschten Stapel auf
-HP bzw. Mana ziehen, oder im Rucksack wählen und Q/X drücken. Ein Manatrank
-kann nicht an den HP-Platz gebunden werden und umgekehrt. 1/LB und 2/RB
-verbrauchen den ausgewählten Typ; unterschiedliche Größen stapeln separat.
-Lagertransfers erfolgen über die Rucksackstapel.
+Tränke liegen weiterhin im Rucksack. Der [gemeinsame Ring](spell-ring-menu.md)
+zeigt sie pro Item-ID mit der gesamten Anzahl und ihrer Wirkung. M/View öffnen,
+oben/unten zu Verbrauchsgegenständen wechseln, links/rechts wählen und A/Enter
+benutzen. Kleine/mittlere/große Varianten sind eigene Einträge. Die früheren
+Schnellplätze und deren Tasten entfallen. Lagertransfers erfolgen über die
+Rucksackstapel; alte Item-IDs und Save-Bindungsdaten bleiben kompatibel.
 
 **SecretsReborn → Equipment → Prepare potion variants** ergänzt fehlende Items,
 Pickup-Prefabs, Katalogeinträge und die Testgruppe. Vorhandene Trankvorlagen und
 eine vorhandene Testgruppe werden beibehalten. Beim ersten Durchlauf werden
 die Schnellplätze samt Labels auf die Equipment-Seite verschoben; weitere
-Durchläufe erhalten dieses Layout.
+Durchläufe erhalten dieses Layout. Diese frühere Schnellplatz-Positionierung
+ist inzwischen abgelöst: **UI → Prepare consumable ring** deaktiviert die
+alten Plätze. Ihre Prefab-Verweise bleiben für die bestehenden Editor-Tools erhalten.
 
 ## Icons sauber anzeigen
 

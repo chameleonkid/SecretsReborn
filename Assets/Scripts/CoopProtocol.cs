@@ -2,7 +2,7 @@ using System;
 
 namespace SecretsReborn
 {
-    public enum CoopAction { Input, MoveItem, Equip, Unequip, UseItem, Pickup, Chest, Attack, Lamp, ConfirmReward, BindPotion, UsePotion, StashDeposit, StashWithdraw, CastSpell, CancelSpell, SpellSelection }
+    public enum CoopAction { Input, MoveItem, Equip, Unequip, UseItem, Pickup, Chest, Attack, Lamp, ConfirmReward, BindPotion, UsePotion, StashDeposit, StashWithdraw, CastSpell, CancelSpell, SpellSelection, UseRingItem }
     [Serializable] public sealed class CoopCommand
     {
         public long sequence;
@@ -17,7 +17,7 @@ namespace SecretsReborn
     }
     [Serializable] public sealed class CoopHello
     {
-        public int protocol = 20;
+        public int protocol = 21;
         public string characterToken, scene, playerName;
     }
     [Serializable] public sealed class CoopActorPose
@@ -42,7 +42,7 @@ namespace SecretsReborn
     }
     [Serializable] public sealed class CoopSnapshot
     {
-        public int protocol = 20;
+        public int protocol = 21;
         public long sequence;
         public int areaEpoch;
         public string localCharacter, scene;
@@ -97,7 +97,7 @@ namespace SecretsReborn
                         if (character.potionItems[i] == "") character.potionItems[i] = null;
             }
         }
-        public static bool ValidHello(CoopHello hello, string scene) => hello != null && hello.protocol == 20
+        public static bool ValidHello(CoopHello hello, string scene) => hello != null && hello.protocol == 21
             && hello.scene == scene && Guid.TryParseExact(hello.characterToken, "N", out _);
         public static bool Valid(CoopCommand command)
         {
@@ -114,6 +114,7 @@ namespace SecretsReborn
                 case CoopAction.Equip: return Bag(command.from) && Equipment(command.to);
                 case CoopAction.Unequip: return Equipment(command.from) && (command.to == -1 || Bag(command.to));
                 case CoopAction.UseItem: return Bag(command.from);
+                case CoopAction.UseRingItem: return !string.IsNullOrWhiteSpace(command.expectedItem) && command.expectedItem.Length<=160;
                 case CoopAction.UsePotion: return command.from >= 0 && command.from < 2;
                 case CoopAction.BindPotion: return (command.from == -1 || Bag(command.from)) && command.to >= 0 && command.to < 2;
                 case CoopAction.StashDeposit:

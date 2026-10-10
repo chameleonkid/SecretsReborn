@@ -19,8 +19,10 @@ Amulett, Seal, Cloak, Haupthand, Nebenhand und Lampe.
   Auswahl beziehungsweise Hover zeigt Itemname, Typ und Zweihandstatus.
 
 Das Fenster skaliert mit dem Game-Fenster. Es blockiert Bewegung der lokalen
-Figur, pausiert aber nicht die Welt. Die Darstellung verwendet derzeit IMGUI,
-keine endgültigen UI-Art-Assets.
+Figur, pausiert aber nicht die Welt. Die Darstellung verwendet Canvas/uGUI mit
+editierbaren Prefabs: [UI-Authoring](inventory-ui-authoring.md). Verbrauchsgegenstände
+können auch über den [gemeinsamen Ring](spell-ring-menu.md) mit Mengenanzeige
+verwendet werden; Trank-Schnellslots sind abgelöst.
 
 ## Regeln
 

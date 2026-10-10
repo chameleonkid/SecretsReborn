@@ -28,19 +28,16 @@ Rucksackplatz. Bestehende Goldstapel werden beim Laden alter Spielstände
 einmalig in diesen Zähler überführt. Gold bleibt persönlich, bis später
 explizite Handels-/Transferregeln eingeführt werden.
 
-Zwei optisch getrennte Schnellplätze verweisen auf Heil- und Manatränke im
-Rucksack. Sie schaffen keinen zusätzlichen Stauraum. Nach dem Verschieben
-eines Stapels bleibt die Zuordnung erhalten; nach Verbrauch bleibt der Platz
-als leerer Verweis sichtbar. Neue Tränke werden bei freiem Schnellplatz
-automatisch zugeordnet. Verbrauch und ein gemeinsamer Cooldown von zwei
-Sekunden werden vom Host entschieden. Bei vollen Werten wird kein Trank
-verbraucht. Tote Figuren können keine Tränke benutzen.
+Heil- und Manatränke werden im [gemeinsamen Ring](spell-ring-menu.md) ausgewählt.
+Unterschiedliche Größen bleiben eigene Item-IDs; das Icon zeigt die gesamte
+Anzahl im Rucksack. Der Host prüft den Verbrauch; Tränke haben keinen Cooldown.
+Bei vollen Werten wird kein Trank verbraucht.
+Tote Figuren können keine Tränke benutzen. Frühere Schnellplätze sind deaktiviert.
 
-Bedienung: `1` / LB für HP, `2` / RB für Mana (bei geschlossenem Inventar).
-Im Inventar erreicht die Navigation die Schnellplätze unter dem Rucksack.
-`Tab` / LB / RB wechselt zwischen Rucksack, Ausrüstung und Schnellplätzen.
-Ein Trank kann aus dem Rucksack auf den passenden Schnellplatz gezogen oder
-mit `Q` / X zugeordnet werden. Dort entfernt `Q` / X nur die Zuordnung.
+Bedienung: M/View öffnet den Ring, oben/unten wechselt zu Verbrauchsgegenständen,
+links/rechts wählt, A/Enter verwendet. Tränke bleiben Inventargegenstände und
+können weiterhin direkt im Rucksack benutzt sowie über den Shared Stash getauscht
+werden. Die Welt läuft während der Auswahl weiter.
 
 Items haben getrennte Verkaufswerte und Kaufpreise. Waffen besitzen bereits
 Schaden und Angriffscooldown, defensive Ausrüstung wirksame Rüstungswerte.

@@ -26,12 +26,13 @@ namespace SecretsReborn
         [SerializeField, Range(1, 30)] private float useCooldown = 2;
         public int SellValue => Mathf.Max(0, sellValue);
         public int BuyPrice => Mathf.Max(SellValue, buyPrice);
-        public float UseCooldown => Mathf.Clamp(useCooldown, 1, 30);
+        public float UseCooldown => IsConsumable ? 0 : Mathf.Clamp(useCooldown, 1, 30);
         public void SetValues(int selling, int buying, int armor = 0)
         { sellValue = Mathf.Max(0, selling); buyPrice = Mathf.Max(sellValue, buying); armorValue = Mathf.Max(0, armor); }
         [SerializeField] private ItemPurpose purpose;
         [SerializeField, Min(1)] private int useAmount = 2;
         public ItemPurpose Purpose => purpose;
+        public bool IsConsumable => purpose==ItemPurpose.HealthPotion || purpose==ItemPurpose.ManaPotion;
         public int UseAmount => Mathf.Max(1, useAmount);
         public void SetPurpose(ItemPurpose value, int amount) { purpose = value; useAmount = Mathf.Max(1, amount); }
         public string Description
@@ -48,7 +49,6 @@ namespace SecretsReborn
                     : purpose == ItemPurpose.ManaPotion ? "Stellt " + UseAmount + " Mana wieder her · A / Enter: benutzen"
                     : purpose == ItemPurpose.Gold ? "Gold · wird dem persönlichen Goldzähler gutgeschrieben"
                     : purpose == ItemPurpose.Arrows ? "Pfeile · Munition für spätere Fernkampfwaffen" : "Ausrüstungsgegenstand";
-                if (purpose == ItemPurpose.HealthPotion || purpose == ItemPurpose.ManaPotion) stats += "\nTrank-Cooldown: " + UseCooldown.ToString("0.#") + " s (gemeinsam)";
                 if (purpose != ItemPurpose.Gold) stats += "\nVerkaufswert: " + SellValue + " Gold · Kaufpreis: " + BuyPrice + " Gold";
                 if (BonusHalfHearts>0) stats += "\n+"+(BonusHalfHearts/2)+" maximale Herzen";
                 if (BonusMana>0) stats += "\n+"+BonusMana+" maximales Mana";

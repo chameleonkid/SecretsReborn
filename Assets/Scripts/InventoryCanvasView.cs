@@ -35,7 +35,12 @@ namespace SecretsReborn
         public void Bind(InventoryInteraction interaction)
         {
             owner = interaction;
-            foreach (var slot in inventorySlots) slot.Bind(this); foreach (var slot in stashSlots) slot.Bind(this);
+            foreach (var slot in inventorySlots) { slot.Bind(this); if(slot.Index>=55) slot.gameObject.SetActive(false); } foreach (var slot in stashSlots) slot.Bind(this);
+            foreach(var label in inventoryPanel.GetComponentsInChildren<Text>(true))
+            {
+                if(label.name=="HealthShortcutLabel" || label.name=="ManaShortcutLabel") label.gameObject.SetActive(false);
+                if(label.text.Contains("Trank zuweisen")) label.text="Stick / Pfeile: wählen · LB/RB/Tab: Bereich · A: benutzen\nX / Q: Equipment ablegen · B / Esc: schließen";
+            }
         }
         public void Refresh()
         {
@@ -69,8 +74,7 @@ namespace SecretsReborn
             }
             if (hud.activeSelf)
             {
-                Potion(hpIcon,hpCount,actor,0,"1 / LB",hpSize); Potion(manaIcon,manaCount,actor,1,"2 / RB",manaSize);
-                cooldown.text = actor.PotionCooldownRemaining > 0 ? actor.PotionCooldownRemaining.ToString("0.0") + " s" : "";
+                hpIcon.gameObject.SetActive(false); manaIcon.gameObject.SetActive(false); hpCount.gameObject.SetActive(false); manaCount.gameObject.SetActive(false); cooldown.gameObject.SetActive(false);
                 var target = owner.ReviveTarget; reviveText.gameObject.SetActive(target != null); reviveProgress.transform.parent.gameObject.SetActive(target != null);
                 if (target != null) { reviveText.text = owner.ReviveInterrupted ? "Unterbrochen – Taste erneut halten" : "E / A halten: Wiederbeleben"; reviveProgress.fillAmount = GameSession.Instance.ReviveProgress(actor); }
             }

@@ -1,7 +1,7 @@
 # Charakterwerte und Equipment
 
 Die gemeinsame Stat-Berechnung summiert Armor, Bonus-Hearts und Bonus-Mana
-aller angelegten Items. Rucksack und Schnellslots geben keine Boni.
+aller angelegten Items. Gegenstände im Rucksack geben keine Boni.
 Schaden und Angriffscooldown kommen aus dem Weapon-Profil der Hauptwaffe;
 ohne Profil gelten wie bisher 1 Schaden und 0,45 Sekunden.
 

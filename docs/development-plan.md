@@ -1,6 +1,6 @@
 # Entwicklungsplan
 
-Stand: 9. Oktober 2026. Die Netzwerk-Testphase ist laut Nutzer abgeschlossen.
+Stand: 10. Oktober 2026. Die Netzwerk-Testphase ist laut Nutzer abgeschlossen.
 Schwerpunkt bleibt die Weiterentwicklung der Mechaniken.
 Die neue Richtung und Reihenfolge stehen in [Item-Fortschritt und Builds](item-progression.md):
 Gold, Trank-Schnellplätze und Testausrüstung zuerst; anschließend Shared Stash,
@@ -23,20 +23,32 @@ Secrets-Effekte sichten, persistente Zauberdefinitionen/Ränge und Host-Ausführ
 aufbauen, danach Canvas-Ringmenü, Zielwahl und Feuerball/Heal durchgängig prüfen.
 Die erste Definition-/Lernstatus-Grundlage ist angelegt, nativ importiert und
 mit Speicherdatei sowie Host-/Client-Snapshots geprüft. Aktuell Saveformat 17,
-Protokoll 20. Die Host-Ausführung von Feuerball und Heal ist jetzt angeschlossen
+Protokoll 21. Die Host-Ausführung von Feuerball und Heal ist jetzt angeschlossen
 und mit zwei echten Spielprozessen geprüft: Mana, geteiltes Budget,
 Umgebung ohne Kollision und Bewegungssperre während des Wirkens.
 Siehe [Zauberablauf und Testtasten](spell-casting.md).
-Das editierbare Canvas-Ringmenü mit Elementen, Zaubern, expliziter Zielwahl,
-Bestätigung und separatem Zauberbuch ist ergänzt. Controller-Eingaben und
+Das editierbare Canvas-Ringmenü mit Elementen, Zaubern, expliziter Zielwahl
+und separatem Zauberbuch ist ergänzt. Controller-Eingaben und
 Bewegungssperre während der Auswahl sind angebunden: [Ringmenü](spell-ring-menu.md).
 Der rotierende Icon-Ring nach der SoM-Referenz ist umgesetzt. Secrets-Icons
 führen von Elementen zu den Zaubern, ohne feste Dreier- oder Achtergrenze;
 die Auswahlposition bleibt oben. Zielwahl erfolgt anschließend in der Welt.
-Nächster konkreter Schritt: Rotation/Lesbarkeit mit Controller manuell prüfen,
-danach Cast-/Treffereffekte und
-Feuerball-Projektile, deren Schaden erst beim Host-gesteuerten Eintreffen entsteht.
+Nächster konkreter Schritt: einen aktuellen Windows-Build erstellen und die
+cooldownfreien Tränke sowie HUD-Abstand und Transparenz mit Host und Client
+prüfen. Danach folgen Cast-/Treffereffekte und Feuerball-Projektile, deren
+Schaden erst beim Host-gesteuerten Eintreffen entsteht.
 Restore Point vor Magie: `restore/pre-spells-2026-10-09` (`7a3753b`).
+Restore Point vor dem Verbrauchsgegenstände-Ring:
+`restore/pre-consumable-ring-2026-10-09` (`f741399`). Der gemeinsame Ring
+enthält nun Verbrauchsgegenstände mit Mengen und Zauber; oben/unten wechselt
+den Menütyp. Trank-Schnellslots entfallen. Fehlendes Mana graut Zauber aus.
+Am 10. Oktober angepasst: Tränke bleiben immer farbig. Zauber brauchen nur
+Element → Zauber → Ziel; Zielbestätigung startet den Cast ohne weitere Ebene.
+Tränke haben keinen Cooldown. Der halbtransparente Info-Streifen liegt unter
+dem Herzen-/Mana-HUD; der aktuelle Mana-Vorrat wird dort nicht doppelt angezeigt.
+Der Nutzer akzeptiert den aktuellen Stand vorerst. Unity hat den Laufzeitcode
+neu kompiliert; Build und Host-/Client-Prüfung der letzten Änderungen stehen
+noch aus. Details: [Prüfung vom 10. Oktober](verification-2026-10-10.md).
 Zauber ignorieren Umgebungskollision; die Figur steht während Auswahl und Wirken.
 Händler, essentielle Wiederbeschaffung und wiederholbare Boss-Dungeons folgen
 auf dieser Grundlage. Vorläufige Kosten, Rundung und Unterbrechungsregeln
@@ -90,10 +102,10 @@ Nach Gruppen-Game-Over muss der Host den gemeinsamen Checkpoint laden können.
    vorhandene gemeinsame Fund-Freischaltungen als Händlerangebot verwenden.
    Preise und Einstiegsausrüstung vorher klären; dies bleibt ein Vorschlag.
 2. Gold pro Charakter und hostseitig geprüfte Händlerkäufe zusammen ergänzen.
-3. Heil-/Mana-Potions, Verbrauchsgegenstände und Controller-Schnellslots ergänzen.
+3. Heil-/Mana-Potions und Verbrauchsgegenstände über den gemeinsamen Ring nutzen.
 4. Bogen und Projektile mit hostseitiger Trefferprüfung implementieren.
-5. Eigene XP und Fortschritt ausbauen. Level-Effekte vorher festlegen;
-   zusätzliche Herzen bleiben zunächst an Herzcontainer gebunden.
+5. Fortschritt über Items, Erkundung und Zauberränge ausbauen; derzeit kein XP-System.
+   Zusätzliche Herzen und Mana bleiben an Herzcontainer und Mana-Kristalle gebunden.
 6. Zauber mit Mana, Cooldown und replizierten Effekten ergänzen.
 7. Weitere Gegner/Bosse und Itemfortschritt ausbauen: normale Gegner geben
    vorwiegend Verbrauchsmaterial, Bosse und Truhen auch Ausrüstung.

@@ -71,16 +71,23 @@ namespace SecretsReborn
         public bool TryUseItem(int index)
         {
             if (NetworkCoop.Request(this, CoopAction.UseItem, index)) return true;
-            if (!hasStateAuthority || SaveBook.IsOpen || !GameSession.Instance.CanChangeVitals(this) || GameSession.Instance.World.CharacterVitals(characterId).IsDown || PotionCooldownRemaining > 0) return false;
+            if (!hasStateAuthority || SaveBook.IsOpen || !GameSession.Instance.CanChangeVitals(this) || GameSession.Instance.World.CharacterVitals(characterId).IsDown) return false;
             var item = Find(State.GetSlot(index)?.itemId); if (item == null) return false;
             bool applied = item.Purpose == ItemPurpose.HealthPotion ? GameSession.Instance.ApplyHealing(this, item.UseAmount)
                 : item.Purpose == ItemPurpose.ManaPotion && GameSession.Instance.RestoreMana(this, item.UseAmount);
             if (!applied) return false;
-            State.TryConsume(index); State.PotionReadyAt = Time.timeAsDouble + item.UseCooldown; Changed?.Invoke(); return true;
+            State.TryConsume(index); State.PotionReadyAt = 0; Changed?.Invoke(); return true;
         }
-        private double replicaPotionReadyAt;
-        public float PotionCooldownRemaining => (float)Math.Max(0, (hasStateAuthority ? State.PotionReadyAt : replicaPotionReadyAt) - Time.timeAsDouble);
-        internal void SetReplicaPotionCooldown(float remaining) => replicaPotionReadyAt = Time.timeAsDouble + Mathf.Clamp(remaining,0,30);
+        public bool TryUseRingItem(string itemId)
+        {
+            var item=Find(itemId);
+            if(item==null || !item.IsConsumable) return false;
+            if(NetworkCoop.Request(this,CoopAction.UseRingItem,expectedItem:itemId)) return true;
+            return TryUseItem(State.FirstSlot(itemId));
+        }
+        // Retained for snapshot compatibility; potions no longer have a cooldown.
+        public float PotionCooldownRemaining => 0;
+        internal void SetReplicaPotionCooldown(float remaining) { }
         public bool TryBindPotion(int slot, int bagIndex)
         {
             if (NetworkCoop.Request(this,CoopAction.BindPotion,bagIndex,slot)) return true;

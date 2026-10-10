@@ -17,6 +17,8 @@ internal static class InventoryStateChecks
         Check(InventoryNavigation.Navigate(lamp, -1, 0) == feet && InventoryNavigation.Navigate(lamp, 1, 0) == offHand
             && InventoryNavigation.Navigate(lamp, 0, -1) == feet, "lamp selection exits in every supported direction");
         Check(a.TryAdd("ore", 7, 5), "split stacks");
+        for(int index=0;index<55;index++) foreach(var direction in new[] {new[] {1,0},new[] {-1,0},new[] {0,1},new[] {0,-1}})
+            Check(InventoryNavigation.Navigate(index,direction[0],direction[1])<55,"navigation must never enter retired quick slots");
         Check(a.GetSlot(0).count == 5 && a.GetSlot(1).count == 2, "counts");
         Check(a.TryMove(0, 39, Rules) && a.GetSlot(0) == null, "fixed slots and move");
         Check(a.TryMove(1, 39, Rules) == false, "full stack unchanged");

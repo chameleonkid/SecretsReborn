@@ -10,8 +10,7 @@ namespace SecretsReborn
         private static int Clamp(int value, int maximum) => Math.Max(0, Math.Min(maximum, value));
         public static int Navigate(int index, int dx, int dy)
         {
-            if (index >= 55) return dy < 0 ? index == 55 ? 30 : 35 : dx < 0 ? 55 : dx > 0 ? 56 : index;
-            if (index < 40 && index / 10 == 3 && dy > 0) return index % 10 < 5 ? 55 : 56;
+            if (index >= 55) index=30;
             if (index < 40) return Clamp(index / 10 + dy, 3) * 10 + Clamp(index % 10 + dx, 9);
             var slot = (EquipmentSlot)(index - 40);
             if (slot == EquipmentSlot.Lamp)

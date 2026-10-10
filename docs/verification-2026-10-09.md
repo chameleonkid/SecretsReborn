@@ -316,3 +316,34 @@ Noch manuell: physischer Controller, Rotationstempo, Lesbarkeit über dem
 normalen Spielfeld und Auswahl unter Gegnerdruck. Bedienung steht im
 [Ringmenü-Dokument](spell-ring-menu.md). Danach Cast-/Treffereffekte und
 Feuerball-Schaden erst beim Eintreffen des Host-gesteuerten Projektils.
+
+## Gemeinsamer Ring und explizite Drehrichtung
+
+Gesicherter Ausgangspunkt: Commit `f741399`, lokaler Restore-Tag
+`restore/pre-consumable-ring-2026-10-09`. Der anschließende Umbau ist nicht gepusht.
+
+Links/rechts bestimmt die Drehrichtung ausdrücklich, auch bei zwei Icons und
+über den Ringanfang hinweg. Oben/unten wechselt zwischen Verbrauchsgegenständen
+und Zaubern; vertikales Halten toggelt nicht ständig. Verbrauchsgegenstände
+zeigen die gesamte Menge pro Item-ID, Größen bleiben getrennt. Alte Schnellslots,
+Zuweisungsaktionen in der UI und Trank-Hotkeys sind deaktiviert. Die zugehörigen
+Save-Bindungsdaten bleiben kompatibel. Fehlendes Mana und Cooldowns grauen
+Zauber mit einem UI-Graustufenmaterial aus; Bestätigung ist gesperrt.
+
+Protokoll **21**, Saveformat weiterhin **17**. Finaler Windows-Build vom
+**9. Oktober 2026, Spielassembly 22:29:53 Uhr**, **0 Fehler/1 Warnung**.
+Unity-Import und Canvas-Migration bestehen. Protokoll- und Inventarnavigationstests
+bestehen; Navigation erreicht keine stillgelegten Schnellslots.
+
+Zwei echte Spielprozesse in `Temp/ConsumableRing-20261009-223025` bestehen:
+Client verwendet HP-/Mana-Tränke über den Ring bzw. dessen Host-Anfrage; gemeinsamer
+Cooldown und volle Werte verhindern Verbrauch. Fehlendes Mana sperrt Feuerball
+vor der Zielwahl. Rotation rechts/links hat unterschiedliche Vorzeichen und
+landet an der festen oberen Markierung. Zwölf Icons, Auswahlbewegungssperre,
+Zauberbuch, Zielwahl, Cast, Heilung, Inventar, Equipment, Shared Stash und Save
+bleiben geprüft. Keine Script-Exceptions oder Protokoll-Mismatches; Testprozesse beendet.
+Mengen-/Graustufenansicht wurde gerendert und visuell geprüft.
+
+Manuell noch prüfen: D-Pad/Stick links/rechts, gehaltenes oben/unten,
+Trankgrößen/Mengen, Verbrauch bei vollen Werten sowie Menüwechsel aus der Zielwahl.
+Anti-Gift ist noch nicht umgesetzt; dafür fehlt der Vergiftungszustand.
