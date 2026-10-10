@@ -14,6 +14,7 @@ SecretsReborn ist ein neues 2D-Action-Adventure mit Schwerpunkt auf Erkundung un
 
 ## Dokumentation
 
+- [Neuen Windows-Rechner einrichten: Installation, Rechte und Erstprüfung](docs/new-computer-setup.md)
 - [Aktuelle Übergabe für neuen Rechner oder Chat: 10. Oktober 2026](docs/handoff-2026-10-10.md)
 - [Prüfstand und offene Build-Prüfung: 10. Oktober 2026](docs/verification-2026-10-10.md)
 - [Item-Fortschritt und Builds: Gold, Tränke, Testausrüstung und nächste Schritte](docs/item-progression.md)
