@@ -1,6 +1,8 @@
 # Entwicklungsplan
 
 Stand: 10. Oktober 2026. Die Netzwerk-Testphase ist laut Nutzer abgeschlossen.
+Für einen neuen Rechner oder Chat zuerst die [aktuelle Übergabe](handoff-2026-10-10.md)
+lesen; sie trennt verbindliche Entscheidungen, aktuellen Code und offene Tests.
 Schwerpunkt bleibt die Weiterentwicklung der Mechaniken.
 Die neue Richtung und Reihenfolge stehen in [Item-Fortschritt und Builds](item-progression.md):
 Gold, Trank-Schnellplätze und Testausrüstung zuerst; anschließend Shared Stash,

@@ -1,6 +1,6 @@
 # Zaubersystem – vereinbarte Grundlage
 
-Stand: 9. Oktober 2026. Konzept mit dem Nutzer abgestimmt; erster Host-Ablauf
+Stand: 10. Oktober 2026. Konzept mit dem Nutzer abgestimmt; erster Host-Ablauf
 und Ringmenü implementiert. Effektanimationen und Projektilflug folgen.
 Erkundung und Item-Fortschritt bleiben die Grundlage. Secret of Mana dient als
 Inspiration für Ringmenü und Zielwahl, nicht als Pflicht zur Übernahme alter Logik.
@@ -9,7 +9,8 @@ Inspiration für Ringmenü und Zielwahl, nicht als Pflicht zur Übernahme alter 
 
 Eigenes Zaubersystem unabhängig von Waffen. Zauberstäbe sind Waffen ähnlich
 einem Bogen; gelernte Zauber können auch mit anderen Waffen verwendet werden.
-Ringmenü: **Element → Zauber → Zielwahl → Bestätigen**. Elemente umfassen
+Ringmenü: **Element → Zauber → Zielwahl**. Bestätigung des Ziels startet den
+Cast unmittelbar; es gibt keine separate Bestätigungsebene. Elemente umfassen
 beispielsweise Feuer, Eis, Licht, Schatten, Wasser und Blitz.
 Ein separates Zauberbuch zeigt alle erlernten Zauber, Ränge, Wirkungen,
 Manakosten und Aufwertungen. Die Einstellungsmöglichkeiten des Spiels bleiben
@@ -111,10 +112,10 @@ vor UI-Implementierung gegen Angriff, Lampe, Tränke und Interaktion abgestimmt.
 ## Begonnene Implementierung nach dem Restore Point
 
 Restore Point: `restore/pre-spells-2026-10-09`, Commit `7a3753b`.
-Neue, zunächst uncommittete Grundlage: SpellDefinition mit Element, Zielart und
+Implementierte Grundlage: SpellDefinition mit Element, Zielart und
 Rangdaten; SpellBookState speichert stabile gelernte IDs und Ränge je Figur.
 WorldSessionState übernimmt diese Daten in Capture/Restore und in Host-Snapshots.
-Saveformat 17, Netzwerkprotokoll 20; ältere Saves starten mit leerem Zauberbuch.
+Saveformat 17, aktuell Netzwerkprotokoll 21; ältere Saves starten mit leerem Zauberbuch.
 Beim Löschen einer Figur wird auch ihr Lernstatus entfernt. Disconnect entfernt
 ihn nicht. Rangaufwertungen sind auf die angebotenen maximal drei Ränge begrenzt.
 
