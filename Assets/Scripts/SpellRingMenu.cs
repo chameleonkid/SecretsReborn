@@ -111,9 +111,10 @@ namespace SecretsReborn
                 var ids=new SortedSet<string>(StringComparer.Ordinal);
                 for(int i=0;i<InventoryState.Capacity;i++) { var id=actor.State.GetSlot(i)?.itemId; if(id!=null) ids.Add(id); }
                 foreach(var item in ids.Select(id=>actor.Find(id)).Where(item=>item!=null && item.IsConsumable)
+                    .GroupBy(item=>item.PotionVariantId).Select(group=>group.FirstOrDefault(item=>item.ItemId==item.PotionVariantId) ?? group.First())
                     .OrderBy(item=>item.Purpose).ThenBy(item=>item.UseAmount).ThenBy(item=>item.ItemId,StringComparer.Ordinal))
                 {
-                    consumables.Add(item); labels.Add(item.DisplayName); icons.Add(item.Icon); quantities.Add(actor.State.Count(item.ItemId));
+                    consumables.Add(item); labels.Add(item.DisplayName); icons.Add(item.Icon); quantities.Add(actor.RingItemCount(item.ItemId));
                     ready.Add(item.Purpose==ItemPurpose.HealthPotion ? vitals.Health<vitals.MaxHealth : vitals.Mana<vitals.MaxMana);
                 }
                 selected=Mathf.Clamp(selected,0,Mathf.Max(0,labels.Count-1)); return;

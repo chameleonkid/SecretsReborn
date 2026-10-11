@@ -16,9 +16,14 @@ namespace SecretsReborn
         public LearnedSpellData[] spells=Array.Empty<LearnedSpellData>();
     }
     [Serializable] public sealed class PuzzleSaveData { public string puzzleId; public int progress; }
+    [Serializable] public sealed class EnemyDefeatPosition
+    {
+        public string enemyId, scenePath;
+        public float x, y, z;
+    }
     [Serializable] public sealed class SaveGameData
     {
-        public int version = 17;
+        public int version = 18;
         public InventoryStack[] sharedStash = new InventoryStack[InventoryState.Capacity];
         public string founderCharacterId;
         public string savedAtUtc;
@@ -33,6 +38,7 @@ namespace SecretsReborn
         public PuzzleSaveData[] puzzles;
         public string[] collectedItems;
         public string[] defeatedEnemies = Array.Empty<string>();
+        public EnemyDefeatPosition[] enemyDefeatPositions = Array.Empty<EnemyDefeatPosition>();
         public string[] discoveredChestItems = Array.Empty<string>();
     }
 }

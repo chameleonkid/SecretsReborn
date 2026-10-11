@@ -175,5 +175,5 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::SecretsReborn.WorldItem
   worldItemId: test-health-potion-large
   item: {fileID: 11400000, guid: be797221a7d0b0a46a8e33d19be36ecd, type: 2}
-  count: 3
+  count: 1
   pickupDistance: 1.6

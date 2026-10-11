@@ -65,6 +65,7 @@ namespace SecretsReborn
         private int facing;
         private float attackStarted = -10, attackUntil;
         private int attackFacing;
+        private float castElapsed;
         public void PresentAttack(float duration) { attackStarted = Time.time; attackUntil = Time.time + duration; attackFacing = facing; }
         public Vector2 FacingDirection => facing == 1 ? Vector2.right : facing == 2 ? Vector2.left : facing == 3 ? Vector2.up : Vector2.down;
         private float elapsed;
@@ -119,6 +120,9 @@ namespace SecretsReborn
             int frame = facing * 16 + (walking ? 1 + (Mathf.FloorToInt(elapsed * framesPerSecond) % 6) : 0);
             if (Time.time < attackUntil && bodyFrames.Length >= 128)
                 frame = (attackFacing + 4) * 16 + 3 + Mathf.Min(3, Mathf.FloorToInt((Time.time - attackStarted) / (attackUntil - attackStarted) * 4));
+            if (GetComponent<SpellCaster>()?.IsCasting == true && bodyFrames.Length >= 128)
+            { castElapsed += Time.deltaTime; frame = (facing + 4) * 16 + 3 + Mathf.Min(3, Mathf.FloorToInt(castElapsed * 6)); }
+            else castElapsed = 0;
             if (death != null && death.IsDown && bodyFrames.Length >= 128)
             { frame = death.AnimationFrame(facing); attackUntil = 0; }
             body.sprite = profileBody != null ? profileBody.Frame(frame) : bodyFrames[frame];

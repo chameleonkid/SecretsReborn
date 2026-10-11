@@ -48,6 +48,21 @@ namespace SecretsReborn
                 camera.targetTexture = null; Destroy(cameraObject); Destroy(pixels); target.Release(); Destroy(target); Canvas.ForceUpdateCanvases();
             }
         }
+        private void CaptureWorld(Vector3 center, string name)
+        {
+            var obj=new GameObject("Spell verification camera"); var camera=obj.AddComponent<Camera>();
+            var target=new RenderTexture(1040,600,24); var pixels=new Texture2D(1040,600,TextureFormat.RGBA32,false);
+            var previous=RenderTexture.active;
+            try
+            {
+                camera.enabled=false; camera.transform.position=center+new Vector3(2,0,-10);
+                camera.orthographic=true; camera.orthographicSize=3; camera.targetTexture=target;
+                camera.clearFlags=CameraClearFlags.SolidColor; camera.backgroundColor=new Color(.04f,.06f,.04f);
+                camera.Render(); RenderTexture.active=target; pixels.ReadPixels(new Rect(0,0,1040,600),0,0); pixels.Apply();
+                File.WriteAllBytes(Path.Combine(folder,name),pixels.EncodeToPNG());
+            }
+            finally { RenderTexture.active=previous; camera.targetTexture=null; Destroy(obj); Destroy(pixels); target.Release(); Destroy(target); }
+        }
         private IEnumerator Start()
         {
             yield return new WaitForSecondsRealtime(1);
@@ -68,6 +83,21 @@ namespace SecretsReborn
                 var container = FindFirstObjectByType<SharedStashContainer>();
                 if (container == null || !actor.TryReceive(actor.Find("foundation-warrior-armor"), 1)) { Finish("FAIL: stash fixture missing"); yield break; }
                 actor.transform.position = container.transform.position + Vector3.right;
+                var lootGroup=FindFirstObjectByType<EnemyLoot>(); TreeMeleeEnemy lootEnemy=null;
+                foreach (var candidate in FindObjectsByType<TreeMeleeEnemy>(FindObjectsInactive.Include,FindObjectsSortMode.None))
+                    if (candidate.EnemyId==lootGroup?.EnemyId) lootEnemy=candidate;
+                if (lootEnemy==null) { Finish("FAIL: enemy loot fixture missing"); yield break; }
+                var lootItems=lootGroup.GetComponentsInChildren<WorldItem>(true);
+                var originalLootPositions=Array.ConvertAll(lootItems,item=>item.transform.position);
+                var deathPosition=lootEnemy.SpawnPosition+Vector3.right*2;
+                lootEnemy.RefreshSession(); lootEnemy.transform.position=deathPosition;
+                lootEnemy.ReceiveHostHit(lootEnemy.MaxHealth,Vector2.zero);
+                for (int index=0;index<lootItems.Length;index++)
+                    if (!lootItems[index].gameObject.activeInHierarchy || Vector3.Distance(lootItems[index].transform.position,originalLootPositions[index]+Vector3.right*2)>.001f)
+                    { Finish("FAIL: loot stayed at spawn instead of death position"); yield break; }
+                lootGroup.RefreshSession();
+                if (lootItems.Length==0 || Vector3.Distance(lootItems[0].transform.position,originalLootPositions[0]+Vector3.right*2)>.001f)
+                { Finish("FAIL: loot drifted on refresh"); yield break; }
                 for (int rank=0;rank<3;rank++) world.CharacterSpells(guest).Learn("fireball",3);
                 foreach (string type in new[] { "health", "mana" }) foreach (string size in new[] { "small", "medium", "large" })
                     if (!actor.TryReceive(actor.Find(type+"-potion-"+size),2)) { Finish("FAIL: potion variant catalog"); yield break; }
@@ -78,12 +108,15 @@ namespace SecretsReborn
                 File.WriteAllText(Path.Combine(folder, "StashWithdrawn.signal"), "ready");
                 while (!File.Exists(Path.Combine(folder, "EconomyClientDone.signal"))) yield return null;
                 var bag = world.CharacterInventory(guest); var vitals = world.CharacterVitals(guest);
-                if (bag.Gold != 25 || world.CharacterInventory(founder).Gold != 0 || bag.Count("health-potion") != 2 || bag.Count("mana-potion") != 2 || vitals.Health != 6 || vitals.Mana != 30)
+                if (bag.Gold != 25 || world.CharacterInventory(founder).Gold != 0 || bag.Count("health-potion") != 2 || bag.Count("mana-potion") != 2 || vitals.Health != 6 || vitals.Mana != 20)
                 { Finish("FAIL: host economy isolation/consumption"); yield break; }
                 string path = Path.Combine(folder, "EconomyIntegration.es3");
                 SaveGameStore.Save(world, path); var loaded = SaveGameStore.Load(path); ES3.DeleteFile(path);
+                var savedDeath=loaded.DefeatPosition(lootEnemy.EnemyId);
+                if (savedDeath==null || Vector3.Distance(new Vector3(savedDeath.x,savedDeath.y,savedDeath.z),deathPosition)>.001f)
+                { Finish("FAIL: loot death position lost in real save roundtrip"); yield break; }
                 if (loaded.CharacterSpells(guest).Rank("fireball")!=3) { Finish("FAIL: learned spell save"); yield break; }
-                if (loaded.CharacterInventory(guest).Gold != 25 || loaded.CharacterInventory(guest).PotionItem(1) != "mana-potion" || loaded.CharacterVitals(guest).Mana != 30)
+                if (loaded.CharacterInventory(guest).Gold != 25 || loaded.CharacterInventory(guest).PotionItem(1) != "mana-potion" || loaded.CharacterVitals(guest).Mana != 20)
                 { Finish("FAIL: real economy save roundtrip"); yield break; }
                 if (loaded.CharacterInventory(founder).Count("foundation-warrior-armor") != 1 || loaded.CharacterInventory(guest).Count("foundation-warrior-armor") != 0 || loaded.SharedStash.Count("foundation-warrior-armor") != 0)
                 { Finish("FAIL: item duplicated during stash trade or save"); yield break; }
@@ -94,6 +127,12 @@ namespace SecretsReborn
                 var barrier=new GameObject("Spell test wall",typeof(BoxCollider2D)); barrier.transform.position=actor.transform.position+Vector3.right*2;
                 barrier.transform.localScale=new Vector3(.5f,3,1); Physics2D.SyncTransforms();
                 File.WriteAllText(Path.Combine(folder,"SpellReady.signal"),"ready");
+                var flightCaster=actor.GetComponent<SpellCaster>();
+                while (!flightCaster.IsCasting) yield return null;
+                while (flightCaster.IsCasting) yield return null;
+                var launched=flightCaster.Capture().effects;
+                if (!spellEnemy.Alive || spellEnemy.Health!=spellEnemy.MaxHealth || launched==null || Array.FindAll(launched,x=>x.kind=="fireball").Length!=2)
+                { Finish("FAIL: rank-3 projectiles missing or damage applied before arrival"); yield break; }
                 while (!File.Exists(Path.Combine(folder,"SpellDone.signal"))) yield return null;
                 if (spellEnemy.Alive || world.CharacterVitals(guest).Health!=5 || world.CharacterVitals(founder).Health!=5 || world.CharacterVitals(guest).Mana!=20)
                 { Finish("FAIL: host spell damage/heal/budget/mana"); yield break; }
@@ -101,7 +140,7 @@ namespace SecretsReborn
                 if (hostCaster.Cooldown("heal")<=0 || hostCaster.TryCast("heal",null,true) || world.CharacterVitals(guest).Mana!=20)
                 { Finish("FAIL: spell cooldown or mana charged on rejected cast"); yield break; }
                 Destroy(dummy); Destroy(barrier);
-                Finish("PASS: economy, stash and save; client fireball through wall, shared heal, fixed cast position, host mana/cooldown and replicated casting.");
+                Finish("PASS: economy, stash and save; two rank-3 projectiles, damage only on arrival through wall, shared heal, fixed cast position, host mana/cooldown and replicated casting.");
             }
             else
             {
@@ -110,6 +149,17 @@ namespace SecretsReborn
                 while (net.LocalCharacter == null || net.LobbyActive || net.ChangingArea || !File.Exists(Path.Combine(folder, "EconomyReady.signal"))) yield return null;
                 var actor = net.LocalCharacter;
                 while (GameSession.Instance.World.CharacterSpells(actor.CharacterId).Rank("fireball")!=3) yield return null;
+                var replicatedLoot=FindFirstObjectByType<EnemyLoot>();
+                while (GameSession.Instance.World.DefeatPosition(replicatedLoot.EnemyId)==null) yield return null;
+                TreeMeleeEnemy replicatedEnemy=null;
+                foreach (var candidate in FindObjectsByType<TreeMeleeEnemy>(FindObjectsInactive.Include,FindObjectsSortMode.None))
+                    if (candidate.EnemyId==replicatedLoot.EnemyId) replicatedEnemy=candidate;
+                var replicatedDeath=GameSession.Instance.World.DefeatPosition(replicatedLoot.EnemyId);
+                if (replicatedEnemy==null || Vector3.Distance(new Vector3(replicatedDeath.x,replicatedDeath.y,replicatedDeath.z),replicatedEnemy.SpawnPosition+Vector3.right*2)>.001f)
+                { Finish("FAIL: client loot death position mismatch"); yield break; }
+                var rootBefore=replicatedLoot.transform.position; replicatedLoot.RefreshSession();
+                if (Vector3.Distance(replicatedLoot.transform.position,rootBefore)>.001f)
+                { Finish("FAIL: client loot position refresh drift"); yield break; }
                 while (actor.State.Gold != 25 || actor.State.Count("mana-potion") != 3 || actor.State.PotionItem(0) != "health-potion") yield return null;
                 var consumableRing=actor.GetComponent<SpellRingMenu>(); consumableRing.Open(); consumableRing.Confirm();
                 if(FindFirstObjectByType<SpellRingView>().SelectedIconAvailable) { Finish("FAIL: insufficient-mana spell not greyed out"); yield break; }
@@ -117,6 +167,8 @@ namespace SecretsReborn
                 if(actor.GetComponent<SpellCaster>().IsCasting || !consumableRing.IsOpen) { Finish("FAIL: insufficient-mana spell confirmed"); yield break; }
                 CaptureCanvas(FindFirstObjectByType<SpellRingView>(),"InsufficientManaRing.png");
                 consumableRing.SwitchCategory();
+                if (FindFirstObjectByType<SpellRingView>().IconCount != 6 || actor.RingItemCount("health-potion-small") != 5 || actor.RingItemCount("mana-potion-small") != 5)
+                { Finish("FAIL: legacy potions not combined into three sizes"); yield break; }
                 var info=FindFirstObjectByType<SpellRingView>().transform.Find("InfoStrip");
                 var infoRect=info.GetComponent<RectTransform>();
                 float reserved=CharacterVitalsHud.OccupiedScreenHeight(GameSession.Instance.World.CharacterVitals(actor.CharacterId).HeartContainers)/info.GetComponentInParent<Canvas>().scaleFactor;
@@ -155,7 +207,15 @@ namespace SecretsReborn
                 interaction.UIDrop(actor.State.FirstSlot("mana-potion-large"),55); yield return new WaitForSecondsRealtime(.2f);
                 if(actor.State.PotionItem(0)!="health-potion") { Finish("FAIL: hidden quick slot accepts drops"); yield break; }
                 CaptureCanvas(canvas,"InventoryCanvas.png");
-                interaction.UIDrop(actor.State.FirstSlot("foundation-warrior-armor"),40+(int)EquipmentSlot.Armor);
+                int armorSlot=-1;
+                for (int index=0;index<40;index++)
+                {
+                    var shown=interaction.DisplayedItem(index);
+                    if (shown!=null && shown.IsConsumable) { Finish("FAIL: potion visible in regular inventory"); yield break; }
+                    if (shown?.ItemId=="foundation-warrior-armor") armorSlot=index;
+                }
+                if (armorSlot<0) { Finish("FAIL: armor not visible in inventory"); yield break; }
+                interaction.UIDrop(armorSlot,40+(int)EquipmentSlot.Armor);
                 while (actor.State.GetEquipment(EquipmentSlot.Armor) != "foundation-warrior-armor") yield return null;
                 while (GameSession.Instance.World.CharacterVitals(actor.CharacterId).MaxHealth!=8) yield return null;
                 if (actor.Stats.Armor!=60 || GameSession.Instance.World.CharacterVitals(actor.CharacterId).BaseMaxHealth!=6 || GameSession.Instance.World.CharacterVitals(actor.CharacterId).Health!=6)
@@ -220,6 +280,11 @@ namespace SecretsReborn
                 if (Vector2.Distance(actor.transform.position,castPosition)>.1f) { Finish("FAIL: casting movement lock"); yield break; }
                 net.TestMotion=Vector2.zero;
                 while (caster.IsCasting || GameSession.Instance.World.CharacterVitals(actor.CharacterId).Mana!=30) yield return null;
+                int replicatedProjectiles=0;
+                foreach (var sprite in actor.GetComponentsInChildren<SpriteRenderer>())
+                    if (sprite.gameObject.name=="Spell fireball" && sprite.enabled && sprite.sprite!=null) replicatedProjectiles++;
+                if (replicatedProjectiles!=2) { Finish("FAIL: client did not render two replicated fireball sprites"); yield break; }
+                CaptureWorld(actor.transform.position,"ReplicatedFireballs.png");
                 if (!ring.Open()) { Finish("FAIL: heal ring open"); yield break; }
                 ring.Choose(1); ring.Confirm(); // Light -> Heal
                 CaptureCanvas(FindFirstObjectByType<SpellRingView>(),"SpellHealTargetRing.png");
@@ -228,7 +293,7 @@ namespace SecretsReborn
                 while (!caster.IsCasting) yield return null;
                 while (caster.IsCasting || GameSession.Instance.World.CharacterVitals(actor.CharacterId).Mana!=20 || GameSession.Instance.World.CharacterVitals(actor.CharacterId).Health!=5) yield return null;
                 File.WriteAllText(Path.Combine(folder,"SpellDone.signal"),"done");
-                Finish("PASS: UI/economy regression and client-authority spell requests, replicated casting, blocked movement and shared heal.");
+                Finish("PASS: UI/economy regression and client-authority spell requests, two visible replicated fireballs, blocked movement and shared heal.");
             }
         }
     }

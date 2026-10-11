@@ -84,7 +84,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::SecretsReborn.WorldItem
   worldItemId: test-health-potion-small
   item: {fileID: 11400000, guid: 9677e308976b21f41addbff0ee087ad8, type: 2}
-  count: 3
+  count: 1
   pickupDistance: 1.6
 --- !u!1 &9024973744843139655
 GameObject:

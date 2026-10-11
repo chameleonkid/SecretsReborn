@@ -17,7 +17,7 @@ namespace SecretsReborn
     }
     [Serializable] public sealed class CoopHello
     {
-        public int protocol = 21;
+        public int protocol = 23;
         public string characterToken, scene, playerName;
     }
     [Serializable] public sealed class CoopActorPose
@@ -42,7 +42,7 @@ namespace SecretsReborn
     }
     [Serializable] public sealed class CoopSnapshot
     {
-        public int protocol = 21;
+        public int protocol = 23;
         public long sequence;
         public int areaEpoch;
         public string localCharacter, scene;
@@ -97,7 +97,7 @@ namespace SecretsReborn
                         if (character.potionItems[i] == "") character.potionItems[i] = null;
             }
         }
-        public static bool ValidHello(CoopHello hello, string scene) => hello != null && hello.protocol == 21
+        public static bool ValidHello(CoopHello hello, string scene) => hello != null && hello.protocol == 23
             && hello.scene == scene && Guid.TryParseExact(hello.characterToken, "N", out _);
         public static bool Valid(CoopCommand command)
         {

@@ -20,6 +20,8 @@ MonoBehaviour:
   twoHanded: 0
   description: 
   armorValue: 0
+  bonusHearts: 0
+  bonusMana: 0
   sellValue: 2
   buyPrice: 8
   useCooldown: 2

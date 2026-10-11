@@ -166,11 +166,11 @@ namespace SecretsReborn
             => InventoryNavigation.Navigate(index, dx, dy);
         private void Activate(int slot)
         {
+            if (!ValidUISlot(slot)) return;
             if (stash != null) { TransferStash(slot); return; }
             bool result = false;
-            if (slot >= PotionStart) result = inventory.TryUsePotion(slot-PotionStart);
-            else if (slot >= 40) result = inventory.TryUnequip((EquipmentSlot)(slot - 40));
-            else { var target = inventory.PreferredSlot(slot); result = target.HasValue ? inventory.TryEquip(slot, target.Value) : inventory.TryUseItem(slot); }
+            if (slot >= 40) result = inventory.TryUnequip((EquipmentSlot)(slot - 40));
+            else { int bagIndex = BagIndex(slot); var target = inventory.PreferredSlot(bagIndex); result = target.HasValue ? inventory.TryEquip(bagIndex, target.Value) : inventory.TryUseItem(bagIndex); }
             message = result ? "Gegenstand angelegt, abgelegt oder benutzt." : "Nicht möglich: Slot ungeeignet, Tasche voll oder Effekt nicht benötigt.";
         }
         private void SetOpen(bool value)
@@ -183,7 +183,19 @@ namespace SecretsReborn
             else movement.enabled = movementWasEnabled;
         }
         private void OnDisable() { SetOpen(false); if (inventory != null) GameSession.Existing?.CancelRevive(inventory); }
-        private ItemDefinition Item(int index) => inventory.Find(index < 40 ? inventory.State.GetSlot(index)?.itemId
+        // Display slots omit potions; save data and network commands keep their original bag indices.
+        private int BagIndex(int displayed)
+        {
+            if (displayed < 0 || displayed >= InventoryState.Capacity) return -1;
+            int visible = 0;
+            for (int index = 0; index < InventoryState.Capacity; index++)
+            {
+                if (inventory.Find(inventory.State.GetSlot(index)?.itemId)?.IsConsumable == true) continue;
+                if (visible++ == displayed) return index;
+            }
+            return -1;
+        }
+        private ItemDefinition Item(int index) => inventory.Find(index < 40 ? inventory.State.GetSlot(BagIndex(index))?.itemId
             : index >= PotionStart ? inventory.State.PotionItem(index-PotionStart) : inventory.State.GetEquipment((EquipmentSlot)(index - 40)));
         private static string SlotLabel(int index) => index >= PotionStart ? index == PotionStart ? "HP-Schnellslot" : "Mana-Schnellslot"
             : index >= 40 ? Labels[index-40] : "Rucksack";
@@ -216,11 +228,11 @@ namespace SecretsReborn
         internal string StatusMessage => message;
         internal bool PresentationBlocked => SaveBook.IsOpen || GameSession.Instance.Busy || GameSession.Instance.RewardPresentationActive;
         internal ItemDefinition DisplayedItem(int index) => InStash ? inventory.Find(StashStack(index)?.itemId) : Item(index);
-        internal int DisplayedCount(int index) => InStash ? StashStack(index)?.count ?? 0 : index < 40 ? inventory.State.GetSlot(index)?.count ?? 0 : index >= PotionStart ? inventory.State.Count(Item(index)?.ItemId) : 1;
+        internal int DisplayedCount(int index) => InStash ? StashStack(index)?.count ?? 0 : index < 40 ? inventory.State.GetSlot(BagIndex(index))?.count ?? 0 : index >= PotionStart ? inventory.State.Count(Item(index)?.ItemId) : 1;
         internal string SlotTitle(int index) => InStash ? index < 40 ? "Rucksack" : "Gemeinsames Lager" : SlotLabel(index);
         internal CharacterInventory ReviveTarget => NearestDowned();
         internal bool ReviveInterrupted => reviveInterrupted;
-        private bool ValidUISlot(int index) => index >= 0 && index < (InStash ? 80 : PotionStart);
+        private bool ValidUISlot(int index) => index >= 0 && index < (InStash ? 80 : PotionStart) && (InStash || index >= 40 || BagIndex(index) >= 0);
         private bool CanOperateUI => localInput && open && !PresentationBlocked && !GameSession.Instance.World.CharacterVitals(inventory.CharacterId).IsDown;
         public bool OpenStash(SharedStashContainer container)
         {
@@ -235,10 +247,10 @@ namespace SecretsReborn
         {
             if (!CanOperateUI || !ValidUISlot(from) || !ValidUISlot(to) || from == to) return;
             if (InStash) { if (from/40 != to/40) TransferStash(from,to); return; }
-            bool result = to >= PotionStart && from < 40 ? inventory.TryBindPotion(to-PotionStart,from)
-                : from >= PotionStart ? to < 40 && inventory.TryBindPotion(from-PotionStart,-1)
-                : from < 40 ? to < 40 ? inventory.TryMove(from,to) : inventory.TryEquip(from,(EquipmentSlot)(to-40))
-                : to < 40 && inventory.TryUnequip((EquipmentSlot)(from-40),to);
+            int bagFrom = from < 40 ? BagIndex(from) : -1;
+            int bagTo = to < 40 ? BagIndex(to) : -1;
+            bool result = from < 40 ? to < 40 ? inventory.TryMove(bagFrom,bagTo) : inventory.TryEquip(bagFrom,(EquipmentSlot)(to-40))
+                : to < 40 && inventory.TryUnequip((EquipmentSlot)(from-40),bagTo);
             message = result ? "Transfer angefragt oder Gegenstand verschoben." : "Wechsel nicht möglich: Slot ungeeignet oder kein Platz.";
         }
         private void LateUpdate()

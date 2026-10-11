@@ -14,6 +14,8 @@ namespace SecretsReborn
         private Rigidbody2D body;
         private SpriteRenderer image;
         private Vector2 home;
+        private Vector3 spawnPosition;
+        public Vector3 SpawnPosition => spawnPosition;
         private int facing;
         private int health = 6;
         private float flashUntil, knockbackUntil, walkElapsed;
@@ -41,7 +43,7 @@ namespace SecretsReborn
         public bool Alive => health > 0 && isActiveAndEnabled;
         public void Configure(string id, Sprite[] sprites) { enemyId = id; frames = sprites; }
         public void SetIdentity(string id) => enemyId = id;
-        private void Awake() { body = GetComponent<Rigidbody2D>(); image = GetComponent<SpriteRenderer>(); home = body.position; }
+        private void Awake() { body = GetComponent<Rigidbody2D>(); image = GetComponent<SpriteRenderer>(); home = body.position; spawnPosition=transform.position; }
         private void Start()
         {
             if (string.IsNullOrWhiteSpace(enemyId)) { Debug.LogError("Baumgegner braucht eine eindeutige Enemy ID.", this); enabled = false; return; }
@@ -97,7 +99,8 @@ namespace SecretsReborn
             knockback = push; knockbackUntil = Time.time + .18f;
             if (health == 0)
             {
-                GameSession.Instance.World.DefeatEnemy(enemyId);
+                var position=transform.position;
+                GameSession.Instance.World.DefeatEnemy(enemyId,gameObject.scene.path,position.x,position.y,position.z);
                 foreach (var loot in FindObjectsByType<EnemyLoot>(FindObjectsSortMode.None)) loot.RefreshSession();
                 gameObject.SetActive(false);
             }

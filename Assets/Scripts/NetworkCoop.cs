@@ -427,7 +427,7 @@ namespace SecretsReborn
                 var snapshot = JsonUtility.FromJson<CoopSnapshot>(json);
                 // A guest may join a running host after earlier area transitions.
                 if (!ChangingArea && receivedSnapshot == 0 && snapshot != null && snapshot.areaEpoch >= 0) areaEpoch = snapshot.areaEpoch;
-                if (snapshot == null || snapshot.protocol != 21 || snapshot.sequence <= receivedSnapshot || snapshot.actors == null
+                if (snapshot == null || snapshot.protocol != 23 || snapshot.sequence <= receivedSnapshot || snapshot.actors == null
                     || snapshot.actors.Length > 4 || snapshot.areaEpoch != areaEpoch || snapshot.scene != SceneManager.GetActiveScene().path
                     || ChangingArea && !areaLocalReady) return;
                 CoopProtocol.RestoreWireEmptySlots(snapshot.world);

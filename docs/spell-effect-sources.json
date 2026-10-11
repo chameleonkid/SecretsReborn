@@ -1,0 +1,12 @@
+{
+  "repository": "https://github.com/chameleonkid/Secrets",
+  "commit": "99f5b1c15fa6201e84044fbd81f9397d4f9709a2",
+  "destination": "Assets/Resources/Magic/Effects",
+  "import": "Original PNG unchanged; native Unity Sprite Single, 100 PPU, Point, Uncompressed, no mipmaps, alpha transparency. Fresh GUIDs.",
+  "frames": {
+    "FireballFlying/01..02.png": "Assets/Art/Spells/Fireball/Fireball Flug 1..2.png",
+    "FireballHit/01..11.png": "Assets/Art/Spells/Fireball/FB Aufprall1..11.png",
+    "Heal/01..25.png": "Assets/Art/Spells/LightSpells/LightEffect_01..25.png"
+  },
+  "usage": "Sprites only. Host owns flight and damage; SpellEffectsView presents replicated effects. No legacy scripts, prefabs or controllers imported."
+}

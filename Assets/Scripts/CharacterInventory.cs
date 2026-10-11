@@ -83,7 +83,24 @@ namespace SecretsReborn
             var item=Find(itemId);
             if(item==null || !item.IsConsumable) return false;
             if(NetworkCoop.Request(this,CoopAction.UseRingItem,expectedItem:itemId)) return true;
-            return TryUseItem(State.FirstSlot(itemId));
+            for (int index = 0; index < InventoryState.Capacity; index++)
+            {
+                var candidate = Find(State.GetSlot(index)?.itemId);
+                if (candidate?.IsConsumable == true && candidate.PotionVariantId == item.PotionVariantId)
+                    return TryUseItem(index);
+            }
+            return false;
+        }
+        public int RingItemCount(string itemId)
+        {
+            var item = Find(itemId); if (item?.IsConsumable != true) return 0;
+            long count = 0;
+            for (int index = 0; index < InventoryState.Capacity; index++)
+            {
+                var stack = State.GetSlot(index); var candidate = Find(stack?.itemId);
+                if (candidate?.IsConsumable == true && candidate.PotionVariantId == item.PotionVariantId) count += stack.count;
+            }
+            return (int)Math.Min(int.MaxValue, count);
         }
         // Retained for snapshot compatibility; potions no longer have a cooldown.
         public float PotionCooldownRemaining => 0;

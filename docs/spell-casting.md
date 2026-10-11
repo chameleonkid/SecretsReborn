@@ -28,8 +28,8 @@ SpellCaster wird an Spieler angelegt, auch an neu gespawnte Netzwerkfiguren.
 - Ein verlorenes, gestorbenes oder außer Reichweite geratenes Ziel bekommt seinen
   Anteil nicht; er verfällt. Kein neues Ziel ersetzt es. Overheal verfällt ebenfalls.
 - Caststatus und verbleibende Wirkzeit werden in Host-Snapshots übertragen.
-  Lernstatus bleibt im Saveformat 17, Cast-Timer/Effekte werden nicht gespeichert.
-  Netzwerkprotokoll 20 seit der Ringmenü-Anbindung: auf allen Test-PCs den
+  Lernstatus bleibt im Saveformat 18, Cast-Timer/Effekte werden nicht gespeichert.
+  Netzwerkprotokoll 23 seit der Beute-Todesposition: auf allen Test-PCs den
   neuen vollständigen Build verwenden.
 
 ## Vorläufiger Tastatur-Testzugriff
@@ -48,9 +48,21 @@ Dieser Entwicklungszugriff bleibt zusätzlich zum regulären
 
 Rot/cyan markiert das lokale Testziel. Die erste Zielwahl ist die erste gültige
 Ziel-ID; nach einem Wechsel von Angriff zu Heilung gilt deren Zielliste.
-Noch keine Feuerball-Spriteanimation, Flugphase oder Rang-3-Projektilvisualisierung.
-Schaden/Heilung werden am Ende der Wirkzeit vom Host angewendet. Vorhandene
-Secrets-Effekte werden später getrennt von alter Projektilphysik angebunden.
+Während des Wirkens zeigt die Figur eine Geste aus ihren vorhandenen
+Angriffsframes und eine Aura. Es ist noch kein eigener Cast-Spritesatz.
+Feuerbälle starten nach der Wirkzeit und verfolgen ausschließlich ihre fixierten
+Ziele mit 8 Welteinheiten pro Sekunde. Erst beim Eintreffen wendet der Host Schaden
+an. Rang 3 erzeugt zwei Projektile pro Ziel; diese teilen dessen festen Anteil
+nochmals ganzzahlig. Verlorene Ziele erhalten keinen Schaden, ihr Anteil verfällt.
+Projektile ignorieren Wände, verschwinden spätestens nach vier Sekunden und werden
+bei Tod des Zaubernden, Deaktivierung, Welt-/Gebietswechsel oder Save/Load verworfen.
+Escape bricht die Wirkzeit ab; bereits gestartete Projektile fliegen weiter.
+Heal wirkt am Ende der Wirkzeit und zeigt einen grünen Effekt an geheilten Figuren.
+Der Host überträgt Effekt-ID, Position, Richtung und Alter im Cast-Snapshot;
+Clients zeigen diese ausschließlich an und wenden selbst keinen Schaden an.
+Die 38 Effektframes liegen in `Assets/Resources/Magic/Effects`; Import und
+Herkunft stehen in [spell-effect-sources.json](spell-effect-sources.json).
+Native Importprüfung: **SecretsReborn → Magic → Configure spell effect sprites**.
 F9 ist ausdrücklich ein Test-Lernzugriff; er verändert den Lernstatus der
 aktuellen Welt. Eine eigene Testwelt verwenden, wenn das nicht gespeichert werden soll.
 
@@ -69,5 +81,5 @@ Heilung wird abgelehnt und verbraucht kein weiteres Mana.
 
 Das editierbare Canvas-Ringmenü ist anschließend ergänzt; Zielvorschau und
 Kosten/Cooldown werden angezeigt. Die Vorschau benutzt dieselbe Sortierung
-und Rundung. Nächster Ausbau: Effekte und Projektile mit Schaden beim Eintreffen,
-danach reguläre Zauberbuch-Pickups anbinden.
+und Rundung. Nächster Ausbau: reguläre Zauberbuch-Pickups anbinden und die
+[vorhandenen Gegner-/Bossgrafiken](enemy-boss-asset-overview.md) schrittweise einsetzen.

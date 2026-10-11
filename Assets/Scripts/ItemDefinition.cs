@@ -33,6 +33,9 @@ namespace SecretsReborn
         [SerializeField, Min(1)] private int useAmount = 2;
         public ItemPurpose Purpose => purpose;
         public bool IsConsumable => purpose==ItemPurpose.HealthPotion || purpose==ItemPurpose.ManaPotion;
+        // Old saves and pickups retain their IDs, but belong to the small potion size.
+        public string PotionVariantId => itemId == "health-potion" ? "health-potion-small"
+            : itemId == "mana-potion" ? "mana-potion-small" : itemId;
         public int UseAmount => Mathf.Max(1, useAmount);
         public void SetPurpose(ItemPurpose value, int amount) { purpose = value; useAmount = Mathf.Max(1, amount); }
         public string Description

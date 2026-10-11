@@ -110,11 +110,26 @@ namespace SecretsReborn
         private readonly Dictionary<string, RuneSequence> puzzles = new Dictionary<string, RuneSequence>();
         private readonly HashSet<string> collectedItems = new HashSet<string>();
         private readonly HashSet<string> defeatedEnemies = new HashSet<string>();
+        private readonly Dictionary<string, EnemyDefeatPosition> enemyDefeatPositions = new Dictionary<string, EnemyDefeatPosition>();
         private readonly HashSet<string> discoveredChestItems = new HashSet<string>();
         public bool IsChestItemDiscovered(string itemId) => discoveredChestItems.Contains(itemId);
         public bool DiscoverChestItem(string itemId) => !string.IsNullOrWhiteSpace(itemId) && discoveredChestItems.Add(itemId);
         public bool IsEnemyDefeated(string id) => defeatedEnemies.Contains(id);
         public bool DefeatEnemy(string id) => !string.IsNullOrWhiteSpace(id) && defeatedEnemies.Add(id);
+        public bool DefeatEnemy(string id, string scenePath, float x, float y, float z)
+        {
+            if (string.IsNullOrWhiteSpace(id) || string.IsNullOrWhiteSpace(scenePath) || float.IsNaN(x) || float.IsInfinity(x)
+                || float.IsNaN(y) || float.IsInfinity(y) || float.IsNaN(z) || float.IsInfinity(z))
+                throw new ArgumentException("Invalid enemy defeat position.");
+            if (!DefeatEnemy(id)) return false;
+            enemyDefeatPositions.Add(id, new EnemyDefeatPosition { enemyId=id, scenePath=scenePath, x=x, y=y, z=z });
+            return true;
+        }
+        public EnemyDefeatPosition DefeatPosition(string id)
+        {
+            if (!enemyDefeatPositions.TryGetValue(id, out var value)) return null;
+            return new EnemyDefeatPosition { enemyId=value.enemyId, scenePath=value.scenePath, x=value.x, y=value.y, z=value.z };
+        }
         private readonly Dictionary<string, CharacterSaveData> positions = new Dictionary<string, CharacterSaveData>();
         public void SetPosition(string characterId, string scenePath, float x, float y, float z)
         {
@@ -154,7 +169,8 @@ namespace SecretsReborn
                 savedAtUtc = savedAtUtc, savedParticipants = Array.ConvertAll(savedParticipants, s => new WorldCharacterSlot { id = s.id, name = s.name }),
                 characters = new CharacterSaveData[characters.Count],
                 puzzles = new PuzzleSaveData[puzzles.Count], collectedItems = new string[collectedItems.Count], defeatedEnemies = new string[defeatedEnemies.Count],
-                discoveredChestItems = new string[discoveredChestItems.Count] };
+                discoveredChestItems = new string[discoveredChestItems.Count], enemyDefeatPositions = new EnemyDefeatPosition[enemyDefeatPositions.Count] };
+            int positionIndex=0; foreach (string id in enemyDefeatPositions.Keys) data.enemyDefeatPositions[positionIndex++]=DefeatPosition(id);
             int i = 0; foreach (var pair in characters)
             {
                 var character = pair.Value.Capture(pair.Key);
@@ -169,7 +185,8 @@ namespace SecretsReborn
         }
         public static WorldSessionState Restore(SaveGameData data)
         {
-            if (data == null || data.version < 1 || data.version > 17 || data.characters == null || data.puzzles == null || data.collectedItems == null || data.version >= 6 && data.defeatedEnemies == null
+            if (data == null || data.version < 1 || data.version > 18 || data.characters == null || data.puzzles == null || data.collectedItems == null || data.version >= 6 && data.defeatedEnemies == null
+                || data.version >= 18 && data.enemyDefeatPositions == null
                 || data.version >= 8 && data.discoveredChestItems == null)
                 throw new ArgumentException("Unsupported or incomplete savegame.");
             var world = new WorldSessionState(data.worldId);
@@ -230,6 +247,14 @@ namespace SecretsReborn
                 if (string.IsNullOrWhiteSpace(id) || !world.collectedItems.Add(id)) throw new ArgumentException("Invalid collected item ID.");
             if (data.version >= 6) foreach (var id in data.defeatedEnemies)
                 if (string.IsNullOrWhiteSpace(id) || !world.defeatedEnemies.Add(id)) throw new ArgumentException("Invalid defeated enemy ID.");
+            if (data.version >= 18) foreach (var position in data.enemyDefeatPositions)
+            {
+                if (position == null || string.IsNullOrWhiteSpace(position.enemyId) || !world.IsEnemyDefeated(position.enemyId)
+                    || string.IsNullOrWhiteSpace(position.scenePath) || world.enemyDefeatPositions.ContainsKey(position.enemyId)
+                    || float.IsNaN(position.x) || float.IsInfinity(position.x) || float.IsNaN(position.y) || float.IsInfinity(position.y)
+                    || float.IsNaN(position.z) || float.IsInfinity(position.z)) throw new ArgumentException("Invalid enemy defeat position.");
+                world.enemyDefeatPositions.Add(position.enemyId, new EnemyDefeatPosition { enemyId=position.enemyId, scenePath=position.scenePath, x=position.x, y=position.y, z=position.z });
+            }
             if (data.version >= 8) foreach (var id in data.discoveredChestItems)
                 if (string.IsNullOrWhiteSpace(id) || !world.discoveredChestItems.Add(id)) throw new ArgumentException("Invalid discovered chest item ID.");
             return world;

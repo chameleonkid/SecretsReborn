@@ -13,13 +13,15 @@ MonoBehaviour:
   m_Name: health-potion
   m_EditorClassIdentifier: Assembly-CSharp::SecretsReborn.ItemDefinition
   itemId: health-potion
-  displayName: Heiltrank
+  displayName: Kleiner Heiltrank
   maxStack: 10
   armorAppearance: {fileID: 0}
   kind: 0
   twoHanded: 0
   description: 
   armorValue: 0
+  bonusHearts: 0
+  bonusMana: 0
   sellValue: 2
   buyPrice: 8
   useCooldown: 2

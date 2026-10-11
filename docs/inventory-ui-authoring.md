@@ -57,7 +57,8 @@ Buttons behalten ihre On Click-Verknüpfungen zu ActivateSelected bzw. Close.
 Controller-Navigation und Aktionen verarbeitet InventoryInteraction; das
 EventSystem verarbeitet Maus/Drag-and-drop. So lösen A/Enter keine doppelten
 Aktionen aus. Im geöffneten Inventar bleiben Bereichswechsel, goldene Auswahl,
-Anlegen/Ablegen und das direkte Benutzen von Tränken erhalten.
+Anlegen/Ablegen erhalten. Heil- und Mana-Tränke werden ausschließlich über
+das Ringmenü benutzt und im normalen Inventar nicht angezeigt.
 
 **SecretsReborn → UI → Prepare editable inventory canvas** erstellt fehlende
 Grund-Prefabs und prüft Slot-Referenzen. Vorhandene Prefabs werden beibehalten;
@@ -70,5 +71,8 @@ aktualisieren und auf allen PCs dieselbe Version verwenden.
 Trank-Schnellslots sind zugunsten des [gemeinsamen Rings](spell-ring-menu.md)
 deaktiviert. **SecretsReborn → UI → Prepare consumable ring** deaktiviert diese
 alten Elemente im bestehenden Prefab, ohne Ausrüstung, Lager oder das übrige
-Layout aufzubauen. Verbrauchsgegenstände bleiben im Rucksack und erscheinen
-im Ring mit Menge und Wirkung.
+Layout aufzubauen. Verbrauchsgegenstände bleiben in den gespeicherten
+Rucksackdaten und erscheinen im Ring mit Menge und Wirkung. Das normale
+Inventar überspringt ihre Speicherplätze; Auswahl, Anlegen/Ablegen und
+Drag-and-drop werden auf die tatsächlichen Rucksackplätze übersetzt.
+In der Lageransicht bleiben Tränke für den Austausch zwischen Figuren sichtbar.

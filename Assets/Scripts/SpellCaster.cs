@@ -12,6 +12,13 @@ namespace SecretsReborn
         public float remaining;
         public int sequence;
         public SpellCooldownSnapshot[] cooldowns;
+        public SpellEffectSnapshot[] effects;
+    }
+    [Serializable] public sealed class SpellEffectSnapshot
+    {
+        public int id;
+        public string kind;
+        public float x, y, angle, age;
     }
     [Serializable] public sealed class SpellCooldownSnapshot { public string id; public float remaining; }
     [RequireComponent(typeof(CharacterInventory))]
@@ -30,6 +37,20 @@ namespace SecretsReborn
         private bool frozen;
         private SpellCastSnapshot replica;
         private int sequence;
+        private sealed class Flight
+        {
+            public Component target;
+            public int amount;
+            public float range;
+            public double expires;
+            public WorldSessionState world;
+            public string scene;
+            public SpellEffectSnapshot visual;
+        }
+        private readonly List<Flight> flights = new List<Flight>();
+        private readonly List<SpellEffectSnapshot> effects = new List<SpellEffectSnapshot>();
+        private int effectSequence;
+        private SpellEffectsView effectView;
         public bool IsCasting => actor!=null && (actor.HasStateAuthority ? spell!=null : replica?.casting==true);
         public string ActiveSpell => actor!=null && actor.HasStateAuthority ? spell?.SpellId : replica?.spellId;
         public float Remaining => actor!=null && actor.HasStateAuthority ? (float)Math.Max(0,finish-Time.timeAsDouble) : replica?.remaining ?? 0;
@@ -44,7 +65,7 @@ namespace SecretsReborn
         public SpellDefinition[] Catalog => catalog;
         public List<Component> TargetsFor(SpellDefinition definition)
         { var data=definition?.Rank(GameSession.Instance.World.CharacterSpells(actor.CharacterId).Rank(definition.SpellId)); return data==null ? new List<Component>() : Eligible(definition.Targets,data.range); }
-        private void Awake() { actor=GetComponent<CharacterInventory>(); body=GetComponent<Rigidbody2D>(); catalog=Resources.LoadAll<SpellDefinition>("Magic/Spells"); }
+        private void Awake() { actor=GetComponent<CharacterInventory>(); body=GetComponent<Rigidbody2D>(); catalog=Resources.LoadAll<SpellDefinition>("Magic/Spells"); effectView=gameObject.AddComponent<SpellEffectsView>(); }
         public SpellDefinition Find(string id) => Array.Find(catalog,x=>x!=null && x.SpellId==id);
         public float Cooldown(string id)
         {
@@ -67,6 +88,7 @@ namespace SecretsReborn
             foreach (var candidate in valid) if (all || Id(candidate)==targetId) targets.Add(candidate);
             if (targets.Count==0 || !GameSession.Instance.TrySpendMana(actor,level.manaCost)) { targets.Clear(); Status="Kein gültiges Ziel oder nicht genug Mana."; return false; }
             spell=definition; rank=level; castWorld=GameSession.Instance.World; scene=gameObject.scene.path;
+            runtimeWorld=castWorld;
             finish=Time.timeAsDouble+level.castTime; ready[id]=finish+level.cooldown; sequence++;
             Freeze(true); GameSession.Instance.CancelRevive(actor); Status="Wirkt: "+definition.DisplayName; return true;
         }
@@ -89,12 +111,55 @@ namespace SecretsReborn
                 var target=targets[i]; int amount=SpellCastRules.Share(rank.totalBudget,targets.Count,i);
                 // Lost targets consume their fixed share; no retargeting or redistribution.
                 if (amount==0 || !ValidTarget(target,rank.range)) continue;
-                if (target is TreeMeleeEnemy enemy && enemy.Alive && enemy.HasStateAuthority) enemy.ReceiveHostHit(amount,Vector2.zero);
-                else if (target is CharacterInventory ally) GameSession.Instance.ApplyHealing(ally,amount);
+                if (target is TreeMeleeEnemy enemy && enemy.Alive && enemy.HasStateAuthority)
+                {
+                    int count = Mathf.Clamp(rank.visualProjectiles, 1, 8);
+                    for (int projectile = 0; projectile < count; projectile++)
+                    {
+                        int share = SpellCastRules.Share(amount, count, projectile);
+                        if (share == 0) continue;
+                        var position = (Vector2)transform.position + Vector2.up * .5f + Vector2.right * ((projectile - (count - 1) * .5f) * .3f);
+                        var visual = NewEffect("fireball", position);
+                        flights.Add(new Flight { target = target, amount = share, range = rank.range, expires = Time.timeAsDouble + 4,
+                            world = castWorld, scene = scene, visual = visual });
+                    }
+                }
+                else if (target is CharacterInventory ally && GameSession.Instance.ApplyHealing(ally,amount)) NewEffect("heal", ally.transform.position);
             }
             Status="Zauber abgeschlossen."; Cancel();
         }
         public void Cancel() { spell=null; targets.Clear(); Freeze(false); }
+        private SpellEffectSnapshot NewEffect(string kind, Vector2 position)
+        {
+            var effect = new SpellEffectSnapshot { id = ++effectSequence, kind = kind, x = position.x, y = position.y };
+            effects.Add(effect); return effect;
+        }
+        private void ClearEffects() { flights.Clear(); effects.Clear(); effectView?.Clear(); }
+        private void UpdateFlights()
+        {
+            for (int i = flights.Count - 1; i >= 0; i--)
+            {
+                var flight = flights[i]; var enemy = flight.target as TreeMeleeEnemy;
+                if (flight.world != GameSession.Instance.World || flight.scene != gameObject.scene.path || enemy == null || !enemy.Alive
+                    || !enemy.HasStateAuthority || !ValidTarget(enemy, flight.range) || Time.timeAsDouble >= flight.expires)
+                { effects.Remove(flight.visual); flights.RemoveAt(i); continue; }
+                var position = new Vector2(flight.visual.x, flight.visual.y);
+                var destination = (Vector2)enemy.transform.position + Vector2.up * .5f;
+                var direction = destination - position;
+                flight.visual.angle = Mathf.Atan2(direction.y, direction.x) * Mathf.Rad2Deg;
+                position = Vector2.MoveTowards(position, destination, 8 * Time.deltaTime);
+                flight.visual.x = position.x; flight.visual.y = position.y; flight.visual.age += Time.deltaTime;
+                if (Vector2.Distance(position, destination) > .08f) continue;
+                enemy.ReceiveHostHit(flight.amount, Vector2.zero);
+                effects.Remove(flight.visual); flights.RemoveAt(i); NewEffect("hit", destination);
+            }
+            for (int i = effects.Count - 1; i >= 0; i--)
+            {
+                var effect = effects[i]; if (effect.kind == "fireball") continue;
+                effect.age += Time.deltaTime;
+                if (effect.age >= .8f) effects.RemoveAt(i);
+            }
+        }
         private void Freeze(bool value)
         {
             if (body==null || frozen==value) return;
@@ -103,7 +168,14 @@ namespace SecretsReborn
         }
         private void Update()
         {
-            if (actor.HasStateAuthority && runtimeWorld!=GameSession.Instance.World) { Cancel(); ready.Clear(); runtimeWorld=GameSession.Instance.World; }
+            if (actor.HasStateAuthority && runtimeWorld!=GameSession.Instance.World) { Cancel(); ClearEffects(); ready.Clear(); runtimeWorld=GameSession.Instance.World; }
+            if (actor.HasStateAuthority)
+            {
+                if (!actor.isActiveAndEnabled || GameSession.Instance.Busy || SaveBook.IsOpen || NetworkCoop.Active?.ChangingArea == true || NetworkCoop.Active?.VotePending == true
+                    || GameSession.Instance.World.CharacterVitals(actor.CharacterId).IsDown) ClearEffects();
+                else UpdateFlights();
+            }
+            effectView.Present(IsCasting, ActiveSpell, actor.HasStateAuthority ? effects.ToArray() : replica?.effects);
             if (actor.HasStateAuthority && spell!=null)
             {
                 if (!Allowed || castWorld!=GameSession.Instance.World || scene!=gameObject.scene.path) { Status="Wirken abgebrochen."; Cancel(); }
@@ -162,10 +234,10 @@ namespace SecretsReborn
         {
             var cooldowns=new List<SpellCooldownSnapshot>();
             foreach (var entry in ready) if (entry.Value>Time.timeAsDouble) cooldowns.Add(new SpellCooldownSnapshot { id=entry.Key,remaining=(float)(entry.Value-Time.timeAsDouble) });
-            return new SpellCastSnapshot { spellId=ActiveSpell,casting=IsCasting,remaining=Remaining,sequence=sequence,cooldowns=cooldowns.ToArray() };
+            return new SpellCastSnapshot { spellId=ActiveSpell,casting=IsCasting,remaining=Remaining,sequence=sequence,cooldowns=cooldowns.ToArray(),effects=effects.ToArray() };
         }
         public void ApplyReplica(SpellCastSnapshot state) { replica=state; replicaAt=Time.unscaledTime; }
-        private void OnDisable() { Cancel(); PreviewTargets(null); if (marker!=null) marker.enabled=false; }
+        private void OnDisable() { Cancel(); ClearEffects(); PreviewTargets(null); if (marker!=null) marker.enabled=false; }
         private void OnDestroy() { if (markerMaterial!=null) Destroy(markerMaterial); }
     }
 }

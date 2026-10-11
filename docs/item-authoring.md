@@ -63,31 +63,37 @@ Outfits sind animierte ClothingAppearance-Assets, keine einzelnen Inventaricons.
 ### Trankgrößen und Schnellzugriff
 
 Unter `Assets/World/Equipment/Items` sind eigene Small-/Medium-/Large-Items
-für HP und Mana angelegt. Vorläufige Testwerte:
+für HP und Mana angelegt. Vereinbarte Werte:
 
 | Größe | Heilung | Mana | Maximaler Stapel |
 |---|---|---|---|
-| Small | 1 Herz (Use Amount 2) | 20 | 10 |
-| Medium | 3 Herzen (Use Amount 6) | 40 | 10 |
-| Large | 6 Herzen (Use Amount 12) | 80 | 10 |
+| Klein | 1 Herz (Use Amount 2) | 10 | 10 |
+| Mittel | 3 Herzen (Use Amount 6) | 25 | 10 |
+| Groß | 6 Herzen (Use Amount 12) | 100 | 10 |
 
 Es wird höchstens bis zum persönlichen Maximum geheilt/aufgefüllt. Auch große
 Tränke haben keinen Cooldown. Bei vollen Werten wird kein
-Trank verbraucht. Die Größen sind ein Balancing-Vorschlag für Tests.
-Die vorhandenen `health-potion`-/`mana-potion`-IDs bleiben für alte Saves erhalten.
+Trank verbraucht. Es gibt genau drei Größen pro Trankart.
+Die vorhandenen `health-potion`-/`mana-potion`-IDs bleiben für alte Saves erhalten
+und zählen zur kleinen Größe. Ihre Mengen werden im Ring mit den jeweiligen
+Small-Items zusammengefasst und aus beiden Beständen verbraucht.
 
 Im Waldheiligtum liegen unter **World → PotionTests** sechs Pickups, jeweils
-drei Tränke. Erste Reihe HP, zweite Reihe Mana; von links Small, Medium, Large.
+ein Trank pro Flasche. Erste Reihe HP, zweite Reihe Mana; von links Small, Medium, Large.
 Die Flaschen verwenden die bisherigen Icons und sind in der Welt je nach Größe
-unterschiedlich groß. Im Inventar bleiben alle Icons gleich groß und zentriert.
+unterschiedlich groß. Im regulären Inventar sind Tränke ausgeblendet.
 Die zugehörigen Pickup-Prefabs liegen unter `Assets/World/Equipment/Prefabs`.
 
 Tränke liegen weiterhin im Rucksack. Der [gemeinsame Ring](spell-ring-menu.md)
-zeigt sie pro Item-ID mit der gesamten Anzahl und ihrer Wirkung. M/View öffnen,
+zeigt sie pro Größe mit der gesamten Anzahl und ihrer Wirkung. M/View öffnen,
 oben/unten zu Verbrauchsgegenständen wechseln, links/rechts wählen und A/Enter
 benutzen. Kleine/mittlere/große Varianten sind eigene Einträge. Die früheren
 Schnellplätze und deren Tasten entfallen. Lagertransfers erfolgen über die
 Rucksackstapel; alte Item-IDs und Save-Bindungsdaten bleiben kompatibel.
+
+**SecretsReborn → Equipment → Configure three potion sizes** aktualisiert
+Namen und Wirkwerte der Trankdefinitionen und setzt die Mengen der sechs
+Pickup-Prefabs auf einen Trank. Szenen und GUIDs bleiben erhalten.
 
 **SecretsReborn → Equipment → Prepare potion variants** ergänzt fehlende Items,
 Pickup-Prefabs, Katalogeinträge und die Testgruppe. Vorhandene Trankvorlagen und
@@ -120,6 +126,14 @@ die Loot-Tabelle sowie eine **eigene Chest Id** setzen.
 Ein Pickup benutzt **World Item** mit Item, Count und eigener **World Item Id**.
 Beim Duplizieren von Truhen/Pickups/Gegnern immer ihre persistente ID ändern.
 Gleiche IDs bedeuten absichtlich denselben Weltzustand.
+
+Gegnerbeute verwendet die gespeicherte Todesposition des zugeordneten Gegners.
+Die platzierten Pickups definieren weiterhin die Streuabstände relativ zum
+Gegner-Spawn. `EnemyLoot` verschiebt die Gruppe um Todesposition minus Spawnposition;
+wiederholte Aktualisierungen addieren den Versatz nicht erneut.
+Saveformat 18 speichert diese Positionen, Netzwerkprotokoll 23 überträgt sie vom Host.
+Alte Spielstände bleiben lesbar; bereits besiegte Gegner ohne gespeicherte
+Todesposition behalten die bisherigen Drop-Orte. Neue Tode verwenden den aktuellen Ort.
 
 Der Shared Stash besitzt keine Loot-Tabelle: Sein Inhalt entsteht durch
 Einlagern und liegt einmal pro Host-Welt im Spielstand.

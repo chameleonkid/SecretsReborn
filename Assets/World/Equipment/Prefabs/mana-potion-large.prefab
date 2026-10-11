@@ -175,5 +175,5 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::SecretsReborn.WorldItem
   worldItemId: test-mana-potion-large
   item: {fileID: 11400000, guid: 0acb566299963af4b9a9cb1833c5a530, type: 2}
-  count: 3
+  count: 1
   pickupDistance: 1.6

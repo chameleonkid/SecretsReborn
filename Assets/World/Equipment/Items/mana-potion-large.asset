@@ -20,11 +20,13 @@ MonoBehaviour:
   twoHanded: 0
   description: 
   armorValue: 0
+  bonusHearts: 0
+  bonusMana: 0
   sellValue: 12
   buyPrice: 48
   useCooldown: 2
   purpose: 3
-  useAmount: 80
+  useAmount: 100
   weapon: {fileID: 0}
   lamp: {fileID: 0}
   icon: {fileID: 21300000, guid: 3290498796f5d15489cf4397b900dafb, type: 3}

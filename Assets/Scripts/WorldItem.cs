@@ -25,7 +25,7 @@ namespace SecretsReborn
             else if (hiddenByCollection) { hiddenByCollection = false; gameObject.SetActive(true); }
         }
         public void Configure(string id, ItemDefinition definition) { worldItemId = id; item = definition; }
-        public void Configure(string id, ItemDefinition definition, int amount) { Configure(id, definition); count = Mathf.Max(1, amount); }
+        public void Configure(string id, ItemDefinition definition, int amount) { Configure(id, definition); count = definition?.IsConsumable == true ? 1 : Mathf.Max(1, amount); }
         public bool CanUse(CharacterInventory character) => !collected && character != null
             && (character.HasStateAuthority || NetworkCoop.IsReplica && character.LocalInput) && isActiveAndEnabled && character.gameObject.scene == gameObject.scene
             && Vector2.Distance(character.transform.position, transform.position) <= pickupDistance;
@@ -34,7 +34,7 @@ namespace SecretsReborn
             if (CanUse(character) && NetworkCoop.Request(character, CoopAction.Pickup, target: worldItemId)) return true;
             if (!CanUse(character) || !GameSession.Instance.CanFight(character)) return false;
             collected = true;
-            if (!GameSession.Instance.World.TryCollect(worldItemId, () => character.TryReceive(item, count)))
+            if (!GameSession.Instance.World.TryCollect(worldItemId, () => character.TryReceive(item, item?.IsConsumable == true ? 1 : count)))
             { collected = false; return false; }
             gameObject.SetActive(false);
             hiddenByCollection = true;

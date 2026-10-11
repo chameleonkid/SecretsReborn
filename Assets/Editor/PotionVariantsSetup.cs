@@ -16,6 +16,13 @@ namespace SecretsReborn.Editor
         static PotionVariantsSetup() => EditorApplication.update += Requested;
         private static void Requested()
         {
+            const string sizesRequest = "Temp/ConfigurePotionSizes.request";
+            if (File.Exists(sizesRequest) && !EditorApplication.isPlayingOrWillChangePlaymode && !EditorApplication.isCompiling && !EditorApplication.isUpdating)
+            {
+                File.Delete(sizesRequest);
+                try { ConfigureSizes(); } catch (Exception e) { File.WriteAllText("Temp/PotionSizesReport.txt", "FAIL: " + e); Debug.LogException(e); }
+                return;
+            }
             const string request = "Temp/SetupPotionVariants.request";
             if (!File.Exists(request) || EditorApplication.isPlayingOrWillChangePlaymode || EditorApplication.isCompiling || EditorApplication.isUpdating) return;
             if (PrefabStageUtility.GetCurrentPrefabStage() != null) return;
@@ -30,7 +37,7 @@ namespace SecretsReborn.Editor
             for (int i=0;i<SceneManager.sceneCount;i++) if (SceneManager.GetSceneAt(i).isDirty) throw new InvalidOperationException("Offene Szenen zuerst speichern.");
             InventoryCanvasSetup.Setup(); MoveShortcuts();
             string[] sizes = { "small", "medium", "large" }, labels = { "Kleiner", "Mittlerer", "Großer" };
-            int[] health = { 2,6,12 }, mana = { 20,40,80 };
+            int[] health = { 2,6,12 }, mana = { 10,25,100 };
             var items = new ItemDefinition[6];
             for (int kind=0;kind<2;kind++) for (int size=0;size<3;size++)
             {
@@ -51,7 +58,7 @@ namespace SecretsReborn.Editor
                     var obj=PrefabUtility.LoadPrefabContents("Assets/World/Loot/Prefabs/health-potion.prefab");
                     try
                     {
-                        obj.name=id; obj.GetComponent<WorldItem>().Configure("test-"+id,item,3);
+                        obj.name=id; obj.GetComponent<WorldItem>().Configure("test-"+id,item,1);
                         var renderer=obj.GetComponentInChildren<SpriteRenderer>(); renderer.sprite=item.Icon; renderer.color=Color.white;
                         renderer.transform.localScale=Vector3.one*((.55f+.15f*size)/item.Icon.bounds.size.y);
                         PrefabUtility.SaveAsPrefabAsset(obj,prefabPath);
@@ -68,8 +75,56 @@ namespace SecretsReborn.Editor
                 PrefabUtility.SaveAsPrefabAsset(player,"Assets/World/Sanctuary/Prefabs/Player.prefab");
             }
             finally { PrefabUtility.UnloadPrefabContents(player); }
-            AddPickups(items); AssetDatabase.SaveAssets(); CoopSetup.Setup();
+            ConfigureSizes(); AddPickups(items); AssetDatabase.SaveAssets(); CoopSetup.Setup();
             File.WriteAllText("Temp/PotionVariantsReport.txt","PASS: six potion variants, preserved catalog, native pickup prefabs and incremental PotionTests group; shortcuts moved to equipment side. Existing items and terrain retained.");
+        }
+        [MenuItem("SecretsReborn/Equipment/Configure three potion sizes")]
+        public static void ConfigureSizes()
+        {
+            string[] sizes = { "small", "medium", "large" }, labels = { "Kleiner", "Mittlerer", "Großer" };
+            int[] health = { 2, 6, 12 }, mana = { 10, 25, 100 };
+            for (int kind = 0; kind < 2; kind++)
+            {
+                string type = kind == 0 ? "health" : "mana";
+                string name = kind == 0 ? " Heiltrank" : " Manatrank";
+                for (int size = 0; size < 3; size++)
+                {
+                    UpdatePotion(Root + "/Items/" + type + "-potion-" + sizes[size] + ".asset", labels[size] + name, kind == 0 ? health[size] : mana[size]);
+                    UpdatePickup(Root + "/Prefabs/" + type + "-potion-" + sizes[size] + ".prefab");
+                }
+                UpdatePotion(kind == 0 ? "Assets/World/Loot/Items/health-potion.asset" : Root + "/Items/mana-potion.asset", labels[0] + name, kind == 0 ? health[0] : mana[0]);
+            }
+            AssetDatabase.SaveAssets();
+            File.WriteAllText("Temp/PotionSizesReport.txt", "PASS: three sizes per potion type; health 1/3/6 hearts, mana 10/25/100; old IDs retained as small potions.");
+        }
+        private static void UpdatePickup(string path)
+        {
+            if (AssetDatabase.LoadAssetAtPath<GameObject>(path) == null) return;
+            var root = PrefabUtility.LoadPrefabContents(path);
+            try
+            {
+                bool changed = false;
+                foreach (var pickup in root.GetComponentsInChildren<WorldItem>(true))
+                {
+                    var fields = new SerializedObject(pickup);
+                    var item = fields.FindProperty("item").objectReferenceValue as ItemDefinition;
+                    if (item?.IsConsumable != true || fields.FindProperty("count").intValue == 1) continue;
+                    fields.FindProperty("count").intValue = 1;
+                    fields.ApplyModifiedPropertiesWithoutUndo(); changed = true;
+                }
+                if (changed) PrefabUtility.SaveAsPrefabAsset(root, path);
+            }
+            finally { PrefabUtility.UnloadPrefabContents(root); }
+        }
+        private static void UpdatePotion(string path, string name, int amount)
+        {
+            var item = AssetDatabase.LoadAssetAtPath<ItemDefinition>(path);
+            if (item == null) throw new InvalidOperationException("Trankdefinition fehlt: " + path);
+            var fields = new SerializedObject(item);
+            fields.FindProperty("displayName").stringValue = name;
+            fields.FindProperty("useAmount").intValue = amount;
+            fields.ApplyModifiedPropertiesWithoutUndo();
+            EditorUtility.SetDirty(item);
         }
         private static void MoveShortcuts()
         {
