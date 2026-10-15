@@ -20,6 +20,14 @@ internal static class CharacterStatsChecks
         var stats=new CharacterStats(); stats.AddEquipment(int.MaxValue,int.MaxValue,int.MaxValue); stats.AddEquipment(int.MaxValue,4,30);
         Check(stats.Armor==1000000 && stats.BonusHalfHearts==40 && stats.BonusMana==10000,"safe aggregation");
         Check(CombatRules.MitigatedDamage(4,100)==2 && CombatRules.MitigatedDamage(1,999)==1,"damage floor");
+        var criticalStats=new CharacterStats(); criticalStats.AddEquipment(0,0,0,12.5f); criticalStats.AddEquipment(0,0,0,7.5f);
+        Check(criticalStats.CritChancePercent==20,"critical bonuses add as percentage points");
+        criticalStats.AddEquipment(0,0,0,100); Check(criticalStats.CritChancePercent==100,"critical chance capped");
+        Check(!CombatRules.IsCritical(0,0) && CombatRules.IsCritical(100,1),"zero and guaranteed crit");
+        Check(CombatRules.IsCritical(20,.199f) && !CombatRules.IsCritical(20,.2f),"crit roll boundary");
+        Check(!CombatRules.IsCritical(float.NaN,0) && !CombatRules.IsCritical(50,float.NaN) && !CombatRules.IsCritical(50,-1),"invalid crit input");
+        Check(CombatRules.HitDamage(3,true)==6 && CombatRules.HitDamage(3,false)==3 && CombatRules.HitDamage(int.MaxValue,true)==int.MaxValue,"crit damage and overflow");
+        Check(CombatRules.MitigatedDamage(CombatRules.HitDamage(3,true),100)==3,"critical damage before armor");
         Console.WriteLine("PASS: equipment/base separation, no heal exploit, clamping, permanent upgrades, caps, migration and damage floor.");
     }
 }

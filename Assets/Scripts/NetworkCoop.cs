@@ -171,6 +171,7 @@ namespace SecretsReborn
             manager.CustomMessagingManager.RegisterNamedMessageHandler("sr.lobby-command", ReceiveLobbyCommand);
             manager.CustomMessagingManager.RegisterNamedMessageHandler("sr.command", ReceiveCommand);
             manager.CustomMessagingManager.RegisterNamedMessageHandler("sr.snapshot", ReceiveSnapshot);
+            manager.CustomMessagingManager.RegisterNamedMessageHandler("sr.damage", ReceiveDamageNumber);
             manager.CustomMessagingManager.RegisterNamedMessageHandler("sr.area", ReceiveArea);
             manager.CustomMessagingManager.RegisterNamedMessageHandler("sr.ready", ReceiveAreaReady);
             manager.CustomMessagingManager.RegisterNamedMessageHandler("sr.vote", ReceiveVote);
@@ -326,6 +327,7 @@ namespace SecretsReborn
                 if (input.spellSelection && command.action!=CoopAction.CastSpell && command.action!=CoopAction.SpellSelection && command.action!=CoopAction.UseRingItem) return;
                 switch (command.action)
                 {
+                    case CoopAction.CritTestMode: if (Debug.isDebugBuild && (command.from==0 || command.from==1)) actor.SetCritTestMode(command.from==1); break;
                     case CoopAction.SpellSelection: input.spellSelection=command.from==1; break;
                     case CoopAction.CastSpell: input.spellSelection=false; actor.GetComponent<SpellCaster>()?.TryCast(command.expectedItem,command.target,command.from==1); break;
                     case CoopAction.CancelSpell: actor.GetComponent<SpellCaster>()?.Cancel(); break;
@@ -404,7 +406,7 @@ namespace SecretsReborn
                 session.World.SetPosition(actor.CharacterId, actor.gameObject.scene.path, p.x, p.y, p.z);
                 poses.Add(new CoopActorPose { id = actor.CharacterId, x = p.x, y = p.y, dx = v.x, dy = v.y,
                     reviveProgress = session.ReviveProgress(actor), potionCooldown = actor.PotionCooldownRemaining, lamp = actor.GetComponent<PlayerLantern>().IsLit, reviveInterrupted = interrupted,
-                    swing = swings.TryGetValue(actor.CharacterId, out var count) ? count : 0, cast=actor.GetComponent<SpellCaster>()?.Capture() });
+                    swing = swings.TryGetValue(actor.CharacterId, out var count) ? count : 0, cast=actor.GetComponent<SpellCaster>()?.Capture(), testCrits=actor.ForceCritsForTesting, dots=actor.GetComponent<DotReceiver>().ActiveMask });
             }
             var enemies = new List<CoopEnemyPose>();
             foreach (var enemy in FindObjectsByType<TreeMeleeEnemy>(FindObjectsInactive.Include, FindObjectsSortMode.None)) enemies.Add(enemy.CaptureReplica());
@@ -427,7 +429,7 @@ namespace SecretsReborn
                 var snapshot = JsonUtility.FromJson<CoopSnapshot>(json);
                 // A guest may join a running host after earlier area transitions.
                 if (!ChangingArea && receivedSnapshot == 0 && snapshot != null && snapshot.areaEpoch >= 0) areaEpoch = snapshot.areaEpoch;
-                if (snapshot == null || snapshot.protocol != 23 || snapshot.sequence <= receivedSnapshot || snapshot.actors == null
+                if (snapshot == null || snapshot.protocol != 26 || snapshot.sequence <= receivedSnapshot || snapshot.actors == null
                     || snapshot.actors.Length > 4 || snapshot.areaEpoch != areaEpoch || snapshot.scene != SceneManager.GetActiveScene().path
                     || ChangingArea && !areaLocalReady) return;
                 CoopProtocol.RestoreWireEmptySlots(snapshot.world);
@@ -454,6 +456,8 @@ namespace SecretsReborn
                     actor.GetComponent<CharacterAppearance>().SetPresentedMotion(new Vector2(pose.dx, pose.dy));
                     actor.RefreshSession(); actor.SetReplicaPotionCooldown(pose.potionCooldown); actor.GetComponent<PlayerLantern>().SetLit(pose.lamp);
                     actor.GetComponent<SpellCaster>()?.ApplyReplica(pose.cast);
+                    actor.SetCritTestMode(pose.testCrits);
+                    actor.GetComponent<DotReceiver>().ApplyReplica(pose.dots);
                     progress[pose.id] = pose.reviveProgress;
                     if (pose.reviveInterrupted) blockedRevives.Add(pose.id); else blockedRevives.Remove(pose.id);
                     if (swings[pose.id] != pose.swing)

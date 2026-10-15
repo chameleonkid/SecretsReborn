@@ -11,6 +11,7 @@ namespace SecretsReborn
         [Min(1)] public int visualProjectiles=1;
         [Min(1)] public int manaCost=10;
         [Min(.1f)] public float castTime=.6f,cooldown=2,range=8;
+        public DotApplication[] onHitDots=Array.Empty<DotApplication>();
     }
     [CreateAssetMenu(menuName="SecretsReborn/Spell")]
     public sealed class SpellDefinition : ScriptableObject

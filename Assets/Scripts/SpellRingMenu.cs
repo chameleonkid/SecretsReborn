@@ -170,6 +170,7 @@ namespace SecretsReborn
                 if(rank==null) { feedback="Dieser Rang ist nicht verfügbar."; return; }
                 details="Rang "+level+" · Mana "+rank.manaCost+" · Wirkzeit "+rank.castTime.ToString("0.0")+" s · Cooldown "+rank.cooldown.ToString("0.0")+" s · Reichweite "+rank.range;
                 details+="\nGesamtwirkung: "+(shown.Targets==SpellTargetKind.LivingAlly ? (rank.totalBudget*.5f).ToString("0.#")+" Herzen" : rank.totalBudget+" Schaden")+" · Cooldown verbleibend "+caster.Cooldown(shown.SpellId).ToString("0.0")+" s";
+                details=DotDescription.Append(details,rank.onHitDots);
                 if (stage>=2 && !book)
                 {
                     targets=caster.TargetsFor(chosen);

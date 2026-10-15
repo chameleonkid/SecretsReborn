@@ -1,5 +1,88 @@
 # Prüfstand vom 11. Oktober 2026
 
+## Aktualisierung: Trainingspuppe, Crit-Schalter und Flugvariation (17:23 Uhr)
+
+Aktueller Build: `Builds/Windows-20261011-172310/SecretsReborn.exe`,
+0 Fehler und 2 Buildwarnungen. Protokoll 25; Saveformat weiterhin 18.
+
+- Normale Schadenszahlen sind gelb (Größe 26), Crits bleiben orange (Größe 40).
+- Im Editor/Development-Build schaltet F5 oder der Button unten links 100 % Crits
+  für die eigene Figur ein/aus. F6 bleibt dem Koop-Menü vorbehalten.
+  Der Override wird vom Host bestätigt und verändert keine Itemwerte oder Saves.
+- Stationäre Trainingspuppe mit 1.000.000 HP nahe Startpunkt/Testtruhen des
+  Waldheiligtums, ohne Angriffe oder Beute; HP-Anzeige auch auf Clients.
+- Mehrfach-Feuerbälle variieren auf dem Host Bogenweite, Auffächerungszeit und
+  Flugtempo. Zielbudget und Crit-Multiplikator bleiben unverändert.
+- Nativer Zwei-Prozess-Test des Builds 17:20 besteht:
+  `Temp/CombatTrainingTest-20261011-172102/host.txt` und `client.txt`.
+  Client schaltet den Testoverride an/aus bei unveränderter Equipment-Critchance
+  von 0 %. Rang-3-Feuerball reduziert die HP 1.000.000 → 999.988 → 999.976,
+  mit 0,284 Sekunden Abstand zwischen den beiden Treffern. Client prüft die
+  replizierte HP-Anzeige. Puppe bleibt stehen und kann keinen Kontaktschaden geben.
+- Vorhandene Inventar-/Stash-/ES3-/Mana-/Heal-/Crit-Regressionen bestehen.
+  `TrainingDummy.png` und `YellowDamageNumber.png` wurden visuell geprüft.
+  Beide Testprozesse sind beendet, keine Script-Exceptions/Testfehler.
+- Abschließender Build 17:23 übernimmt das kollisionsfreie F5-Kürzel und kompiliert
+  erfolgreich; der Zwei-Prozess-Test lief mit derselben Kampf-/Netzwerklogik.
+
+Manuell offen: F5/Button und mehrere Projektile im normalen Spiel beurteilen,
+ebenso Koop über zwei getrennte PCs. Keine Commits oder Pushes.
+
+## Aktualisierung: Critchance und Schadenszahlen (17:02 Uhr)
+
+Aktuell: `Builds/Windows-20261011-170225/SecretsReborn.exe`, Spielassembly
+17:02:31 Uhr. Erfolgreicher Build mit 0 Fehlern und 2 Buildwarnungen.
+Netzwerkprotokoll 24, Saveformat weiterhin 18. Alle Test-PCs benötigen denselben
+vollständigen Build. Dieser Ausbau einschließlich Auffächerung ist noch lokal.
+
+- `tests/CharacterStatsChecks.cs` besteht einschließlich additiver Critchance,
+  100-%-Grenze, 0-/100-%-Treffern, Rollgrenzen, ungültigen Eingaben,
+  doppeltem Schaden, Überlaufschutz und Rüstung nach Crit-Multiplikator.
+- `tests/CombatChecks.cs` besteht weiterhin. Unity kompiliert den Laufzeitcode.
+- Echter Host-/Client-Test besteht:
+  `Temp/CriticalDamageTest-20261011-170311/host.txt` und `client.txt`.
+  Waffenprofil mit 5 %, Waffenitem mit +3 % und Rüstung mit +7 % ergeben 15 %;
+  der Waffenbonus im Rucksack wird ausgeschlossen. Anschließend erzwingt die
+  Testausrüstung 100 % und 0 %, und echte Client-Nahkampfanfragen verursachen
+  entsprechend 2 beziehungsweise 1 Schaden mit der unbewaffneten Figur.
+- Client prüft goldorange Critzahlen mit Schriftgröße 40, weiße normale Zahlen
+  mit Schriftgröße 26 und Schadenszahlen beim verletzten Spieler.
+  Ein garantierter Rang-3-Feuerball-Crit verdoppelt den Zielanteil auf 24 und
+  zeigt beim ersten Projektil 12 kritisch an. Der Gegner mit 6 HP stirbt;
+  der Anteil des anschließend verlorenen zweiten Projektils verfällt wie bisher.
+- `CriticalDamageNumber.png`, `CriticalFireballNumber.png` und
+  `EquippedStatsCanvas.png` im Testordner wurden visuell geprüft: Farbe,
+  größere Schrift und vierzeiliges Stat-Panel sind sichtbar und lesbar.
+- Inventar, Stash, echte ES3-Saves, Feuerballauffächerung, Mana und Heal bestehen
+  weiterhin. Testboni werden nur im isolierten Testprozess gesetzt; keine
+  Itemassets werden dabei verändert. Beide Prozesse sind beendet; keine
+  Script-Exceptions oder Testfehler. D3D12-Start-/Cleanuphinweise bleiben wie zuvor.
+
+Manuell offen: Schadenszahlen im normalen Spiel bei verschiedenen Zoomstufen
+und mehreren gleichzeitigen Treffern beurteilen. Kontaktgegner critten bislang
+nicht, Heal ebenfalls nicht. DoT-Effekte sind noch nicht implementiert.
+[Crit-Konfiguration und Regeln](character-stats.md).
+
+## Aktualisierung: aufgefächerte Feuerbälle (15:59 Uhr)
+
+Aktuell: `Builds/Windows-20261011-155939/SecretsReborn.exe`, Spielassembly
+15:59:45 Uhr. Erfolgreicher Build mit 0 Fehlern und 2 Buildwarnungen.
+Saveformat 18 und Netzwerkprotokoll 23 bleiben unverändert.
+
+Mehrere Feuerbälle starten dicht am Charakter, fächern auf kubischen Kurven
+quer zur Zielrichtung auseinander und gehen nach etwa 0,3 Sekunden in den
+Zielanflug über. Kurze Zieldistanzen verkleinern den Bogen. Sprites richten sich
+an der tatsächlichen Bewegung aus; Zielwahl und Schadensbudget bleiben erhalten.
+
+- `tests/SpellCastChecks.cs` besteht weiterhin.
+- Echter Host-/Client-Test besteht:
+  `Temp/FireballSpreadTest-20261011-160015/host.txt` und `client.txt`.
+  Der Client prüft beide sichtbaren Projektile und nach 0,18 Sekunden mindestens
+  0,5 Welteinheiten Abstand. `ReplicatedFireballs.png` wurde visuell geprüft.
+  Die bisherigen Schadens-, Mana-, Heal-, Inventar-, Beute- und Saveprüfungen bestehen.
+- Optisches Feintuning im normalen Spiel, besonders bei bewegten und nahen Zielen,
+  bleibt der nächste manuelle Schritt. Dieser Ausbau ist noch nicht committed/gepusht.
+
 ## Aktualisierung: Beute am Todesort (13:56 Uhr)
 
 Aktuell: `Builds/Windows-20261011-135608/SecretsReborn.exe`, Spielassembly

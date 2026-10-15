@@ -37,6 +37,7 @@ namespace SecretsReborn
         private bool frozen;
         private SpellCastSnapshot replica;
         private int sequence;
+        private float castCritChance;
         private sealed class Flight
         {
             public Component target;
@@ -46,6 +47,11 @@ namespace SecretsReborn
             public WorldSessionState world;
             public string scene;
             public SpellEffectSnapshot visual;
+            public Vector2 launch, spreadControl1, spreadControl2, spreadEnd;
+            public float spreadDuration;
+            public bool critical;
+            public float speed;
+            public DotApplication[] dots;
         }
         private readonly List<Flight> flights = new List<Flight>();
         private readonly List<SpellEffectSnapshot> effects = new List<SpellEffectSnapshot>();
@@ -89,6 +95,7 @@ namespace SecretsReborn
             if (targets.Count==0 || !GameSession.Instance.TrySpendMana(actor,level.manaCost)) { targets.Clear(); Status="Kein gültiges Ziel oder nicht genug Mana."; return false; }
             spell=definition; rank=level; castWorld=GameSession.Instance.World; scene=gameObject.scene.path;
             runtimeWorld=castWorld;
+            castCritChance=actor.EffectiveCritChancePercent;
             finish=Time.timeAsDouble+level.castTime; ready[id]=finish+level.cooldown; sequence++;
             Freeze(true); GameSession.Instance.CancelRevive(actor); Status="Wirkt: "+definition.DisplayName; return true;
         }
@@ -113,15 +120,34 @@ namespace SecretsReborn
                 if (amount==0 || !ValidTarget(target,rank.range)) continue;
                 if (target is TreeMeleeEnemy enemy && enemy.Alive && enemy.HasStateAuthority)
                 {
+                    bool critical=CombatRules.IsCritical(castCritChance,UnityEngine.Random.value);
+                    amount=CombatRules.HitDamage(amount,critical);
                     int count = Mathf.Clamp(rank.visualProjectiles, 1, 8);
                     for (int projectile = 0; projectile < count; projectile++)
                     {
                         int share = SpellCastRules.Share(amount, count, projectile);
                         if (share == 0) continue;
-                        var position = (Vector2)transform.position + Vector2.up * .5f + Vector2.right * ((projectile - (count - 1) * .5f) * .3f);
+                        var origin = (Vector2)transform.position + Vector2.up * .5f;
+                        var destination = (Vector2)enemy.transform.position + Vector2.up * .5f;
+                        var forward = (destination-origin).normalized;
+                        if (forward.sqrMagnitude<.01f) forward=Vector2.up;
+                        var sideways = new Vector2(-forward.y,forward.x);
+                        float lane = count>1 ? (projectile/(float)(count-1)*2-1) : 0;
+                        float spreadScale = Mathf.Clamp01(Vector2.Distance(origin,destination)/2);
+                        var position = origin + sideways * (lane * .12f * spreadScale);
+                        float forwardSpread=count>1 ? UnityEngine.Random.Range(.65f,1.05f) : .8f;
+                        float sideSpread=count>1 ? UnityEngine.Random.Range(.75f,1.1f) : .9f;
+                        var spreadEnd = origin + (forward * forwardSpread + sideways * (lane * sideSpread)) * spreadScale;
+                        var approach = (destination-spreadEnd).normalized;
                         var visual = NewEffect("fireball", position);
+                        var launchDirection = forward * .15f + sideways * lane;
+                        visual.angle = Mathf.Atan2(launchDirection.y,launchDirection.x)*Mathf.Rad2Deg;
                         flights.Add(new Flight { target = target, amount = share, range = rank.range, expires = Time.timeAsDouble + 4,
-                            world = castWorld, scene = scene, visual = visual });
+                            world = castWorld, scene = scene, visual = visual, launch=position,
+                            spreadControl1=position+(forward*.15f+sideways*(lane*.75f))*spreadScale,
+                            spreadControl2=spreadEnd-approach*(.4f*spreadScale), spreadEnd=spreadEnd,
+                            spreadDuration=count>1 ? Mathf.Max(.08f,(.3f+lane*.08f+UnityEngine.Random.Range(-.02f,.02f))*spreadScale) : 0,
+                            speed=count>1 ? 8-lane*1.1f+UnityEngine.Random.Range(-.2f,.2f) : 8, critical=critical, dots=rank.onHitDots });
                     }
                 }
                 else if (target is CharacterInventory ally && GameSession.Instance.ApplyHealing(ally,amount)) NewEffect("heal", ally.transform.position);
@@ -144,13 +170,25 @@ namespace SecretsReborn
                     || !enemy.HasStateAuthority || !ValidTarget(enemy, flight.range) || Time.timeAsDouble >= flight.expires)
                 { effects.Remove(flight.visual); flights.RemoveAt(i); continue; }
                 var position = new Vector2(flight.visual.x, flight.visual.y);
+                var previousPosition = position;
                 var destination = (Vector2)enemy.transform.position + Vector2.up * .5f;
-                var direction = destination - position;
+                float previousAge = flight.visual.age;
+                flight.visual.age += Time.deltaTime;
+                if (previousAge < flight.spreadDuration)
+                {
+                    // First fan away from the caster on a smooth arc, then home toward the fixed target.
+                    float t=Mathf.Clamp01(flight.visual.age/flight.spreadDuration), u=1-t;
+                    position=u*u*u*flight.launch+3*u*u*t*flight.spreadControl1+3*u*t*t*flight.spreadControl2+t*t*t*flight.spreadEnd;
+                }
+                float homingTime=flight.visual.age-Mathf.Max(previousAge,flight.spreadDuration);
+                if (homingTime>0) position=Vector2.MoveTowards(position,destination,flight.speed*homingTime);
+                var direction = position - previousPosition;
+                if (direction.sqrMagnitude<.000001f) direction=destination-position;
                 flight.visual.angle = Mathf.Atan2(direction.y, direction.x) * Mathf.Rad2Deg;
-                position = Vector2.MoveTowards(position, destination, 8 * Time.deltaTime);
-                flight.visual.x = position.x; flight.visual.y = position.y; flight.visual.age += Time.deltaTime;
+                flight.visual.x = position.x; flight.visual.y = position.y;
+                if (flight.visual.age<flight.spreadDuration) continue;
                 if (Vector2.Distance(position, destination) > .08f) continue;
-                enemy.ReceiveHostHit(flight.amount, Vector2.zero);
+                if(GameSession.Instance.ApplyEnemyDamage(enemy,flight.amount,Vector2.zero,flight.critical)) GameSession.Instance.ApplyOnHitDots(enemy,flight.dots);
                 effects.Remove(flight.visual); flights.RemoveAt(i); NewEffect("hit", destination);
             }
             for (int i = effects.Count - 1; i >= 0; i--)

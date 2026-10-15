@@ -14,6 +14,10 @@ namespace SecretsReborn
     }
     public static class CombatRules
     {
+        public static float CritChance(float percent) => float.IsNaN(percent) || float.IsInfinity(percent) ? 0 : Math.Max(0,Math.Min(100,percent));
+        public static bool IsCritical(float percent, float roll) => roll>=0 && roll<=1 && !float.IsNaN(roll)
+            && (CritChance(percent)>=100 || roll<CritChance(percent)/100f);
+        public static int HitDamage(int amount, bool critical) => amount<=0 ? 0 : (int)Math.Min(int.MaxValue,(long)amount*(critical ? 2 : 1));
         public static int MitigatedDamage(int amount, int armor)
         {
             if (amount <= 0) return 0;

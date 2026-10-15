@@ -25,6 +25,28 @@ namespace SecretsReborn
         }
         private void Update() { if (!finished && Time.realtimeSinceStartupAsDouble > deadline) Finish("FAIL: economy integration timeout: " + NetworkCoop.Active?.Status); }
         private void Finish(string result) { if (finished) return; finished = true; File.WriteAllText(report, result); Debug.Log(result); Application.Quit(result.StartsWith("PASS") ? 0 : 1); }
+        private bool CheckWeaponDotDetails(CharacterInventory actor)
+        {
+            var item=actor.Find("training-sword"); var original=item.Weapon;
+            var profile=ScriptableObject.CreateInstance<WeaponDefinition>();
+            var interaction=actor.GetComponent<InventoryInteraction>();
+            try
+            {
+                JsonUtility.FromJsonOverwrite("{\"onHitDots\":[{\"kind\":0,\"chancePercent\":100,\"duration\":3,\"tickInterval\":1,\"damagePerTick\":3},{\"kind\":1,\"chancePercent\":25,\"duration\":4,\"tickInterval\":0.5,\"damagePerTick\":2},{\"kind\":2,\"chancePercent\":50,\"duration\":5,\"tickInterval\":1,\"damagePerTick\":4}]}",profile);
+                item.SetWeapon(profile); interaction.OpenInventory();
+                int slot=-1;
+                for(int i=0;i<40;i++) if(interaction.DisplayedItem(i)==item) slot=i;
+                if(slot<0) { Finish("FAIL: weapon UI fixture missing"); return false; }
+                interaction.UISelect(slot); var canvas=FindFirstObjectByType<InventoryCanvasView>(); canvas.Refresh(); Canvas.ForceUpdateCanvases();
+                UnityEngine.UI.Text detail=null;
+                foreach(var text in canvas.GetComponentsInChildren<UnityEngine.UI.Text>()) if(text.name=="ItemDetails" && text.text.Contains("Burn:")) detail=text;
+                if(detail==null || !detail.text.Contains("Bleed: 4 Schaden/s") || !detail.text.Contains("Poison: 2 Schaden alle 0,5 s für 4 s · 25 % Chance")
+                    || detail.cachedTextGenerator.characterCountVisible<detail.text.Length-1)
+                { Finish("FAIL: weapon DoT details missing or clipped"); return false; }
+                CaptureCanvas(canvas,"WeaponDotDetails.png"); return true;
+            }
+            finally { item.SetWeapon(original); interaction.CloseMenu(); Destroy(profile); }
+        }
         private void CaptureCanvas(Component view, string name)
         {
             // Hidden/headless players have no backbuffer. Render the actual canvas offscreen.
@@ -122,8 +144,8 @@ namespace SecretsReborn
                 { Finish("FAIL: item duplicated during stash trade or save"); yield break; }
                 world.CharacterSpells(guest).Learn("heal",3); world.CharacterVitals(guest).Damage(2); world.CharacterVitals(founder).Damage(2);
                 world.CharacterVitals(guest).RestoreMana(50);
-                var dummy=new GameObject("Spell test enemy",typeof(Rigidbody2D),typeof(SpriteRenderer)); dummy.transform.position=actor.transform.position+Vector3.right*4;
-                var spellEnemy=dummy.AddComponent<TreeMeleeEnemy>(); spellEnemy.Configure("spell-test-enemy",null); dummy.GetComponent<Rigidbody2D>().gravityScale=0;
+                var spellFixture=new GameObject("Spell test enemy",typeof(Rigidbody2D),typeof(SpriteRenderer)); spellFixture.transform.position=actor.transform.position+Vector3.right*4;
+                var spellEnemy=spellFixture.AddComponent<TreeMeleeEnemy>(); spellEnemy.Configure("spell-test-enemy",null); spellFixture.GetComponent<Rigidbody2D>().gravityScale=0;
                 var barrier=new GameObject("Spell test wall",typeof(BoxCollider2D)); barrier.transform.position=actor.transform.position+Vector3.right*2;
                 barrier.transform.localScale=new Vector3(.5f,3,1); Physics2D.SyncTransforms();
                 File.WriteAllText(Path.Combine(folder,"SpellReady.signal"),"ready");
@@ -139,8 +161,108 @@ namespace SecretsReborn
                 var hostCaster=actor.GetComponent<SpellCaster>();
                 if (hostCaster.Cooldown("heal")<=0 || hostCaster.TryCast("heal",null,true) || world.CharacterVitals(guest).Mana!=20)
                 { Finish("FAIL: spell cooldown or mana charged on rejected cast"); yield break; }
-                Destroy(dummy); Destroy(barrier);
-                Finish("PASS: economy, stash and save; two rank-3 projectiles, damage only on arrival through wall, shared heal, fixed cast position, host mana/cooldown and replicated casting.");
+                Destroy(spellFixture); Destroy(barrier);
+                var critArmor=actor.Find("foundation-warrior-armor"); critArmor.SetCritChanceBonus(7);
+                var critSword=actor.Find("training-sword");
+                if (critSword?.Weapon==null || critSword.Weapon.CritChancePercent!=5) { Finish("FAIL: default weapon crit chance"); yield break; }
+                critSword.SetCritChanceBonus(3);
+                if (!actor.TryReceive(critArmor,1) || !actor.TryReceive(critSword,1)
+                    || !actor.State.TryEquip(actor.State.FirstSlot(critArmor.ItemId),EquipmentSlot.Armor,id=>actor.Find(id).Rules)
+                    || actor.Stats.CritChancePercent!=7
+                    || !actor.State.TryEquip(actor.State.FirstSlot(critSword.ItemId),EquipmentSlot.MainHand,id=>actor.Find(id).Rules)
+                    || actor.Stats.CritChancePercent!=15
+                    || !actor.State.TryUnequip(EquipmentSlot.MainHand,id=>actor.Find(id).Rules))
+                { Finish("FAIL: weapon/item/armor crit aggregation or bag item bonus"); yield break; }
+                critArmor.SetCritChanceBonus(100);
+                if (actor.Stats.CritChancePercent!=100) { Finish("FAIL: equipped crit chance missing"); yield break; }
+                var critObject=new GameObject("Critical hit test enemy",typeof(Rigidbody2D),typeof(SpriteRenderer));
+                critObject.transform.position=actor.transform.position+(Vector3)actor.GetComponent<PlayerMelee>().Facing;
+                var critEnemy=critObject.AddComponent<TreeMeleeEnemy>(); critEnemy.Configure("critical-hit-test",null);
+                critObject.GetComponent<Rigidbody2D>().simulated=false;
+                File.WriteAllText(Path.Combine(folder,"CritReady.signal"),"ready");
+                while (!File.Exists(Path.Combine(folder,"CriticalSeen.signal"))) yield return null;
+                if (critEnemy.Health!=4) { Finish("FAIL: guaranteed unarmed critical hit was not doubled"); yield break; }
+                critArmor.SetCritChanceBonus(0);
+                if (actor.Stats.CritChancePercent!=0) { Finish("FAIL: crit chance not recalculated"); yield break; }
+                File.WriteAllText(Path.Combine(folder,"NormalReady.signal"),"ready");
+                while (!File.Exists(Path.Combine(folder,"NormalSeen.signal"))) yield return null;
+                if (critEnemy.Health!=3) { Finish("FAIL: zero-chance hit critted"); yield break; }
+                int beforeHealth=world.CharacterVitals(guest).Health;
+                if (!GameSession.Instance.ApplyDamage(actor,2) || world.CharacterVitals(guest).Health!=beforeHealth-2)
+                { Finish("FAIL: player damage or mitigation changed"); yield break; }
+                File.WriteAllText(Path.Combine(folder,"PlayerDamageReady.signal"),"ready");
+                while (!File.Exists(Path.Combine(folder,"PlayerDamageSeen.signal"))) yield return null;
+                Destroy(critObject);
+                while (hostCaster.Cooldown("fireball")>0) yield return null;
+                critArmor.SetCritChanceBonus(100);
+                var critFireObject=new GameObject("Critical fireball test enemy",typeof(Rigidbody2D),typeof(SpriteRenderer));
+                critFireObject.transform.position=actor.transform.position+Vector3.right*4;
+                var critFireEnemy=critFireObject.AddComponent<TreeMeleeEnemy>(); critFireEnemy.Configure("critical-fireball-test",null);
+                critFireObject.GetComponent<Rigidbody2D>().simulated=false;
+                File.WriteAllText(Path.Combine(folder,"CriticalSpellReady.signal"),"ready");
+                if (!hostCaster.TryCast("fireball","enemy:critical-fireball-test",false)) { Finish("FAIL: critical spell rejected"); yield break; }
+                while (!File.Exists(Path.Combine(folder,"CritDone.signal"))) yield return null;
+                if (critFireEnemy.Alive || world.CharacterVitals(guest).Mana!=0) { Finish("FAIL: critical spell damage or mana"); yield break; }
+                Destroy(critFireObject);
+                critArmor.SetCritChanceBonus(0);
+                TreeMeleeEnemy dummy=null;
+                foreach(var candidate in FindObjectsByType<TreeMeleeEnemy>(FindObjectsInactive.Include,FindObjectsSortMode.None)) if(candidate.IsTrainingDummy) dummy=candidate;
+                if(dummy==null || dummy.MaxHealth!=1000000 || dummy.CanContact || dummy.GetComponent<EnemyLoot>()!=null) { Finish("FAIL: training dummy fixture"); yield break; }
+                dummy.RefreshSession(); var dummyPosition=dummy.transform.position;
+                actor.transform.position=dummyPosition+Vector3.left*4;
+                world.CharacterVitals(guest).RestoreMana(20);
+                while(hostCaster.Cooldown("fireball")>0) yield return null;
+                for(int level=1;level<=3;level++)
+                {
+                    var dots=hostCaster.Find("fireball").Rank(level).onHitDots;
+                    if(dots==null || dots.Length!=1 || dots[0].kind!=DotKind.Burn || dots[0].damagePerTick!=level)
+                    { Finish("FAIL: rank-specific Fireball DoT config"); yield break; }
+                    var rankState=new DotState(); int rankDamage=0;
+                    rankState.Apply(dots[0],0); rankState.Advance(3,(kind,amount)=>rankDamage+=amount);
+                    if(rankDamage!=3*level) { Finish("FAIL: rank-specific Burn total"); yield break; }
+                }
+                File.WriteAllText(Path.Combine(folder,"TrainingReady.signal"),dummy.EnemyId);
+                while(!actor.ForceCritsForTesting) yield return null;
+                if(actor.Stats.CritChancePercent!=0 || actor.EffectiveCritChancePercent!=100) { Finish("FAIL: test crit override altered equipment"); yield break; }
+                while(dummy.Health==1000000) yield return null;
+                double firstArrival=Time.realtimeSinceStartupAsDouble;
+                if(dummy.Health!=999988) { Finish("FAIL: projectiles arrived together or wrong first damage: "+dummy.Health); yield break; }
+                while(dummy.Health==999988) yield return null;
+                double arrivalGap=Time.realtimeSinceStartupAsDouble-firstArrival;
+                if(dummy.Health!=999976 || arrivalGap<.04 || Vector3.Distance(dummy.transform.position,dummyPosition)>.001f || dummy.CanContact)
+                { Finish("FAIL: training damage, stagger or stationary dummy: "+dummy.Health+", gap "+arrivalGap); yield break; }
+                CaptureWorld(dummyPosition-Vector3.right*2,"TrainingDummy.png");
+                while(!File.Exists(Path.Combine(folder,"TrainingDone.signal")) || actor.ForceCritsForTesting) yield return null;
+                while(dummy.GetComponent<DotReceiver>().ActiveMask!=0) yield return null;
+                if(dummy.Health!=999967) { Finish("FAIL: rank-3 Fireball burn expected 3 noncritical ticks of 3 damage: "+dummy.Health); yield break; }
+                File.WriteAllText(Path.Combine(folder,"BurnExpired.signal"),"ready");
+                while(!File.Exists(Path.Combine(folder,"BurnExpiredSeen.signal"))) yield return null;
+                for(int kind=0;kind<3;kind++) if(!GameSession.Instance.ApplyDot(dummy,new DotApplication {kind=(DotKind)kind,duration=2,tickInterval=.5f,damagePerTick=1}))
+                { Finish("FAIL: concurrent DoT application"); yield break; }
+                File.WriteAllText(Path.Combine(folder,"AllDotsReady.signal"),"ready");
+                yield return new WaitForSeconds(.2f);
+                CaptureWorld(dummyPosition-Vector3.right*2,"AllDotsHost.png");
+                while(dummy.GetComponent<DotReceiver>().ActiveMask!=0) yield return null;
+                if(dummy.Health!=999955) { Finish("FAIL: independent DoT damage or duplicate stacks: "+dummy.Health); yield break; }
+                while(!File.Exists(Path.Combine(folder,"AllDotsSeen.signal"))) yield return null;
+                GameSession.Instance.ApplyDot(dummy,new DotApplication()); dummy.RefreshSession();
+                if(dummy.Health!=1000000 || dummy.GetComponent<DotReceiver>().ActiveMask!=0) { Finish("FAIL: dummy session refresh retains DoT"); yield break; }
+                // Same target component also supports armored players. DoT uses the existing mitigation path.
+                int playerBefore=world.CharacterVitals(guest).Health;
+                if(!GameSession.Instance.ApplyDot(actor,new DotApplication {kind=DotKind.Poison,duration=.5f,tickInterval=.5f,damagePerTick=2}))
+                { Finish("FAIL: player DoT application"); yield break; }
+                while(actor.GetComponent<DotReceiver>().ActiveMask!=0) yield return null;
+                if(world.CharacterVitals(guest).Health!=playerBefore-2) { Finish("FAIL: player DoT mitigation"); yield break; }
+                var lethalObject=new GameObject("DoT death test",typeof(Rigidbody2D),typeof(SpriteRenderer));
+                var lethal=lethalObject.AddComponent<TreeMeleeEnemy>(); lethal.Configure("dot-death-test",null);
+                yield return null;
+                GameSession.Instance.ApplyDot(lethal,new DotApplication {kind=DotKind.Bleed,duration=1,tickInterval=.1f,damagePerTick=6});
+                while(lethal.Alive) yield return null;
+                if(lethal.GetComponent<DotReceiver>().ActiveMask!=0 || !world.IsEnemyDefeated(lethal.EnemyId)) { Finish("FAIL: DoT kill/cleanup"); yield break; }
+                Destroy(lethalObject);
+                File.WriteAllText(Path.Combine(folder,"DotsDone.signal"),"done");
+                while(!File.Exists(Path.Combine(folder,"DotsClientDone.signal"))) yield return null;
+                Finish("PASS: rank-specific Burn 1/2/3 damage per tick, rank-3 Fireball 9 DoT damage; stagger "+arrivalGap.ToString("0.000")+"s; concurrent DoTs, player mitigation, kill and session cleanup.");
             }
             else
             {
@@ -266,6 +388,11 @@ namespace SecretsReborn
                 ring.ToggleBook(); CaptureCanvas(FindFirstObjectByType<SpellRingView>(),"SpellBook.png"); ring.Back();
                 ring.Confirm(); ring.Confirm(); // Fire -> Fireball -> explicit target choice
                 if (FindFirstObjectByType<SpellRingView>().RingVisible) { Finish("FAIL: icon ring remained visible during target choice"); yield break; }
+                UnityEngine.UI.Text spellDetails=null;
+                foreach(var text in ringView.GetComponentsInChildren<UnityEngine.UI.Text>()) if(text.name=="Details") spellDetails=text;
+                Canvas.ForceUpdateCanvases();
+                if(spellDetails==null || !spellDetails.text.Contains("Burn: 3 Schaden/s für 3 s · 100 % Chance") || spellDetails.preferredHeight>spellDetails.rectTransform.rect.height+1)
+                { Finish("FAIL: current-rank spell DoT details missing or clipped"); yield break; }
                 CaptureCanvas(FindFirstObjectByType<SpellRingView>(),"SpellTargetRing.png");
                 ring.Back(); ring.Back(); ring.Back(); // returns through spell/element then closes
                 if (ring.IsOpen) { Finish("FAIL: ring cancel"); yield break; }
@@ -280,10 +407,14 @@ namespace SecretsReborn
                 if (Vector2.Distance(actor.transform.position,castPosition)>.1f) { Finish("FAIL: casting movement lock"); yield break; }
                 net.TestMotion=Vector2.zero;
                 while (caster.IsCasting || GameSession.Instance.World.CharacterVitals(actor.CharacterId).Mana!=30) yield return null;
+                yield return new WaitForSecondsRealtime(.18f);
                 int replicatedProjectiles=0;
+                Vector3 firstProjectile=Vector3.zero, secondProjectile=Vector3.zero;
                 foreach (var sprite in actor.GetComponentsInChildren<SpriteRenderer>())
-                    if (sprite.gameObject.name=="Spell fireball" && sprite.enabled && sprite.sprite!=null) replicatedProjectiles++;
+                    if (sprite.gameObject.name=="Spell fireball" && sprite.enabled && sprite.sprite!=null)
+                    { if (replicatedProjectiles++==0) firstProjectile=sprite.transform.position; else secondProjectile=sprite.transform.position; }
                 if (replicatedProjectiles!=2) { Finish("FAIL: client did not render two replicated fireball sprites"); yield break; }
+                if (Vector3.Distance(firstProjectile,secondProjectile)<.5f) { Finish("FAIL: fireballs did not fan apart before homing"); yield break; }
                 CaptureWorld(actor.transform.position,"ReplicatedFireballs.png");
                 if (!ring.Open()) { Finish("FAIL: heal ring open"); yield break; }
                 ring.Choose(1); ring.Confirm(); // Light -> Heal
@@ -293,7 +424,84 @@ namespace SecretsReborn
                 while (!caster.IsCasting) yield return null;
                 while (caster.IsCasting || GameSession.Instance.World.CharacterVitals(actor.CharacterId).Mana!=20 || GameSession.Instance.World.CharacterVitals(actor.CharacterId).Health!=5) yield return null;
                 File.WriteAllText(Path.Combine(folder,"SpellDone.signal"),"done");
-                Finish("PASS: UI/economy regression and client-authority spell requests, two visible replicated fireballs, blocked movement and shared heal.");
+                while (!File.Exists(Path.Combine(folder,"CritReady.signal"))) yield return null;
+                GameSession.Instance.RequestMeleeAttack(actor);
+                UnityEngine.UI.Text criticalNumber=null;
+                while (criticalNumber==null)
+                {
+                    foreach (var text in FindObjectsByType<UnityEngine.UI.Text>(FindObjectsSortMode.None))
+                        if (text.gameObject.name=="Critical damage number" && text.text=="2") criticalNumber=text;
+                    yield return null;
+                }
+                if (criticalNumber.fontSize!=40 || criticalNumber.color.r<.9f || criticalNumber.color.b>.3f)
+                { Finish("FAIL: critical number not larger and gold-orange"); yield break; }
+                yield return null; CaptureCanvas(FindFirstObjectByType<DamageNumbersView>(),"CriticalDamageNumber.png");
+                File.WriteAllText(Path.Combine(folder,"CriticalSeen.signal"),"seen");
+                while (!File.Exists(Path.Combine(folder,"NormalReady.signal"))) yield return null;
+                yield return new WaitForSecondsRealtime(.5f); GameSession.Instance.RequestMeleeAttack(actor);
+                UnityEngine.UI.Text normalNumber=null;
+                while (normalNumber==null)
+                {
+                    foreach (var text in FindObjectsByType<UnityEngine.UI.Text>(FindObjectsSortMode.None))
+                        if (text.gameObject.name=="Damage number" && text.text=="1") normalNumber=text;
+                    yield return null;
+                }
+                if (normalNumber.fontSize!=26 || normalNumber.color.r<.9f || normalNumber.color.g<.85f || normalNumber.color.b>.3f) { Finish("FAIL: normal number not yellow"); yield break; }
+                CaptureCanvas(FindFirstObjectByType<DamageNumbersView>(),"YellowDamageNumber.png");
+                File.WriteAllText(Path.Combine(folder,"NormalSeen.signal"),"seen");
+                while (!File.Exists(Path.Combine(folder,"PlayerDamageReady.signal"))) yield return null;
+                bool playerNumber=false;
+                while (!playerNumber)
+                {
+                    foreach (var text in FindObjectsByType<UnityEngine.UI.Text>(FindObjectsSortMode.None))
+                        if (text.gameObject.name=="Damage number" && text.text=="2") playerNumber=true;
+                    yield return null;
+                }
+                File.WriteAllText(Path.Combine(folder,"PlayerDamageSeen.signal"),"seen");
+                while (!File.Exists(Path.Combine(folder,"CriticalSpellReady.signal"))) yield return null;
+                bool criticalSpellNumber=false;
+                while (!criticalSpellNumber)
+                {
+                    foreach (var text in FindObjectsByType<UnityEngine.UI.Text>(FindObjectsSortMode.None))
+                        if (text.gameObject.name=="Critical damage number" && text.text=="12" && text.fontSize==40) criticalSpellNumber=true;
+                    yield return null;
+                }
+                CaptureCanvas(FindFirstObjectByType<DamageNumbersView>(),"CriticalFireballNumber.png");
+                File.WriteAllText(Path.Combine(folder,"CritDone.signal"),"done");
+                while(!File.Exists(Path.Combine(folder,"TrainingReady.signal"))) yield return null;
+                TreeMeleeEnemy dummy=null;
+                while(dummy==null || !dummy.Alive)
+                {
+                    foreach(var candidate in FindObjectsByType<TreeMeleeEnemy>(FindObjectsInactive.Include,FindObjectsSortMode.None)) if(candidate.IsTrainingDummy) dummy=candidate;
+                    yield return null;
+                }
+                yield return new WaitForSecondsRealtime(.5f);
+                if(!CheckWeaponDotDetails(actor)) yield break;
+                yield return new WaitForSecondsRealtime(.2f);
+                if(!GameSession.Instance.SetCritTestMode(actor,true)) { Finish("FAIL: client crit toggle request"); yield break; }
+                while(!actor.ForceCritsForTesting) yield return null;
+                if(actor.Stats.CritChancePercent!=0 || actor.EffectiveCritChancePercent!=100 || !actor.GetComponent<SpellCaster>().TryCast("fireball",SpellCaster.Id(dummy),false))
+                { Finish("FAIL: client training crit cast"); yield break; }
+                while(dummy.Health!=999976) yield return null;
+                yield return null;
+                var label=dummy.GetComponentInChildren<TextMesh>();
+                if(label==null || !label.text.Contains("999.976") || dummy.CanContact) { Finish("FAIL: replicated dummy HP label"); yield break; }
+                if(dummy.GetComponent<DotReceiver>().ActiveMask!=1 || GameSession.Instance.ApplyDot(dummy,new DotApplication())) { Finish("FAIL: burn replication or client DoT authority"); yield break; }
+                if(!GameSession.Instance.SetCritTestMode(actor,false)) { Finish("FAIL: client crit toggle off"); yield break; }
+                while(actor.ForceCritsForTesting) yield return null;
+                if(actor.EffectiveCritChancePercent!=0) { Finish("FAIL: crit test off did not restore equipment chance"); yield break; }
+                File.WriteAllText(Path.Combine(folder,"TrainingDone.signal"),"done");
+                while(!File.Exists(Path.Combine(folder,"BurnExpired.signal")) || dummy.Health!=999967 || dummy.GetComponent<DotReceiver>().ActiveMask!=0) yield return null;
+                File.WriteAllText(Path.Combine(folder,"BurnExpiredSeen.signal"),"seen");
+                while(!File.Exists(Path.Combine(folder,"AllDotsReady.signal")) || dummy.GetComponent<DotReceiver>().ActiveMask!=7) yield return null;
+                yield return null;
+                if(dummy.GetComponent<DotEffectsView>().VisibleMask!=7) { Finish("FAIL: concurrent DoT visuals"); yield break; }
+                CaptureWorld(dummy.transform.position-Vector3.right*2,"AllDotsClient.png");
+                while(dummy.Health!=999955 || dummy.GetComponent<DotReceiver>().ActiveMask!=0) yield return null;
+                File.WriteAllText(Path.Combine(folder,"AllDotsSeen.signal"),"seen");
+                while(!File.Exists(Path.Combine(folder,"DotsDone.signal"))) yield return null;
+                File.WriteAllText(Path.Combine(folder,"DotsClientDone.signal"),"done");
+                Finish("PASS: yellow normal numbers, crit toggle, Burn expiration, independent concurrent DoT visuals/HP replication; client cannot apply damage or DoTs.");
             }
         }
     }

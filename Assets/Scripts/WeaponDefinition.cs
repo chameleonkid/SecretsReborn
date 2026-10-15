@@ -10,6 +10,10 @@ namespace SecretsReborn
         [SerializeField] private Sprite[] frames;
         [SerializeField] private Color tint = Color.white;
         [SerializeField, Min(1)] private int damage = 2;
+        [SerializeField, Range(0,100)] private float critChancePercent=5;
+        public float CritChancePercent => CombatRules.CritChance(critChancePercent);
+        [SerializeField] private DotApplication[] onHitDots=System.Array.Empty<DotApplication>();
+        public DotApplication[] OnHitDots => onHitDots;
         [SerializeField, Min(.1f)] private float range = 1.6f;
         [SerializeField, Min(.1f)] private float attackDuration = .35f;
         [SerializeField, Min(.1f)] private float cooldown = .45f;

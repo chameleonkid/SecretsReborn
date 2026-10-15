@@ -121,10 +121,18 @@ namespace SecretsReborn
             NetworkCoop.Active?.RecordSwing(actor);
             StartCoroutine(ResolveMelee(actor, melee, profile != null ? profile.Damage : 1,
                 profile != null ? profile.Range : 1.6f, profile != null ? profile.HitDelay : .14f,
-                profile != null ? profile.Knockback : 0));
+                profile != null ? profile.Knockback : 0, actor.EffectiveCritChancePercent,profile!=null ? profile.OnHitDots : null));
             return true;
         }
-        private IEnumerator ResolveMelee(CharacterInventory actor, PlayerMelee melee, int damage, float range, float delay, float knockback)
+        public bool SetCritTestMode(CharacterInventory actor,bool active)
+        {
+            if (!Debug.isDebugBuild || actor==null || Busy) return false;
+            if (NetworkCoop.Request(actor,CoopAction.CritTestMode,from:active ? 1 : 0)) return true;
+            if (!actor.HasStateAuthority || NetworkCoop.IsReplica) return false;
+            actor.SetCritTestMode(active);
+            return true;
+        }
+        private IEnumerator ResolveMelee(CharacterInventory actor, PlayerMelee melee, int damage, float range, float delay, float knockback,float critChance,DotApplication[] dots)
         {
             var scene = actor.gameObject.scene;
             var combatWorld = World;
@@ -136,7 +144,10 @@ namespace SecretsReborn
                 var delta = enemy.transform.position - actor.transform.position;
                 if (CombatRules.InArc(delta.x, delta.y, melee.AttackFacing.x, melee.AttackFacing.y, range)
                     && ClearCombatPath(actor.transform.position, enemy.transform.position))
-                    enemy.ReceiveHostHit(damage, ((Vector2)delta).normalized * knockback);
+                {
+                    bool critical=CombatRules.IsCritical(critChance,UnityEngine.Random.value);
+                    if(ApplyEnemyDamage(enemy,CombatRules.HitDamage(damage,critical),((Vector2)delta).normalized*knockback,critical)) ApplyOnHitDots(enemy,dots);
+                }
             }
         }
         public bool RequestEnemyContact(TreeMeleeEnemy enemy, CharacterInventory actor)
@@ -156,9 +167,20 @@ namespace SecretsReborn
         // Trusted host gameplay entry points. A future network adapter must validate
         // sender ownership and derive amounts from attacks/items, never client numbers.
         internal bool CanChangeVitals(CharacterInventory actor) => !NetworkCoop.IsReplica && !Busy && actor != null && !IsReceivingReward(actor) && actor.isActiveAndEnabled && actor.HasStateAuthority;
-        public bool ApplyDamage(CharacterInventory actor, int amount)
+        public bool ApplyDot(Component target,DotApplication definition)
+            => !NetworkCoop.IsReplica && !Busy && target!=null && target.GetComponent<DotReceiver>()?.ApplyHost(definition)==true;
+        public void ApplyOnHitDots(Component target,DotApplication[] definitions)
         {
-            if (!CanChangeVitals(actor) || !World.CharacterVitals(actor.CharacterId).Damage(CombatRules.MitigatedDamage(amount, actor.TotalArmor))) return false;
+            if(definitions==null) return;
+            foreach(var definition in definitions) ApplyDot(target,definition);
+        }
+        public bool ApplyEnemyDamage(TreeMeleeEnemy enemy,int resolvedAmount,Vector2 push,bool critical=false,bool hitReaction=true)
+            => !NetworkCoop.IsReplica && !Busy && enemy!=null && enemy.HasStateAuthority && enemy.ReceiveHostHit(resolvedAmount,push,critical,hitReaction);
+        public bool ApplyDamage(CharacterInventory actor, int amount,bool critical=false)
+        {
+            int damage=CombatRules.MitigatedDamage(CombatRules.HitDamage(amount,critical),actor!=null ? actor.TotalArmor : 0);
+            if (!CanChangeVitals(actor) || !World.CharacterVitals(actor.CharacterId).Damage(damage)) return false;
+            NetworkCoop.PresentDamage(actor.transform.position,damage,critical);
             CancelRevive(actor); return true;
         }
         public bool ApplyHealing(CharacterInventory actor, int amount) => CanChangeVitals(actor) && World.CharacterVitals(actor.CharacterId).Heal(amount);

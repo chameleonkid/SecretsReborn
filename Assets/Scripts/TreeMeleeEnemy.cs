@@ -9,6 +9,9 @@ namespace SecretsReborn
         [SerializeField] private Sprite[] frames;
         [SerializeField] private bool hasStateAuthority = true;
         [SerializeField, Min(1)] private int maxHealth = 6;
+        [SerializeField] private bool trainingDummy;
+        public bool IsTrainingDummy => trainingDummy;
+        public void ConfigureTrainingDummy(string id) { enemyId=id; trainingDummy=true; maxHealth=1000000; health=maxHealth; frames=null; }
         public int MaxHealth => Mathf.Max(1,maxHealth);
         public int Health => health;
         private Rigidbody2D body;
@@ -28,22 +31,24 @@ namespace SecretsReborn
             hasStateAuthority = !value; body.simulated = !value;
         }
         public CoopEnemyPose CaptureReplica() => new CoopEnemyPose { id = enemyId, x = transform.position.x, y = transform.position.y,
-            active = gameObject.activeSelf, frame = frames != null ? System.Array.IndexOf(frames, image.sprite) : 0 };
+            active = gameObject.activeSelf, health=health, dots=GetComponent<DotReceiver>().ActiveMask, frame = frames != null ? System.Array.IndexOf(frames, image.sprite) : 0 };
         public void ApplyReplica(CoopEnemyPose pose)
         {
             SetReplica(true); replicaFrame = Mathf.Clamp(pose.frame, 0, 23);
+            health=Mathf.Clamp(pose.health,0,MaxHealth);
             replicaMotion.Push(pose.x, pose.y, Time.unscaledTimeAsDouble,
                 !pose.active || !gameObject.activeSelf);
             gameObject.SetActive(pose.active);
+            GetComponent<DotReceiver>().ApplyReplica(pose.dots);
         }
         private static readonly int[] WalkFrames = { 1, 2, 3, 2 };
-        public bool CanContact => Alive && Time.time >= knockbackUntil;
+        public bool CanContact => !trainingDummy && Alive && Time.time >= knockbackUntil;
         public string EnemyId => enemyId;
         public bool HasStateAuthority => hasStateAuthority;
         public bool Alive => health > 0 && isActiveAndEnabled;
         public void Configure(string id, Sprite[] sprites) { enemyId = id; frames = sprites; }
         public void SetIdentity(string id) => enemyId = id;
-        private void Awake() { body = GetComponent<Rigidbody2D>(); image = GetComponent<SpriteRenderer>(); home = body.position; spawnPosition=transform.position; }
+        private void Awake() { body = GetComponent<Rigidbody2D>(); image = GetComponent<SpriteRenderer>(); home = body.position; spawnPosition=transform.position; if(GetComponent<DotReceiver>()==null) gameObject.AddComponent<DotReceiver>(); }
         private void Start()
         {
             if (string.IsNullOrWhiteSpace(enemyId)) { Debug.LogError("Baumgegner braucht eine eindeutige Enemy ID.", this); enabled = false; return; }
@@ -51,12 +56,14 @@ namespace SecretsReborn
         }
         public void RefreshSession()
         {
+            GetComponent<DotReceiver>().Clear();
             health = MaxHealth; flashUntil = 0; knockbackUntil = 0; walkElapsed = 0;
-            gameObject.SetActive(!GameSession.Instance.World.IsEnemyDefeated(enemyId));
+            gameObject.SetActive(trainingDummy || !GameSession.Instance.World.IsEnemyDefeated(enemyId));
         }
         private void FixedUpdate()
         {
             body.linearVelocity = Vector2.zero;
+            if (trainingDummy) return;
             if (!hasStateAuthority || SaveBook.IsOpen || GameSession.Instance.Busy || GameSession.Instance.IsGameOver || (!Application.isFocused && !NetworkCoop.Running) || !Alive) return;
             if (Time.time < knockbackUntil) { body.linearVelocity = knockback; return; }
             CharacterInventory target = null; float best = 5 * 5;
@@ -86,21 +93,23 @@ namespace SecretsReborn
                 transform.position = new Vector3(x, y, transform.position.z);
                 if (frames != null && replicaFrame < frames.Length) image.sprite = frames[replicaFrame]; return;
             }
+            if (trainingDummy) return;
             bool walking = body.linearVelocity.sqrMagnitude > .01f && Time.time >= knockbackUntil;
             walkElapsed = walking ? walkElapsed + Time.deltaTime : 0;
             if (frames != null && frames.Length >= 24) image.sprite = frames[facing * 6 + (walking ? WalkFrames[Mathf.FloorToInt(walkElapsed * 8) % 4] : 0)];
             image.color = Time.time < flashUntil ? new Color(1, .6f, .6f) : Color.white;
         }
         // Called by trusted host combat resolution, never by local input directly.
-        public bool ReceiveHostHit(int amount, Vector2 push)
+        public bool ReceiveHostHit(int amount, Vector2 push, bool critical=false,bool hitReaction=true)
         {
             if (!hasStateAuthority || !Alive || amount <= 0) return false;
-            health = Mathf.Max(0, health - amount); flashUntil = Time.time + .18f;
-            knockback = push; knockbackUntil = Time.time + .18f;
+            health = Mathf.Max(0, health - amount);
+            NetworkCoop.PresentDamage(transform.position,amount,critical);
+            if(hitReaction) { flashUntil=Time.time+.18f; knockback=push; knockbackUntil=Time.time+.18f; }
             if (health == 0)
             {
                 var position=transform.position;
-                GameSession.Instance.World.DefeatEnemy(enemyId,gameObject.scene.path,position.x,position.y,position.z);
+                if (!trainingDummy) GameSession.Instance.World.DefeatEnemy(enemyId,gameObject.scene.path,position.x,position.y,position.z);
                 foreach (var loot in FindObjectsByType<EnemyLoot>(FindObjectsSortMode.None)) loot.RefreshSession();
                 gameObject.SetActive(false);
             }

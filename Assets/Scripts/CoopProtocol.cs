@@ -2,7 +2,7 @@ using System;
 
 namespace SecretsReborn
 {
-    public enum CoopAction { Input, MoveItem, Equip, Unequip, UseItem, Pickup, Chest, Attack, Lamp, ConfirmReward, BindPotion, UsePotion, StashDeposit, StashWithdraw, CastSpell, CancelSpell, SpellSelection, UseRingItem }
+    public enum CoopAction { Input, MoveItem, Equip, Unequip, UseItem, Pickup, Chest, Attack, Lamp, ConfirmReward, BindPotion, UsePotion, StashDeposit, StashWithdraw, CastSpell, CancelSpell, SpellSelection, UseRingItem, CritTestMode }
     [Serializable] public sealed class CoopCommand
     {
         public long sequence;
@@ -17,7 +17,7 @@ namespace SecretsReborn
     }
     [Serializable] public sealed class CoopHello
     {
-        public int protocol = 23;
+        public int protocol = 26;
         public string characterToken, scene, playerName;
     }
     [Serializable] public sealed class CoopActorPose
@@ -27,6 +27,8 @@ namespace SecretsReborn
         public bool lamp, reviveInterrupted;
         public int swing;
         public SpellCastSnapshot cast;
+        public bool testCrits;
+        public int dots;
     }
     [Serializable] public sealed class ChestRewardState
     {
@@ -39,10 +41,12 @@ namespace SecretsReborn
         public float x, y;
         public int frame;
         public bool active;
+        public int health;
+        public int dots;
     }
     [Serializable] public sealed class CoopSnapshot
     {
-        public int protocol = 23;
+        public int protocol = 26;
         public long sequence;
         public int areaEpoch;
         public string localCharacter, scene;
@@ -97,7 +101,7 @@ namespace SecretsReborn
                         if (character.potionItems[i] == "") character.potionItems[i] = null;
             }
         }
-        public static bool ValidHello(CoopHello hello, string scene) => hello != null && hello.protocol == 23
+        public static bool ValidHello(CoopHello hello, string scene) => hello != null && hello.protocol == 26
             && hello.scene == scene && Guid.TryParseExact(hello.characterToken, "N", out _);
         public static bool Valid(CoopCommand command)
         {
@@ -105,6 +109,7 @@ namespace SecretsReborn
                 || command.target != null && command.target.Length > 160) return false;
             switch (command.action)
             {
+                case CoopAction.CritTestMode: return command.from==0 || command.from==1;
                 case CoopAction.SpellSelection: return command.from==0 || command.from==1;
                 case CoopAction.CastSpell: return (command.from==0 || command.from==1) && !string.IsNullOrWhiteSpace(command.expectedItem) && command.expectedItem.Length<=64
                     && (command.from==1 || !string.IsNullOrWhiteSpace(command.target));

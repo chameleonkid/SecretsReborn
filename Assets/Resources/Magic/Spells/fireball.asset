@@ -19,18 +19,36 @@ MonoBehaviour:
   icon: {fileID: 21300000, guid: b7e3c50479b43544ba9c7bf435278c16, type: 2}
   ranks:
   - totalBudget: 5
+    onHitDots:
+    - kind: 0
+      chancePercent: 100
+      duration: 3
+      tickInterval: 1
+      damagePerTick: 1
     visualProjectiles: 1
     manaCost: 10
     castTime: 0.6
     cooldown: 2
     range: 8
   - totalBudget: 8
+    onHitDots:
+    - kind: 0
+      chancePercent: 100
+      duration: 3
+      tickInterval: 1
+      damagePerTick: 2
     visualProjectiles: 1
     manaCost: 15
     castTime: 0.6
     cooldown: 2
     range: 8
   - totalBudget: 12
+    onHitDots:
+    - kind: 0
+      chancePercent: 100
+      duration: 3
+      tickInterval: 1
+      damagePerTick: 3
     visualProjectiles: 2
     manaCost: 20
     castTime: 0.6

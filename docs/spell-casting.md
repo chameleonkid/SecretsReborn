@@ -29,7 +29,7 @@ SpellCaster wird an Spieler angelegt, auch an neu gespawnte Netzwerkfiguren.
   Anteil nicht; er verfällt. Kein neues Ziel ersetzt es. Overheal verfällt ebenfalls.
 - Caststatus und verbleibende Wirkzeit werden in Host-Snapshots übertragen.
   Lernstatus bleibt im Saveformat 18, Cast-Timer/Effekte werden nicht gespeichert.
-  Netzwerkprotokoll 23 seit der Beute-Todesposition: auf allen Test-PCs den
+  Netzwerkprotokoll 26 einschließlich Crit-Testschalter, Gegner-HP und DoT-Zuständen: auf allen Test-PCs den
   neuen vollständigen Build verwenden.
 
 ## Vorläufiger Tastatur-Testzugriff
@@ -54,6 +54,20 @@ Feuerbälle starten nach der Wirkzeit und verfolgen ausschließlich ihre fixiert
 Ziele mit 8 Welteinheiten pro Sekunde. Erst beim Eintreffen wendet der Host Schaden
 an. Rang 3 erzeugt zwei Projektile pro Ziel; diese teilen dessen festen Anteil
 nochmals ganzzahlig. Verlorene Ziele erhalten keinen Schaden, ihr Anteil verfällt.
+Die angelegte Ausrüstung bestimmt zusätzlich die Critchance: einmal pro Ziel
+gewürfelt, bei Erfolg doppelter Zielanteil vor dem Aufteilen auf Projektile.
+Alle Projektile dieses Zielanteils tragen denselben Critstatus; Schaden und Zahlen
+werden erst beim Eintreffen ausgelöst. [Details zu Crits](character-stats.md).
+Überlebte Fireball-Treffer wenden zusätzlich Burn an: 3 Sekunden, alle 1 Sekunde
+1 / 2 / 3 Schaden auf Rang 1 / 2 / 3. Die DoT-Liste ist pro Zauberrang einstellbar.
+Weitere Projektile frischen denselben Burn auf. DoT-Ticks critten nicht.
+[Gemeinsames DoT-System und Konfiguration](damage-over-time.md).
+Mehrere Projektile starten dicht am Charakter und fächern zuerst in gebogenen
+Bahnen quer zur Zielrichtung auseinander. Der Host variiert Bogenweite,
+Auffächerungsdauer (etwa 0,2–0,4 Sekunden) und Flugtempo pro Projektil; dadurch
+treffen sie zeitversetzt ein. Das gilt für beliebige Projektilmengen, der einzelne
+Feuerball behält sein gerades Flugverhalten. Bei nahen Gegnern verkleinert sich die
+Auffächerung. Clients zeigen dieselben vom Host übertragenen Positionen an.
 Projektile ignorieren Wände, verschwinden spätestens nach vier Sekunden und werden
 bei Tod des Zaubernden, Deaktivierung, Welt-/Gebietswechsel oder Save/Load verworfen.
 Escape bricht die Wirkzeit ab; bereits gestartete Projektile fliegen weiter.

@@ -20,6 +20,10 @@ namespace SecretsReborn
         [SerializeField, Range(0,10000)] private int bonusMana;
         public int BonusHalfHearts => Mathf.Clamp(bonusHearts,0,17)*2;
         public int BonusMana => Mathf.Clamp(bonusMana,0,10000);
+        [SerializeField, Range(0,100), Tooltip("Additional critical-hit chance in percentage points while equipped.")]
+        private float bonusCritChancePercent;
+        public float BonusCritChancePercent => CombatRules.CritChance(bonusCritChancePercent);
+        public void SetCritChanceBonus(float percent) => bonusCritChancePercent=CombatRules.CritChance(percent);
         public void SetStatBonuses(int hearts,int mana) { bonusHearts=Mathf.Clamp(hearts,0,17); bonusMana=Mathf.Clamp(mana,0,10000); }
         [SerializeField, Min(0)] private int sellValue;
         [SerializeField, Min(0)] private int buyPrice;
@@ -55,6 +59,9 @@ namespace SecretsReborn
                 if (purpose != ItemPurpose.Gold) stats += "\nVerkaufswert: " + SellValue + " Gold · Kaufpreis: " + BuyPrice + " Gold";
                 if (BonusHalfHearts>0) stats += "\n+"+(BonusHalfHearts/2)+" maximale Herzen";
                 if (BonusMana>0) stats += "\n+"+BonusMana+" maximales Mana";
+                if (weapon!=null && weapon.CritChancePercent>0) stats += "\nWaffen-Critchance: "+weapon.CritChancePercent.ToString("0.#")+"%";
+                if (BonusCritChancePercent>0) stats += "\n+"+BonusCritChancePercent.ToString("0.#")+"% Critchance beim Anlegen";
+                if (weapon!=null) stats=DotDescription.Append(stats,weapon.OnHitDots);
                 return string.IsNullOrWhiteSpace(description) ? stats : description + "\n" + stats;
             }
         }

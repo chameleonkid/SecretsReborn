@@ -34,6 +34,7 @@ namespace SecretsReborn
         private Material disabledMaterial;
         public float Rotation => rotation;
         public bool SelectedIconAvailable {get;private set;}
+        private float minimumHeaderHeight,minimumDetailsHeight;
         public void Rotate(int direction,int selected,int count)
         {
             if(count<=1 || direction==0) return;
@@ -67,6 +68,10 @@ namespace SecretsReborn
         {
             title.text=heading; details.text=description;
             var header=title.transform.parent.GetComponent<RectTransform>();
+            if(minimumHeaderHeight==0) { minimumHeaderHeight=header.rect.height; minimumDetailsHeight=details.rectTransform.rect.height; }
+            float detailHeight=Mathf.Max(minimumDetailsHeight,Mathf.Ceil(details.preferredHeight));
+            details.rectTransform.SetSizeWithCurrentAnchors(RectTransform.Axis.Vertical,detailHeight);
+            header.SetSizeWithCurrentAnchors(RectTransform.Axis.Vertical,Mathf.Max(minimumHeaderHeight,-details.rectTransform.anchoredPosition.y+detailHeight+4));
             var canvas=GetComponent<Canvas>();
             int hearts=actor!=null && actor.TryGetComponent<CharacterInventory>(out var inventory) ? GameSession.Instance.World.CharacterVitals(inventory.CharacterId).HeartContainers : 20;
             float inset=CharacterVitalsHud.OccupiedScreenHeight(hearts)/Mathf.Max(.01f,canvas.scaleFactor)+12;

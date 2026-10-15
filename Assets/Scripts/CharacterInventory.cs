@@ -16,6 +16,9 @@ namespace SecretsReborn
         public InventoryState State { get; private set; }
         public bool HasStateAuthority => hasStateAuthority;
         public bool LocalInput { get; private set; } = true;
+        public bool ForceCritsForTesting { get; private set; }
+        public float EffectiveCritChancePercent => Debug.isDebugBuild && ForceCritsForTesting ? 100 : Stats.CritChancePercent;
+        internal void SetCritTestMode(bool active) => ForceCritsForTesting=Debug.isDebugBuild && active;
         public void ConfigureNetwork(string id, bool authority, bool input)
         {
             characterId = id; hasStateAuthority = authority; LocalInput = input;
@@ -30,12 +33,14 @@ namespace SecretsReborn
         { catalog = definitions; baseClothing = fallback; }
         private void Awake()
         {
+            if(GetComponent<DotReceiver>()==null) gameObject.AddComponent<DotReceiver>();
             State = NetworkCoop.Running && NetworkCoop.Active.ChangingArea ? new InventoryState() : GameSession.Instance.World.CharacterInventory(characterId);
             if (GetComponent<SpellCaster>()==null) gameObject.AddComponent<SpellCaster>();
             if (GetComponent<SpellRingMenu>()==null) gameObject.AddComponent<SpellRingMenu>();
+            if (GetComponent<CombatTrainingControls>()==null) gameObject.AddComponent<CombatTrainingControls>();
         }
         public void RefreshSession()
-        { State = GameSession.Instance.World.CharacterInventory(characterId); MigrateEconomy(); SyncEquipmentVitals(); GetComponent<CharacterDeath>()?.RefreshState(); ApplyAppearance(); Changed?.Invoke(); }
+        { GetComponent<DotReceiver>().Clear(); State = GameSession.Instance.World.CharacterInventory(characterId); MigrateEconomy(); SyncEquipmentVitals(); GetComponent<CharacterDeath>()?.RefreshState(); ApplyAppearance(); Changed?.Invoke(); }
         private void MigrateEconomy()
         {
             if (!hasStateAuthority || catalog == null) return;
@@ -130,8 +135,9 @@ namespace SecretsReborn
                 foreach (EquipmentSlot slot in Enum.GetValues(typeof(EquipmentSlot)))
                 {
                     var item=Find(State.GetEquipment(slot)); if (item==null) continue;
-                    stats.AddEquipment(item.ArmorValue,item.BonusHalfHearts,item.BonusMana);
-                    if (slot==EquipmentSlot.MainHand && item.Weapon!=null) { stats.WeaponDamage=item.Weapon.Damage; stats.AttackCooldown=item.Weapon.Cooldown; }
+                    stats.AddEquipment(item.ArmorValue,item.BonusHalfHearts,item.BonusMana,item.BonusCritChancePercent);
+                    if (slot==EquipmentSlot.MainHand && item.Weapon!=null)
+                    { stats.WeaponDamage=item.Weapon.Damage; stats.AttackCooldown=item.Weapon.Cooldown; stats.CritChancePercent=CombatRules.CritChance(stats.CritChancePercent+item.Weapon.CritChancePercent); }
                 }
                 return stats;
             }

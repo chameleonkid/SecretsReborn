@@ -27,7 +27,8 @@ namespace SecretsReborn.Editor
                 { string error=AssetDatabase.MoveAsset(previous,path); if (!string.IsNullOrEmpty(error)) throw new Exception(error); }
                 if (AssetDatabase.LoadAssetAtPath<SpellDefinition>(path)!=null) continue;
                 var ranks=new SpellRankDefinition[3]; int[] budgets=healing ? new[] { 2,4,6 } : new[] { 5,8,12 };
-                for (int i=0;i<3;i++) ranks[i]=new SpellRankDefinition { totalBudget=budgets[i],visualProjectiles=!healing && i==2 ? 2 : 1,manaCost=10+i*5,castTime=.6f,cooldown=2,range=8 };
+                for (int i=0;i<3;i++) ranks[i]=new SpellRankDefinition { totalBudget=budgets[i],visualProjectiles=!healing && i==2 ? 2 : 1,manaCost=10+i*5,castTime=.6f,cooldown=2,range=8,
+                    onHitDots=healing ? Array.Empty<DotApplication>() : new[] { new DotApplication {kind=DotKind.Burn,damagePerTick=i+1} } };
                 var definition=ScriptableObject.CreateInstance<SpellDefinition>(); definition.Configure(id,healing ? "Heilung" : "Feuerball",healing ? SpellElement.Light : SpellElement.Fire,healing ? SpellTargetKind.LivingAlly : SpellTargetKind.Enemy,ranks);
                 AssetDatabase.CreateAsset(definition,path);
             }

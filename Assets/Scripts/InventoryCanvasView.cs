@@ -35,6 +35,11 @@ namespace SecretsReborn
         public void Bind(InventoryInteraction interaction)
         {
             owner = interaction;
+            foreach(var text in new[] { inventoryDetails,stashDetails }) if(text!=null)
+            {
+                text.resizeTextMaxSize=text.fontSize; text.resizeTextMinSize=Mathf.Min(10,text.fontSize);
+                text.resizeTextForBestFit=true; text.verticalOverflow=VerticalWrapMode.Truncate;
+            }
             foreach (var slot in inventorySlots) { slot.Bind(this); if(slot.Index>=55) slot.gameObject.SetActive(false); } foreach (var slot in stashSlots) slot.Bind(this);
             foreach(var label in inventoryPanel.GetComponentsInChildren<Text>(true))
             {
@@ -63,6 +68,7 @@ namespace SecretsReborn
                     inventoryDetails.text = details; inventoryStatus.text = owner.StatusMessage ?? "Goldener Rahmen: ausgewählter Slot"; gold.text = "GOLD  " + actor.State.Gold;
                     var stats=actor.Stats; var vitals=GameSession.Instance.World.CharacterVitals(actor.CharacterId);
                     if (characterStats!=null) characterStats.text="RÜSTUNG  "+stats.Armor+" · Reduktion "+(100d*stats.Armor/(100d+stats.Armor)).ToString("0.#")+"%\nHERZEN  "+(vitals.MaxHealth/2)+" (Basis "+(vitals.BaseMaxHealth/2)+") · MANA  "+vitals.MaxMana+" (Basis "+vitals.BaseMaxMana+")\nSCHADEN  "+stats.WeaponDamage+" · ANGRIFF  "+stats.AttackCooldown.ToString("0.##")+" s";
+                    if (characterStats!=null) characterStats.text+="\nCRITCHANCE  "+actor.EffectiveCritChancePercent.ToString("0.#")+"% · CRIT  ×2"+(actor.ForceCritsForTesting ? " (TEST)" : "");
                     actionLabel.text = owner.SelectedIndex >= 55 || owner.DisplayedItem(owner.SelectedIndex)?.Rules.potionKind > 0 ? "Benutzen (A / Enter)" : owner.SelectedIndex >= 40 ? "Ablegen (A / Enter)" : "Anlegen (A / Enter)";
                     for (int i = 0; i < portrait.Length; i++)
                     {

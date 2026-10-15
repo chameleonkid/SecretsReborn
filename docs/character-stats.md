@@ -2,6 +2,8 @@
 
 Die gemeinsame Stat-Berechnung summiert Armor, Bonus-Hearts und Bonus-Mana
 aller angelegten Items. Gegenstände im Rucksack geben keine Boni.
+Zusätzlich werden Critchance-Boni aller angelegten Items und die Critchance
+des Hauptwaffenprofils addiert (Prozentpunkte, auf 100 % begrenzt).
 Schaden und Angriffscooldown kommen aus dem Weapon-Profil der Hauptwaffe;
 ohne Profil gelten wie bisher 1 Schaden und 0,45 Sekunden.
 
@@ -28,7 +30,52 @@ als Basis. Der Host berechnet Boni aus dem Katalog und Equipment. Clients
 übernehmen HP/Mana aus dem Snapshot und berechnen die Werteanzeige aus demselben
 Item-Katalog. Protokoll 17 verhindert das Mischen mit älteren Builds.
 
-## Rüstung
+## Kritische Treffer und Schadenszahlen
+
+`WeaponDefinition` bietet **Crit Chance Percent** (Standard 5 %).
+`ItemDefinition` bietet **Bonus Crit Chance Percent** (Standard 0 %) für Waffen
+und jede andere Ausrüstung. Beispiel: 5 % Waffenprofil + 3 % Waffenitem + 7 %
+Rüstung ergeben 15 % Critchance. Nur angelegte Gegenstände zählen; das Profil
+einer Hauptwaffe zählt einmal. Die gesamte Chance steht im Stat-Panel.
+
+Crits verursachen zunächst den doppelten Rohschaden. Danach greift gegebenenfalls
+die Rüstungsformel. Nahkampf würfelt auf dem Host pro getroffenem Gegner;
+Feuerball übernimmt die Critchance beim Caststart, würfelt pro Ziel und teilt
+den ggf. verdoppelten Zielanteil auf seine Projektile. Beide Bälle desselben
+Ziels sind damit gemeinsam kritisch oder normal. Heal crittet nicht.
+Kontaktgegner haben bislang keine eigene Critchance.
+
+`GameSession.ApplyEnemyDamage` erhält bereits aufgelösten Schaden und Critstatus;
+`ApplyDamage` für Spieler erhält Rohschaden und wendet bei gesetztem Critstatus
+Multiplikator und Rüstung an. Das sind die gemeinsamen Host-Einstiege auch für
+spätere Effekte. Ein späterer DoT kann normalen Schaden ohne neue Critwürfe anwenden.
+
+Jeder angenommene Treffer zeigt eine Zahl am Trefferort: gelb mit Schriftgröße
+26, kritisch goldorange mit Schriftgröße 40. Angezeigt wird der berechnete Schaden
+nach Rüstung; er kann die restlichen HP übersteigen. Spieler-HP verwenden weiterhin
+halbe Herzen als Schadenseinheit. Zahlen steigen auf und verschwinden nach einer
+Sekunde, bleiben beim Tod sichtbar und werden beim Szenenwechsel entfernt.
+Sie sind reine Präsentation, keine gespeicherten Effekte.
+
+Koop-Protokoll 26 enthält das zuverlässige Host-Ereignis `sr.damage` mit Sequenz,
+Gebiet, Welt und Szene. Clients prüfen diese Werte und zeigen die Zahl genau einmal;
+sie würfeln keine Crits und ändern dadurch keine HP. Saveformat bleibt 18.
+Im Editor und Development-Build schaltet **F5** oder der Button unten links
+**100 % Crits** für die eigene Figur ein und aus. Der Host entscheidet im Koop;
+der Client erhält den bestätigten Schalterzustand. Nahkampf und Fireball nutzen
+den Testwert, Heal bleibt ohne Crit. Ausrüstungswerte und Saves werden dafür nicht
+verändert. Das Inventar zeigt bei aktivem Schalter `100% · CRIT ×2 (TEST)`.
+
+Eine stationäre **Trainingspuppe mit 1.000.000 HP** steht im Waldheiligtum rechts
+unterhalb des Startpunkts bei den Testtruhen. Sie ist ein reguläres Zauber-/Nahkampfziel,
+greift nicht an und gibt keine Beute. Verbleibende HP erscheinen über der Puppe,
+auch auf Koop-Clients. Neue Szeneninstanzen sowie ein Session-Refresh setzen die
+HP zurück; ihr Tod wird nicht gespeichert. Prefab:
+`Assets/World/Combat/Prefabs/TrainingDummy.prefab`. Der idempotente Editorzugriff
+**SecretsReborn → Combat → Prepare training dummy** legt Prefab und Szeneinstanz an,
+wenn sie fehlen, und verlangt zuvor gespeicherte offene Szenen.
+
+## Rüstungsberechnung
 
 Die bestehende Formel bleibt: ceil(Rohschaden × 100 / (100 + Armor)), mindestens
 1 Schadenseinheit = ein halbes Herz. Kein positiver Treffer wird vollständig
