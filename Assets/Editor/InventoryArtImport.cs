@@ -9,9 +9,11 @@ namespace SecretsReborn.Editor
         {
             if (!assetPath.StartsWith("Assets/Resources/InventoryUI/")) return;
             var importer = (TextureImporter)assetImporter;
-            importer.textureType = TextureImporterType.Default;
+            bool backplate=assetPath.StartsWith("Assets/Resources/InventoryUI/SlateGold/");
+            importer.textureType = backplate ? TextureImporterType.Sprite : TextureImporterType.Default;
+            if(backplate) importer.spriteImportMode=SpriteImportMode.Single;
             importer.mipmapEnabled = false;
-            importer.filterMode = FilterMode.Point;
+            importer.filterMode = backplate ? FilterMode.Bilinear : FilterMode.Point;
             importer.wrapMode = TextureWrapMode.Clamp;
             importer.textureCompression = TextureImporterCompression.Uncompressed;
             importer.maxTextureSize = 2048;

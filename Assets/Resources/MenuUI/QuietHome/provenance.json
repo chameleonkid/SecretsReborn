@@ -1,0 +1,16 @@
+{
+  "created": "2026-10-15",
+  "generator": "image_gen built-in tool via imagegen skill",
+  "purpose": "SecretsReborn calm main-menu backdrop and matching buttons with baked labels",
+  "assets": {
+    "Backdrop.png": "exec-85db9a1d-866b-46ca-aac2-7cc8eb0322fd.png; new quiet forest-lake illustration",
+    "Singleplayer.png": "exec-fd0bb73a-d5a1-401e-8e94-55f3675bb47e.png; base transparent button design",
+    "Multiplayer.png": "exec-14424a82-1a06-4b5a-9b85-1901e7bddab2.png; label edit of base button",
+    "Optionen.png": "exec-2d35e62b-e850-4504-8027-f2a4e8f86db9.png; label edit of base button",
+    "Exit.png": "exec-78bb77d6-c5be-4176-9653-c1b9feb28712.png; label edit of base button",
+    "SubmenuButtons.png": "exec-55a0730e-e583-4a54-afee-87537a25ced6.png; matching transparent 2-column 8-row atlas with baked submenu labels, generated using built-in image_gen",
+    "LobbyButtons.png": "exec-a8ee6b6c-1b40-4aaf-8c73-aa828cc85488.png; matching transparent 2-column 8-row atlas with baked German lobby labels, generated using built-in image_gen from SubmenuButtons.png reference"
+  },
+  "import": "Source PNGs preserved. Unity Sprite assets reference alpha-bounded rectangles; no raster cropping or relabeling by code.",
+  "frame": "Current scene uses QuietMenuFrameGraphic code-native geometry: slim gold lines, corner accents and small diamonds. The original HomeCanvas source prefab retains the earlier forest frame."
+}

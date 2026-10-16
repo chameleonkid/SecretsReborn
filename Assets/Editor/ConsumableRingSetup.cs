@@ -1,5 +1,6 @@
 using System;
 using System.IO;
+using System.Linq;
 using UnityEditor;
 using UnityEngine;
 using UnityEngine.UI;
@@ -22,7 +23,9 @@ namespace SecretsReborn.Editor
         {
             const string path="Assets/Resources/InventoryUI/InventoryCanvas.prefab";
             var prefab=AssetDatabase.LoadAssetAtPath<GameObject>(path);
-            foreach(var slot in prefab.GetComponentsInChildren<InventoryCanvasSlot>(true)) if(slot.Index>=55) slot.gameObject.SetActive(false);
+            // Only the inventory owns retired potion shortcuts; stash indices 55–79 remain valid.
+            var inventoryPanel=prefab.GetComponentsInChildren<RectTransform>(true).First(x=>x.name=="InventoryPanel");
+            foreach(var slot in inventoryPanel.GetComponentsInChildren<InventoryCanvasSlot>(true)) if(slot.Index>=55) slot.gameObject.SetActive(false);
             foreach(var text in prefab.GetComponentsInChildren<Text>(true))
             {
                 if(text.name=="HealthShortcutLabel" || text.name=="ManaShortcutLabel") text.gameObject.SetActive(false);

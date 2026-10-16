@@ -5,6 +5,12 @@ namespace SecretsReborn
     {
         private bool male;
         private int skin, style, color, eyes;
+        public int Value(int row) => row==0 ? male ? 1 : 0 : row==1 ? skin : row==2 ? style : row==3 ? color : eyes;
+        public void Select(int row,int value)
+        {
+            if(row==0) male=value==1; else if(row==1) skin=Mathf.Clamp(value,0,7);
+            else if(row==2) style=Mathf.Clamp(value,0,12); else if(row==3) color=Mathf.Clamp(value,0,5); else if(row==4) eyes=Mathf.Clamp(value,0,6);
+        }
         public WorldCharacterSlot Profile(string name) => new WorldCharacterSlot { name = name, hairColor = color, eyeColor = -1,
             bodyStyle = CharacterCustomization.Body(male,skin), hairStyle = CharacterCustomization.Hair(male,style), eyeStyle = CharacterCustomization.Eyes(male,eyes) };
         private string Text(int row) => row == 0 ? "Körper · " + (male ? "B" : "A") : row == 1 ? "Hautton · " + (male && skin == 7 ? "Gebräunt" : CharacterCustomization.SkinNames[skin])

@@ -10,6 +10,7 @@ namespace SecretsReborn
         [SerializeField] private RawImage icon;
         [SerializeField] private Image ghost, selection, quality;
         [SerializeField] private Text amount;
+        [SerializeField] private QuietMenuFrameGraphic qualityBorder;
         private InventoryCanvasView view;
         private Vector2 iconSize;
         private void Awake() => iconSize = icon.rectTransform.sizeDelta;
@@ -18,7 +19,7 @@ namespace SecretsReborn
         internal void Refresh(ItemDefinition item,int count,bool selected)
         {
             selection.gameObject.SetActive(selected); quality.gameObject.SetActive(item != null);
-            if (item != null) quality.color = item.QualityColor;
+            if (item != null) { quality.color = item.QualityColor; if(qualityBorder!=null) qualityBorder.color=item.QualityColor; }
             ghost.gameObject.SetActive(item == null); icon.gameObject.SetActive(item?.Icon != null);
             if (item?.Icon != null) InventoryCanvasView.Sprite(icon,item.Icon,item.IconTint,item.IconContent,iconSize);
             amount.text = item != null && count != 1 ? count.ToString() : "";

@@ -1,0 +1,663 @@
+fileFormatVersion: 2
+guid: f1225b4874ca76b478db2bfa5356d670
+TextureImporter:
+  internalIDToNameTable:
+  - first:
+      213: -3292408494333897316
+    second: SubmenuButtons_0
+  - first:
+      213: -5182561575825143375
+    second: SubmenuButtons_1
+  - first:
+      213: -3272916483405520820
+    second: SubmenuButtons_2
+  - first:
+      213: 5950983288435480645
+    second: SubmenuButtons_3
+  - first:
+      213: 9105509152862894520
+    second: SubmenuButtons_4
+  - first:
+      213: 5878376528369599065
+    second: SubmenuButtons_5
+  - first:
+      213: 7422218470150725441
+    second: SubmenuButtons_6
+  - first:
+      213: -2901087926392822923
+    second: SubmenuButtons_7
+  - first:
+      213: -7191996302352579231
+    second: SubmenuButtons_8
+  - first:
+      213: -5428495517223320766
+    second: SubmenuButtons_9
+  - first:
+      213: 3982299376474591226
+    second: SubmenuButtons_10
+  - first:
+      213: 6332153882175505031
+    second: SubmenuButtons_11
+  - first:
+      213: 3421877356555324123
+    second: SubmenuButtons_12
+  - first:
+      213: -8547247733901133024
+    second: SubmenuButtons_13
+  - first:
+      213: 2542370445050096333
+    second: SubmenuButtons_14
+  - first:
+      213: -841985999808197638
+    second: SubmenuButtons_15
+  - first:
+      213: 1178783156044993496
+    second: SubmenuButtons_16
+  - first:
+      213: 3872691233378803758
+    second: SubmenuButtons_17
+  - first:
+      213: 7537974836733856441
+    second: SubmenuButtons_18
+  - first:
+      213: 3666419072251684069
+    second: SubmenuButtons_19
+  - first:
+      213: 1783184818755249268
+    second: SubmenuButtons_20
+  externalObjects: {}
+  serializedVersion: 13
+  mipmaps:
+    mipMapMode: 0
+    enableMipMap: 0
+    sRGBTexture: 1
+    linearTexture: 0
+    fadeOut: 0
+    borderMipMap: 0
+    mipMapsPreserveCoverage: 0
+    alphaTestReferenceValue: 0.5
+    mipMapFadeDistanceStart: 1
+    mipMapFadeDistanceEnd: 3
+  bumpmap:
+    convertToNormalMap: 0
+    externalNormalMap: 0
+    heightScale: 0.25
+    normalMapFilter: 0
+    flipGreenChannel: 0
+  isReadable: 0
+  streamingMipmaps: 0
+  streamingMipmapsPriority: 0
+  vTOnly: 0
+  ignoreMipmapLimit: 0
+  grayScaleToAlpha: 0
+  generateCubemap: 6
+  cubemapConvolution: 0
+  seamlessCubemap: 0
+  textureFormat: 1
+  maxTextureSize: 2048
+  textureSettings:
+    serializedVersion: 2
+    filterMode: 1
+    aniso: 1
+    mipBias: 0
+    wrapU: 1
+    wrapV: 1
+    wrapW: 1
+  nPOTScale: 0
+  lightmap: 0
+  compressionQuality: 50
+  spriteMode: 2
+  spriteExtrude: 1
+  spriteMeshType: 1
+  alignment: 0
+  spritePivot: {x: 0.5, y: 0.5}
+  spritePixelsToUnits: 100
+  spriteBorder: {x: 0, y: 0, z: 0, w: 0}
+  spriteGenerateFallbackPhysicsShape: 1
+  alphaUsage: 1
+  alphaIsTransparency: 1
+  spriteTessellationDetail: -1
+  textureType: 0
+  textureShape: 1
+  singleChannelComponent: 0
+  flipbookRows: 1
+  flipbookColumns: 1
+  maxTextureSizeSet: 0
+  compressionQualitySet: 0
+  textureFormatSet: 0
+  ignorePngGamma: 0
+  applyGammaDecoding: 0
+  swizzle: 50462976
+  cookieLightType: 0
+  platformSettings:
+  - serializedVersion: 4
+    buildTarget: DefaultTexturePlatform
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 0
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  - serializedVersion: 4
+    buildTarget: Standalone
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  spriteSheet:
+    serializedVersion: 2
+    sprites:
+    - serializedVersion: 2
+      name: SubmenuButtons_0
+      rect:
+        serializedVersion: 2
+        x: 144
+        y: 1450
+        width: 93
+        height: 46
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: c95dfb71be30f42d0800000000000000
+      internalID: -3292408494333897316
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: SubmenuButtons_1
+      rect:
+        serializedVersion: 2
+        x: 240
+        y: 1431
+        width: 175
+        height: 71
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 1b98a5684b7d318b0800000000000000
+      internalID: -5182561575825143375
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: SubmenuButtons_2
+      rect:
+        serializedVersion: 2
+        x: 382
+        y: 1465
+        width: 11
+        height: 11
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: c40e71b8cc34492d0800000000000000
+      internalID: -3272916483405520820
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: SubmenuButtons_3
+      rect:
+        serializedVersion: 2
+        x: 414
+        y: 1473
+        width: 9
+        height: 15
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 5489b7b65c3269250800000000000000
+      internalID: 5950983288435480645
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: SubmenuButtons_4
+      rect:
+        serializedVersion: 2
+        x: 600
+        y: 1462
+        width: 89
+        height: 65
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 8b9f57bd4544d5e70800000000000000
+      internalID: 9105509152862894520
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: SubmenuButtons_5
+      rect:
+        serializedVersion: 2
+        x: 680
+        y: 1431
+        width: 9
+        height: 23
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 952c67dbe40349150800000000000000
+      internalID: 5878376528369599065
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: SubmenuButtons_6
+      rect:
+        serializedVersion: 2
+        x: 724
+        y: 1453
+        width: 155
+        height: 65
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 14f5daebf54010760800000000000000
+      internalID: 7422218470150725441
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: SubmenuButtons_7
+      rect:
+        serializedVersion: 2
+        x: 30
+        y: 1289
+        width: 964
+        height: 143
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 5736e2dc6e34db7d0800000000000000
+      internalID: -2901087926392822923
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: SubmenuButtons_8
+      rect:
+        serializedVersion: 2
+        x: 32
+        y: 1133
+        width: 959
+        height: 118
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 1650a54c775e03c90800000000000000
+      internalID: -7191996302352579231
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: SubmenuButtons_9
+      rect:
+        serializedVersion: 2
+        x: 32
+        y: 971
+        width: 961
+        height: 134
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 2438a17a61c1aa4b0800000000000000
+      internalID: -5428495517223320766
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: SubmenuButtons_10
+      rect:
+        serializedVersion: 2
+        x: 32
+        y: 777
+        width: 961
+        height: 177
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: aff070c0f28f34730800000000000000
+      internalID: 3982299376474591226
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: SubmenuButtons_11
+      rect:
+        serializedVersion: 2
+        x: 32
+        y: 615
+        width: 961
+        height: 159
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 7828e2a186450e750800000000000000
+      internalID: 6332153882175505031
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: SubmenuButtons_12
+      rect:
+        serializedVersion: 2
+        x: 34
+        y: 465
+        width: 960
+        height: 151
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: bdace6e6353fc7f20800000000000000
+      internalID: 3421877356555324123
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: SubmenuButtons_13
+      rect:
+        serializedVersion: 2
+        x: 30
+        y: 305
+        width: 476
+        height: 130
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 02b7f85a873126980800000000000000
+      internalID: -8547247733901133024
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: SubmenuButtons_14
+      rect:
+        serializedVersion: 2
+        x: 505
+        y: 315
+        width: 488
+        height: 121
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: dcaa9a02370584320800000000000000
+      internalID: 2542370445050096333
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: SubmenuButtons_15
+      rect:
+        serializedVersion: 2
+        x: 33
+        y: 0
+        width: 960
+        height: 296
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: afb8497b13aa054f0800000000000000
+      internalID: -841985999808197638
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: SubmenuButtons_16
+      rect:
+        serializedVersion: 2
+        x: 408
+        y: 51
+        width: 13
+        height: 15
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 8d39643f801eb5010800000000000000
+      internalID: 1178783156044993496
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: SubmenuButtons_17
+      rect:
+        serializedVersion: 2
+        x: 424
+        y: 65
+        width: 7
+        height: 9
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: e20205a88209eb530800000000000000
+      internalID: 3872691233378803758
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: SubmenuButtons_18
+      rect:
+        serializedVersion: 2
+        x: 624
+        y: 69
+        width: 9
+        height: 12
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 9baca551d244c9860800000000000000
+      internalID: 7537974836733856441
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: SubmenuButtons_19
+      rect:
+        serializedVersion: 2
+        x: 686
+        y: 49
+        width: 17
+        height: 17
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 5e4674f78bcb1e230800000000000000
+      internalID: 3666419072251684069
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: SubmenuButtons_20
+      rect:
+        serializedVersion: 2
+        x: 718
+        y: 89
+        width: 19
+        height: 17
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 474a6ca15252fb810800000000000000
+      internalID: 1783184818755249268
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    outline: []
+    customData: 
+    physicsShape: []
+    bones: []
+    spriteID: 
+    internalID: 0
+    vertices: []
+    indices: 
+    edges: []
+    weights: []
+    secondaryTextures: []
+    spriteCustomMetadata:
+      entries: []
+    nameFileIdTable:
+      SubmenuButtons_0: -3292408494333897316
+      SubmenuButtons_1: -5182561575825143375
+      SubmenuButtons_10: 3982299376474591226
+      SubmenuButtons_11: 6332153882175505031
+      SubmenuButtons_12: 3421877356555324123
+      SubmenuButtons_13: -8547247733901133024
+      SubmenuButtons_14: 2542370445050096333
+      SubmenuButtons_15: -841985999808197638
+      SubmenuButtons_16: 1178783156044993496
+      SubmenuButtons_17: 3872691233378803758
+      SubmenuButtons_18: 7537974836733856441
+      SubmenuButtons_19: 3666419072251684069
+      SubmenuButtons_2: -3272916483405520820
+      SubmenuButtons_20: 1783184818755249268
+      SubmenuButtons_3: 5950983288435480645
+      SubmenuButtons_4: 9105509152862894520
+      SubmenuButtons_5: 5878376528369599065
+      SubmenuButtons_6: 7422218470150725441
+      SubmenuButtons_7: -2901087926392822923
+      SubmenuButtons_8: -7191996302352579231
+      SubmenuButtons_9: -5428495517223320766
+  mipmapLimitGroupName: 
+  pSDRemoveMatte: 0
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 

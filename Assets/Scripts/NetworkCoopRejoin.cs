@@ -41,6 +41,12 @@ namespace SecretsReborn
             int report = Array.IndexOf(args,"--rejoin-report");
             int lateReport = Array.IndexOf(args,"--late-join-report");
             int economyReport = Array.IndexOf(args,"--economy-report");
+            int uiReport = Array.IndexOf(args,"--game-ui-report");
+            int lobbyUiReport = Array.IndexOf(args,"--lobby-ui-report");
+            if(Debug.isDebugBuild && Array.IndexOf(args,"--game-ui-role")>=0 && uiReport>=0 && uiReport+1<args.Length)
+                return "SecretsReborn.Test.GameUI."+args[uiReport+1]+"."+ip;
+            if(Debug.isDebugBuild && lobbyUiReport>=0 && lobbyUiReport+1<args.Length)
+                return "SecretsReborn.Test.LobbyUI."+args[lobbyUiReport+1]+"."+ip;
             if (Debug.isDebugBuild && Array.IndexOf(args,"--economy-role") >= 0 && economyReport >= 0 && economyReport + 1 < args.Length)
                 return "SecretsReborn.Test.Economy." + args[economyReport+1] + "." + ip;
             if (Debug.isDebugBuild && Array.IndexOf(args,"--late-join-role") >= 0 && lateReport >= 0 && lateReport + 1 < args.Length)

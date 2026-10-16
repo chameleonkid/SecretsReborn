@@ -15,7 +15,7 @@ namespace SecretsReborn
         }
         private void OnGUI()
         {
-            if (!Debug.isDebugBuild || actor==null || !actor.LocalInput) return;
+            if (!Debug.isDebugBuild || actor==null || !actor.LocalInput || GameUiStyle.LocalOverlayOpen) return;
             bool previous=GUI.enabled; GUI.enabled=previous && Available;
             if (GUI.Button(new Rect(12,Screen.height-42,250,28),"F5 · 100 % Crits: "+(actor.ForceCritsForTesting ? "AN" : "AUS")))
                 GameSession.Instance.SetCritTestMode(actor,!actor.ForceCritsForTesting);

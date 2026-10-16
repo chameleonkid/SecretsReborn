@@ -7,7 +7,7 @@ namespace SecretsReborn
         private void OnGUI()
         {
             var camera = Camera.main;
-            if (camera == null || SaveBook.IsOpen || GameSession.Instance.Busy) return;
+            if (camera == null || GameUiStyle.LocalOverlayOpen) return;
             if (label == null) label = new GUIStyle(GUI.skin.label) { alignment = TextAnchor.MiddleCenter, fontSize = 14, fontStyle = FontStyle.Bold };
             foreach (var actor in FindObjectsByType<CharacterInventory>(FindObjectsSortMode.None))
             {

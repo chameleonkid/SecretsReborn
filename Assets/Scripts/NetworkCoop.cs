@@ -72,7 +72,7 @@ namespace SecretsReborn
             manager.NetworkConfig = new NetworkConfig
             {
                 NetworkTransport = transport, EnableSceneManagement = false,
-                ConnectionApproval = true, ProtocolVersion = 16, TickRate = 30,
+                ConnectionApproval = true, ProtocolVersion = 17, TickRate = 30,
                 ForceSamePrefabs = false, ClientConnectionBufferTimeout = 10
             };
             manager.ConnectionApprovalCallback = Approve;
@@ -429,7 +429,7 @@ namespace SecretsReborn
                 var snapshot = JsonUtility.FromJson<CoopSnapshot>(json);
                 // A guest may join a running host after earlier area transitions.
                 if (!ChangingArea && receivedSnapshot == 0 && snapshot != null && snapshot.areaEpoch >= 0) areaEpoch = snapshot.areaEpoch;
-                if (snapshot == null || snapshot.protocol != 26 || snapshot.sequence <= receivedSnapshot || snapshot.actors == null
+                if (snapshot == null || snapshot.protocol != CoopProtocol.Version || snapshot.sequence <= receivedSnapshot || snapshot.actors == null
                     || snapshot.actors.Length > 4 || snapshot.areaEpoch != areaEpoch || snapshot.scene != SceneManager.GetActiveScene().path
                     || ChangingArea && !areaLocalReady) return;
                 CoopProtocol.RestoreWireEmptySlots(snapshot.world);
@@ -537,12 +537,13 @@ namespace SecretsReborn
         {
             DrawJoinAnnouncements();
             if (JoiningSession) { DrawRejoin(); return; }
-            if (LobbyActive) { DrawLobby(); return; }
+            if (LobbyActive) { if(LobbyCanvasView.Active?.Visible!=true) DrawLobby(); return; }
             if (SceneManager.GetActiveScene().path == MenuScene && !ChangingArea) return;
             if (VotePending) { DrawVote(); return; }
             if (ChangingArea) GUI.Box(new Rect(Screen.width / 2f - 180, 70, 360, 42), "Gebiet wird gemeinsam geladen …");
             if (!panel)
             {
+                if(GameUiStyle.LocalOverlayOpen) return;
                 if (GUI.Button(new Rect(Screen.width - 155, 12, 140, 28), Running ? "Koop aktiv · F6" : "Koop-Test · F6")) panel = true;
                 return;
             }

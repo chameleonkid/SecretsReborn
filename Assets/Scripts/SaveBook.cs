@@ -52,7 +52,6 @@ namespace SecretsReborn
             else SelectNetwork(slot, load);
         }
         private string message;
-        private Texture2D pages;
         private readonly SaveGameData[] summaries = new SaveGameData[3];
         private readonly bool[] occupied = new bool[3];
         private readonly string[] slotErrors = new string[3];
@@ -165,7 +164,7 @@ namespace SecretsReborn
         {
             if (heading != null) return;
             heading = new GUIStyle(GUI.skin.label) { fontSize = 30, fontStyle = FontStyle.Bold, wordWrap = true };
-            heading.normal.textColor = new Color(.22f, .15f, .08f);
+            heading.normal.textColor = GameUiStyle.Text;
             ink = new GUIStyle(heading) { fontSize = 18, fontStyle = FontStyle.Normal };
             smallInk = new GUIStyle(ink) { fontSize = 14 };
             centered = new GUIStyle(ink) { alignment = TextAnchor.MiddleCenter, fontStyle = FontStyle.Bold };
@@ -183,8 +182,8 @@ namespace SecretsReborn
         }
         private bool PaperButton(Rect rect, string label, bool active = false)
         {
-            Fill(rect, active ? new Color(.77f, .67f, .41f) : new Color(.84f, .79f, .63f));
-            Frame(rect, new Color(.42f, .32f, .16f), active ? 3 : 1);
+            Fill(rect, active ? new Color(.16f,.23f,.12f,.9f) : GameUiStyle.Slot);
+            Frame(rect, GameUiStyle.Gold, active ? 2 : 1);
             GUI.Label(rect, label, centered);
             return GUI.Button(rect, GUIContent.none, GUIStyle.none);
         }
@@ -192,20 +191,19 @@ namespace SecretsReborn
         {
             if (!open)
             {
-                if (!IsOpen && (NetworkCoop.Running ? CanOpenNetwork(NetworkCoop.Active.LocalCharacter) : actor != null))
-                    GUI.Box(new Rect(Screen.width / 2 - 170, Screen.height - 125, 340, 35), "E / A: Speicherbuch öffnen");
+                if (!IsOpen && !GameUiStyle.LocalOverlayOpen && (NetworkCoop.Running ? CanOpenNetwork(NetworkCoop.Active.LocalCharacter) : actor != null))
+                    GameUiStyle.Hint(new Rect(Screen.width / 2 - 170, Screen.height - 125, 340, 35), "E / A: Speicherbuch öffnen");
                 return;
             }
             Styles();
             bool previousEnabled = GUI.enabled;
             if (NetworkCoop.Running) GUI.enabled = NetworkCoop.Active.CanControlBook;
-            if (pages == null) pages = Resources.Load<Texture2D>("InventoryUI/ForestSaveBook");
-            Fill(new Rect(0, 0, Screen.width, Screen.height), new Color(0, 0, 0, .55f));
+            Fill(new Rect(0, 0, Screen.width, Screen.height), new Color(0, 0, 0, .25f));
             var old = GUI.matrix;
             float scale = Mathf.Min((Screen.width - 24) / 900f, (Screen.height - 24) / 630f);
             GUI.matrix = Matrix4x4.TRS(new Vector3((Screen.width - 900 * scale) / 2, (Screen.height - 630 * scale) / 2), Quaternion.identity, Vector3.one * scale);
-            // Keep the original square book aspect ratio, with all controls within the pages.
-            if (pages != null) GUI.DrawTexture(new Rect(0, 0, 900, 600), pages, ScaleMode.ScaleToFit);
+            GameUiStyle.Panel(new Rect(0,0,900,620));
+            GameUiStyle.Fill(new Rect(445,65,1,465),new Color(.78f,.65f,.34f,.35f));
 
 
 
@@ -234,8 +232,8 @@ namespace SecretsReborn
             for (int i = 0; i < SlotCount; i++)
             {
                 var rect = new Rect(490, 130 + i * 115, 275, 110);
-                Fill(rect, selected == i ? new Color(.65f, .45f, .16f, .23f) : new Color(.65f, .45f, .16f, .08f));
-                Frame(rect, selected == i ? new Color(.54f, .36f, .08f) : new Color(.63f, .56f, .4f), selected == i ? 3 : 1);
+                Fill(rect, selected == i ? new Color(.16f,.23f,.12f,.75f) : GameUiStyle.Slot);
+                Frame(rect, selected == i ? GameUiStyle.Gold : new Color(.4f,.44f,.32f,.65f), selected == i ? 2 : 1);
                 GUI.Label(new Rect(rect.x + 12, rect.y + 7, 250, 25), "SPEICHERPLATZ " + (i + 1), centered);
                 var data = summaries[i];
                 string details = slotErrors[i] ?? SaveSlotLabel.Details(data);

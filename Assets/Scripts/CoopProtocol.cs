@@ -17,7 +17,7 @@ namespace SecretsReborn
     }
     [Serializable] public sealed class CoopHello
     {
-        public int protocol = 26;
+        public int protocol = CoopProtocol.Version;
         public string characterToken, scene, playerName;
     }
     [Serializable] public sealed class CoopActorPose
@@ -46,7 +46,7 @@ namespace SecretsReborn
     }
     [Serializable] public sealed class CoopSnapshot
     {
-        public int protocol = 26;
+        public int protocol = CoopProtocol.Version;
         public long sequence;
         public int areaEpoch;
         public string localCharacter, scene;
@@ -68,11 +68,16 @@ namespace SecretsReborn
         public string scene;
         public bool load, answer, cancel;
         public bool retry, initialCheckpoint;
+        public bool progress;
+        public CoopVotePlayer[] players;
     }
+    [Serializable] public sealed class CoopVotePlayer
+    { public ulong client; public string name; public bool accepted; }
     // Pure boundary checks: sender-to-character ownership is resolved by the host,
     // never from a character ID, damage amount or position supplied in a command.
     public static class CoopProtocol
     {
+        public const int Version = 27;
         public const int MaximumPlayers = 4;
         public static bool MatchesAreaReady(CoopAreaMessage ready, CoopAreaMessage expected) => ready != null && expected != null
             && ready.epoch == expected.epoch && ready.scene == expected.scene && ready.load == expected.load
@@ -101,7 +106,7 @@ namespace SecretsReborn
                         if (character.potionItems[i] == "") character.potionItems[i] = null;
             }
         }
-        public static bool ValidHello(CoopHello hello, string scene) => hello != null && hello.protocol == 26
+        public static bool ValidHello(CoopHello hello, string scene) => hello != null && hello.protocol == Version
             && hello.scene == scene && Guid.TryParseExact(hello.characterToken, "N", out _);
         public static bool Valid(CoopCommand command)
         {

@@ -8,6 +8,7 @@ namespace SecretsReborn
         private static Texture2D atlas;
         private static Texture2D glyphs;
         public static void Panel(Rect area) => Draw(area, new Rect(0, .52f, .5f, .48f), 27, true);
+        public static void PanelFrame(Rect area) => Draw(area,new Rect(0,.52f,.5f,.48f),27,true,true);
         public static void Leather(Rect area)
         {
             if (atlas == null) atlas = Resources.Load<Texture2D>("InventoryUI/ForestInventoryAtlas");
@@ -31,7 +32,7 @@ namespace SecretsReborn
         public static void Slot(Rect area, bool selected) => Draw(area,
             selected ? new Rect(0, .036f, .5f, .484f) : new Rect(.5f, .52f, .5f, .48f), 7);
         public static void Button(Rect area) => Draw(area, new Rect(.5f, .036f, .5f, .484f), 9, true);
-        private static void Draw(Rect area, Rect source, float edge, bool tile = false)
+        private static void Draw(Rect area, Rect source, float edge, bool tile = false,bool skipCenter=false)
         {
             if (atlas == null) atlas = Resources.Load<Texture2D>("InventoryUI/ForestInventoryAtlas");
             if (atlas == null) return;
@@ -44,6 +45,7 @@ namespace SecretsReborn
             for (int row = 0; row < 3; row++)
                 for (int col = 0; col < 3; col++)
                 {
+                    if(skipCenter && row==1 && col==1) continue;
                     var target = new Rect(x[col], y[row], x[col + 1] - x[col], y[row + 1] - y[row]);
                     var uv = new Rect(u[col], v[row + 1], u[col + 1] - u[col], v[row] - v[row + 1]);
                     if (!tile || (row != 1 && col != 1)) GUI.DrawTextureWithTexCoords(target, atlas, uv);

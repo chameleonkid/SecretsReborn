@@ -28,6 +28,37 @@ namespace SecretsReborn
         private bool creatorOpen;
         private CharacterCreatorSelection creator = new CharacterCreatorSelection();
         public LobbyState Lobby => lobbyView;
+        public bool LobbyIsHost => manager!=null && manager.IsServer;
+        public bool LobbyConnectedLocally => manager!=null && manager.IsConnectedClient;
+        public ulong LobbyClientId => manager!=null ? manager.LocalClientId : ulong.MaxValue;
+        public string LobbySelection => lobbyLocalCharacter;
+        public bool LobbyCreating => creatorOpen;
+        public string LobbyPendingDeletion => deleteCharacter;
+        public CharacterCreatorSelection LobbyCreator => creator;
+        public string LobbyCharacterName { get=>lobbyCharacterName; set=>lobbyCharacterName=value; }
+        public bool LobbyReady
+        { get { foreach(var p in lobbyView.players) if(p.client==LobbyClientId) return p.ready; return false; } }
+        public bool LobbyCanStart
+        { get { if(!LobbyIsHost || lobbyView.players.Length==0) return false; foreach(var p in lobbyView.players) if(!p.ready || string.IsNullOrEmpty(p.character)) return false; return true; } }
+        public void BeginLobbyCreator()
+        {
+            if(!LobbyActive || !LobbyConnectedLocally || !string.IsNullOrEmpty(lobbyLocalCharacter) || lobbyView.characters.Length>=4) return;
+            creator=new CharacterCreatorSelection(); creatorOpen=true;
+        }
+        public void CancelLobbyDialog() { creatorOpen=false; deleteCharacter=null; }
+        public void CreateLobbyCharacter()
+        {
+            if(!creatorOpen || string.IsNullOrWhiteSpace(lobbyCharacterName) || !string.IsNullOrEmpty(lobbyLocalCharacter) || lobbyView.characters.Length>=4) return;
+            var p=creator.Profile(lobbyCharacterName);
+            ChooseLobbyCharacter(null,lobbyCharacterName,hair:p.hairColor,eyes:p.eyeColor,bodyStyle:p.bodyStyle,hairStyle:p.hairStyle,eyeStyle:p.eyeStyle); creatorOpen=false;
+        }
+        public void RequestLobbyDelete(string id)
+        {
+            if(!LobbyActive || !LobbyIsHost || id==null || id==lobbyView.founder) return;
+            foreach(var p in lobbyView.players) if(p.character==id) return;
+            foreach(var c in lobbyView.characters) if(c.id==id) { deleteCharacter=id; return; }
+        }
+        public void ConfirmLobbyDelete() { if(deleteCharacter!=null) DeleteLobbyCharacter(deleteCharacter); }
 
         public bool OpenLobby(bool host, string ip, string playerName, WorldSessionState world = null, bool resume = true)
         {
@@ -121,8 +152,9 @@ namespace SecretsReborn
             if (manager.IsServer) ApplyLobbyCommand(0, command);
             else Send("sr.lobby-command", 0, JsonUtility.ToJson(command));
         }
-        private void ClearLobbySelection()
+        public void ClearLobbySelection()
         {
+            if(!LobbyActive || !LobbyConnectedLocally) return;
             var command = new LobbyCommand { clear = true };
             if (manager.IsServer) ApplyLobbyCommand(0, command);
             else Send("sr.lobby-command", 0, JsonUtility.ToJson(command));

@@ -4,6 +4,7 @@ namespace SecretsReborn
     public static class MenuArt
     {
         private static Texture2D background;
+        private static Texture2D quietBackground;
         private static GUIStyle button;
         public static bool BlockInput;
         private static readonly Material[] eyeMaterials = new Material[4];
@@ -11,6 +12,18 @@ namespace SecretsReborn
         {
             if (background == null) background = Resources.Load<Texture2D>("MenuUI/ForestMenuBackdrop");
             if (background != null) GUI.DrawTexture(new Rect(0,0,Screen.width,Screen.height), background, ScaleMode.ScaleAndCrop);
+        }
+        public static void QuietBackdrop()
+        {
+            if(quietBackground==null) quietBackground=Resources.Load<Texture2D>("MenuUI/QuietHome/Backdrop");
+            if(quietBackground!=null) GUI.DrawTexture(new Rect(0,0,Screen.width,Screen.height),quietBackground,ScaleMode.ScaleAndCrop);
+            else Backdrop();
+        }
+        public static void QuietPanel(Rect area)
+        {
+            var color=GUI.color; GUI.color=new Color(.025f,.045f,.038f,.78f);
+            GUI.DrawTexture(new Rect(area.x+20,area.y+20,area.width-40,area.height-40),Texture2D.whiteTexture);
+            GUI.color=color; ForestInventorySkin.PanelFrame(area);
         }
         public static GUIStyle Label(int size = 16, TextAnchor alignment = TextAnchor.UpperLeft)
         {

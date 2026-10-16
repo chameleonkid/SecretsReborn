@@ -2,25 +2,31 @@
 
 Seit 9. Oktober 2026 verwenden Inventar, Shared Stash sowie Revive-HUD
 Canvas/uGUI statt OnGUI. Die Item-, Savegame- und Host-Transferlogik bleibt
-getrennt von der Darstellung. Hauptmenü, Speicherbuch und andere bisherige
-Menüs sind damit noch nicht auf Canvas umgestellt.
+getrennt von der Darstellung. Das [Hauptmenü samt zehn Unterseiten und Multiplayer-Lobby](main-menu.md)
+steht seit 15. Oktober ebenfalls als Canvas direkt in seiner Szene. Diese Menüs
+passen vollständig ohne Scrollen in ihre Rahmen. Seit 16. Oktober verwenden
+auch die Spieloberflächen einen [gemeinsamen Stil](unified-game-ui.md).
+Inventar und Lager besitzen deckende, eigens erstellte Schiefer-/Goldgrafiken
+nach dem Inventar im älteren Secrets-Repository.
 
 ## Das richtige Prefab öffnen
 
 Im Project-Fenster **Assets → Resources → InventoryUI → InventoryCanvas**
 doppelklicken. Im Prefab-Modus sind diese Gruppen editierbar:
 
-- **InventoryPanel:** Ausrüstung, Rucksack, Gold, frontale
+- **Inventory safe area → InventoryPanel:** Ausrüstung, Rucksack, Gold, frontale
   Charaktervorschau, Beschreibung und Buttons.
-- **SharedStashPanel:** eigener Rucksack links, gemeinsames Lager rechts.
+- **Stash safe area → SharedStashPanel:** eigener Rucksack links, gemeinsames Lager rechts.
   Für die Vorschau InventoryPanel deaktivieren und SharedStashPanel aktivieren.
 - **PotionAndReviveHUD:** situationsabhängiger Revive-Hinweis; der alte Trank-HUD ist deaktiviert.
 
-Position und Größe über **Rect Transform**, Rahmen über **Image**, Texte und
-Schriftgrößen über **Text** ändern. Die Canvas-Referenzauflösung ist 1040 × 600;
-Canvas Scaler passt die Oberfläche an andere Auflösungen an. Rahmen verwenden
-Sprite-Borders und gekachelte Flächen, damit die Ornamente nicht als gesamtes
-Bild gestreckt werden. Grafikimporte bleiben Point, ohne Kompression/Mipmaps.
+Position und Größe über **Rect Transform**, Hintergrund über das
+Panel-**Image → Source Image**, Slotrahmen über **Quiet border → Quiet Menu Frame Graphic**, Texte
+über **Text** ändern. Referenzauflösung 1040 × 600, Expand; Canvas Scaler und
+Safe-Area-Fit passen die Oberfläche proportional mit Randabstand ein. Die
+Panelgrafiken liegen unter **InventoryUI/SlateGold** und bleiben vollständig deckend.
+Die geometrischen Slotrahmen benötigen einen CanvasRenderer. Itemgrafiken bleiben
+Point, ohne Kompression/Mipmaps.
 
 Das Canvas wird zur Laufzeit für die lokal gesteuerte Figur aus Resources
 instanziiert. Es muss nicht zusätzlich in jede Gebietsszene gelegt werden.
@@ -33,7 +39,10 @@ Layoutänderungen am Prefab außerhalb von Play vornehmen.
 ItemIcon ist zentriert; seine konfigurierte Größe bestimmt die maximale
 Icon-Fläche. Der sichtbare Item-Ausschnitt wird darin mit erhaltenem
 Seitenverhältnis eingepasst. EmptyGlyph zeigt bei Equipment leere graue Icons,
-Selection den ausgewählten Slot und Quality die Seltenheitsfarbe.
+Selection den ausgewählten Slot und Quality die Seltenheitsfarbe, jeweils über
+ihren Quiet-border-Unterknoten. Selection/Image ergänzt eine dezente goldene
+Fläche; Selection/Quiet border zeichnet den kräftigen Goldrand. Die alten
+gesliceten Waldrahmen werden nicht mehr verwendet.
 Einzelne Canvas-Slots besitzen Overrides, etwa ihr Equipment-Icon und ihre Position.
 
 Die sechs PortraitLayer bilden Körper, Augen, Haare und Equipment frontal ab.
